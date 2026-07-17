@@ -108,3 +108,12 @@
 .vmd-align-group { display: flex; gap: 4px; }
 .vmd-padding-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
 .vmd-social-row { padding: 8px; margin-bottom: 8px; border: 1px solid var(--vmd-border); border-radius: 6px; }
+
+.vmd-toolbar-group { display: flex; gap: 6px; }
+.vmd-toolbar-spacer { flex: 1; }
+.vmd-modal { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.5); }
+.vmd-modal-box { background: var(--vmd-panel); border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.3); overflow: hidden; }
+.vmd-preview-box { width: 90vw; max-width: 900px; height: 88vh; display: flex; flex-direction: column; }
+.vmd-preview-bar { display: flex; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid var(--vmd-border); }
+.vmd-preview-stage { flex: 1; overflow: auto; display: flex; justify-content: center; padding: 20px; background: #e4e4e7; }
+.vmd-preview-frame { height: 100%; border: 0; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,.15); transition: width .2s; }
