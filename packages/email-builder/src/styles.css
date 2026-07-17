@@ -47,3 +47,33 @@
 .vmd-btn:hover { border-color: var(--vmd-accent); }
 .vmd-btn:disabled { opacity: 0.4; cursor: default; }
 .vmd-btn--primary { background: var(--vmd-accent); border-color: var(--vmd-accent); color: #fff; }
+
+.vmd-palette-title { margin: 12px 0 8px; font-size: 12px; text-transform: uppercase; color: var(--vmd-muted); }
+.vmd-palette-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.vmd-palette-item {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 10px 4px; border: 1px solid var(--vmd-border); border-radius: 8px;
+  background: var(--vmd-bg); cursor: grab; font-size: 12px; text-align: center;
+}
+.vmd-palette-item:hover { border-color: var(--vmd-accent); }
+.vmd-palette-icon { font-size: 16px; }
+.vmd-canvas-page { margin: 0 auto; max-width: 100%; min-height: 200px; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+.vmd-canvas-empty { padding: 48px 16px; text-align: center; color: var(--vmd-muted); }
+.vmd-canvas-rows { min-height: 40px; }
+.vmd-row { position: relative; border: 1px dashed transparent; }
+.vmd-row:hover { border-color: var(--vmd-border); }
+.vmd-row.vmd-selected { border: 1px solid var(--vmd-accent); }
+.vmd-row-actions { position: absolute; top: -12px; right: 8px; z-index: 5; display: flex; gap: 4px; }
+.vmd-mini-btn {
+  width: 24px; height: 24px; border: 1px solid var(--vmd-border); border-radius: 4px;
+  background: var(--vmd-panel); color: var(--vmd-fg); cursor: pointer; font-size: 12px;
+}
+.vmd-mini-btn--danger:hover { border-color: var(--vmd-danger); color: var(--vmd-danger); }
+.vmd-row-columns { display: flex; }
+.vmd-column { min-height: 40px; }
+.vmd-column-blocks { min-height: 24px; }
+.vmd-column-empty { padding: 12px; margin: 4px; text-align: center; font-size: 12px; color: var(--vmd-muted); border: 1px dashed var(--vmd-border); border-radius: 6px; }
+.vmd-block { position: relative; border: 1px dashed transparent; cursor: pointer; }
+.vmd-block:hover { border-color: var(--vmd-border); }
+.vmd-block.vmd-selected { border: 1px solid var(--vmd-accent); }
+.vmd-ghost { opacity: 0.5; outline: 2px dashed var(--vmd-accent); }
