@@ -97,3 +97,14 @@
 .vmd-rte .ProseMirror { outline: none; min-height: 40px; padding: 4px; border: 1px solid var(--vmd-border); border-top: 0; border-radius: 0 0 6px 6px; }
 .vmd-active { border-color: var(--vmd-accent); color: var(--vmd-accent); }
 .vmd-rte-tags { font-size: 12px; border: 1px solid var(--vmd-border); border-radius: 4px; background: var(--vmd-panel); color: var(--vmd-fg); }
+.vmd-inspector-title { margin: 4px 0 12px; font-size: 13px; text-transform: uppercase; color: var(--vmd-muted); }
+.vmd-field { display: block; margin-bottom: 10px; }
+.vmd-field-label { display: block; margin-bottom: 4px; font-size: 12px; color: var(--vmd-muted); }
+.vmd-field-input { width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid var(--vmd-border); border-radius: 6px; background: var(--vmd-bg); color: var(--vmd-fg); font-size: 13px; }
+.vmd-field-color { display: flex; gap: 6px; align-items: center; }
+.vmd-field-color input[type='color'] { width: 32px; height: 32px; padding: 0; border: 1px solid var(--vmd-border); border-radius: 6px; background: none; }
+.vmd-field-code { font-family: ui-monospace, monospace; font-size: 12px; }
+.vmd-field-hint { font-size: 12px; color: var(--vmd-muted); }
+.vmd-align-group { display: flex; gap: 4px; }
+.vmd-padding-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.vmd-social-row { padding: 8px; margin-bottom: 8px; border: 1px solid var(--vmd-border); border-radius: 6px; }
