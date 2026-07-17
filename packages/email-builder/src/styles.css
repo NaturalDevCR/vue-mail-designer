@@ -117,3 +117,10 @@
 .vmd-preview-bar { display: flex; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid var(--vmd-border); }
 .vmd-preview-stage { flex: 1; overflow: auto; display: flex; justify-content: center; padding: 20px; background: #e4e4e7; }
 .vmd-preview-frame { height: 100%; border: 0; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,.15); transition: width .2s; }
+
+.vmd-gallery-box { width: 90vw; max-width: 800px; max-height: 88vh; display: flex; flex-direction: column; }
+.vmd-gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; padding: 16px; overflow: auto; }
+.vmd-gallery-card { display: flex; flex-direction: column; gap: 8px; padding: 10px; border: 1px solid var(--vmd-border); border-radius: 8px; background: var(--vmd-bg); color: var(--vmd-fg); cursor: pointer; }
+.vmd-gallery-card:hover { border-color: var(--vmd-accent); }
+.vmd-gallery-card img, .vmd-gallery-thumb { width: 100%; height: 100px; border-radius: 6px; object-fit: cover; }
+.vmd-gallery-thumb { display: flex; align-items: center; justify-content: center; font-size: 32px; background: var(--vmd-panel); color: var(--vmd-muted); }

@@ -6,6 +6,7 @@
       <BuilderCanvas />
       <InspectorPanel />
     </div>
+    <TemplateGallery v-if="ui.galleryOpen" />
   </div>
 </template>
 
@@ -15,15 +16,18 @@ import { provide, reactive } from 'vue'
 import { BUILDER_OPTIONS_KEY, type MergeTagDef } from '../options'
 import { BUILDER_PINIA_KEY } from '../store/keys'
 import { useUiStore } from '../store/ui'
+import type { EmailTemplate } from '../templates'
 import BlockPalette from './BlockPalette.vue'
 import BuilderCanvas from './BuilderCanvas.vue'
 import BuilderToolbar from './BuilderToolbar.vue'
 import InspectorPanel from './InspectorPanel.vue'
+import TemplateGallery from './TemplateGallery.vue'
 import '../styles.css'
 
 const props = defineProps<{
   mergeTags?: MergeTagDef[]
   uploadImage?: (file: File) => Promise<string>
+  templates?: EmailTemplate[]
 }>()
 
 const pinia = createPinia()
@@ -40,6 +44,9 @@ provide(
     },
     get uploadImage() {
       return props.uploadImage
+    },
+    get templates() {
+      return props.templates
     },
   }),
 )
