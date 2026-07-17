@@ -13,6 +13,7 @@ export default defineConfig({
       fileName: 'index',
       cssFileName: 'vue-mail-designer',
     },
+    commonjsOptions: { esmExternals: ['vue', 'pinia'] },
     rollupOptions: { external: ['vue', 'pinia'] },
   },
   test: {
