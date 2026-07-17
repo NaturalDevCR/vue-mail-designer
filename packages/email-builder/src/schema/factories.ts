@@ -1,0 +1,114 @@
+import { createId } from './ids'
+import type { Block, BlockType, Column, EmailDocument, Padding, Row } from './document'
+
+export const BLOCK_TYPES: BlockType[] = [
+  'heading',
+  'text',
+  'image',
+  'button',
+  'divider',
+  'spacer',
+  'social',
+  'menu',
+  'html',
+  'video',
+]
+
+function pad(top: number, right: number, bottom: number, left: number): Padding {
+  return { top, right, bottom, left }
+}
+
+export function createDocument(): EmailDocument {
+  return {
+    version: 1,
+    settings: {
+      contentWidth: 600,
+      backgroundColor: '#f4f4f5',
+      fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif",
+      preheader: '',
+    },
+    rows: [],
+  }
+}
+
+export function createColumn(widthPct: number): Column {
+  return {
+    id: createId('col'),
+    widthPct,
+    style: { backgroundColor: 'transparent', padding: pad(0, 0, 0, 0) },
+    blocks: [],
+  }
+}
+
+export function createRow(widths: number[]): Row {
+  return {
+    id: createId('row'),
+    style: { backgroundColor: '#ffffff', padding: pad(8, 0, 8, 0), borderRadius: 0 },
+    columns: widths.map((w) => createColumn(w)),
+  }
+}
+
+export function createBlock(type: BlockType): Block {
+  const id = createId('blk')
+  switch (type) {
+    case 'heading':
+      return {
+        id, type, text: 'Escribe un título', level: 1,
+        style: { color: '#111827', fontSize: 28, align: 'left', padding: pad(12, 24, 12, 24) },
+      }
+    case 'text':
+      return {
+        id, type, html: '<p>Escribe aquí tu texto.</p>',
+        style: { color: '#374151', fontSize: 14, lineHeight: 1.6, padding: pad(8, 24, 8, 24) },
+      }
+    case 'image':
+      return {
+        id, type, src: '', alt: '', widthPct: 100, align: 'center',
+        style: { padding: pad(8, 24, 8, 24) },
+      }
+    case 'button':
+      return {
+        id, type, label: 'Haz clic aquí', href: 'https://example.com', align: 'center',
+        style: {
+          backgroundColor: '#3b82f6', color: '#ffffff', fontSize: 14,
+          borderRadius: 6, innerPaddingX: 24, innerPaddingY: 12, padding: pad(12, 24, 12, 24),
+        },
+      }
+    case 'divider':
+      return {
+        id, type,
+        style: { color: '#e5e7eb', thickness: 1, widthPct: 100, padding: pad(12, 24, 12, 24) },
+      }
+    case 'spacer':
+      return { id, type, height: 24 }
+    case 'social':
+      return {
+        id, type,
+        networks: [
+          { kind: 'facebook', url: 'https://facebook.com/' },
+          { kind: 'instagram', url: 'https://instagram.com/' },
+          { kind: 'x', url: 'https://x.com/' },
+        ],
+        iconSize: 32, spacing: 8, align: 'center',
+        style: { padding: pad(12, 24, 12, 24) },
+      }
+    case 'menu':
+      return {
+        id, type,
+        items: [
+          { label: 'Inicio', href: 'https://example.com' },
+          { label: 'Productos', href: 'https://example.com' },
+          { label: 'Contacto', href: 'https://example.com' },
+        ],
+        separator: '·', align: 'center',
+        style: { color: '#374151', fontSize: 14, padding: pad(12, 24, 12, 24) },
+      }
+    case 'html':
+      return { id, type, code: '<div style="text-align:center">HTML personalizado</div>' }
+    case 'video':
+      return {
+        id, type, thumbnailUrl: '', videoUrl: '', alt: 'Ver video', widthPct: 100,
+        style: { padding: pad(8, 24, 8, 24) },
+      }
+  }
+}
