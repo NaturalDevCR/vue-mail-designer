@@ -1,35 +1,23 @@
-import { defineConfig } from 'vite';
-import vue from '@vitejs/plugin-vue';
-import { resolve } from 'path';
+/// <reference types="vitest/config" />
+import { fileURLToPath } from 'node:url'
+import vue from '@vitejs/plugin-vue'
+import { defineConfig } from 'vite'
+import dts from 'vite-plugin-dts'
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [vue(), dts({ rollupTypes: true, tsconfigPath: './tsconfig.json' })],
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
-      name: 'EmailBuilder',
+      entry: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
+      formats: ['es'],
       fileName: 'index',
-      formats: ['es']
+      cssFileName: 'vue-mail-designer',
     },
-    rollupOptions: {
-      external: ['vue', 'pinia', 'pinia-plugin-persistedstate'],
-      output: {
-        globals: {
-          vue: 'Vue',
-          pinia: 'Pinia'
-        }
-      }
-    },
-    cssCodeSplit: false,
-    copyPublicDir: false
-  },
-  resolve: {
-    alias: {
-      '@': resolve(__dirname, 'src')
-    }
+    rollupOptions: { external: ['vue', 'pinia'] },
   },
   test: {
     environment: 'jsdom',
-    globals: true
-  }
-});
+    globals: false,
+    passWithNoTests: true,
+  },
+})

@@ -1,28 +1,17 @@
 {
   "name": "vue-mail-designer",
-  "version": "1.0.0",
-  "description": "Visual email builder with drag & drop functionality using Vue 3 + Vuemail",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "pnpm --filter demo run dev",
-    "build": "pnpm --filter email-builder run build && pnpm --filter demo run build",
-    "test": "pnpm --filter email-builder run test",
-    "check": "pnpm --filter email-builder run check && pnpm --filter demo run check",
-    "lint": "pnpm --filter email-builder run lint && pnpm --filter demo run lint",
-    "typecheck": "pnpm --filter email-builder run typecheck && pnpm --filter demo run typecheck"
+    "dev": "pnpm --filter demo dev",
+    "build": "pnpm --filter @vue-mail-designer/builder build && pnpm --filter demo build",
+    "test": "pnpm --filter @vue-mail-designer/builder test",
+    "typecheck": "pnpm -r typecheck",
+    "check": "pnpm typecheck && pnpm test"
   },
-
-  "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0",
-    "eslint": "^8.45.0",
-    "eslint-plugin-vue": "^9.15.0",
-    "prettier": "^3.0.0",
-    "typescript": "^5.0.0"
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "vue-demi"]
   },
-  "engines": {
-    "node": ">=18.0.0",
-    "pnpm": ">=8.0.0"
-  }
+  "engines": { "node": ">=20" }
 }
