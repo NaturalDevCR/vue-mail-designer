@@ -3,12 +3,12 @@
     <div class="vmd-modal-box vmd-preview-box">
       <div class="vmd-preview-bar">
         <div class="vmd-toolbar-group">
-          <button class="vmd-btn" :class="{ 'vmd-btn--primary': ui.previewDevice === 'desktop' }" data-device="desktop" @click="ui.previewDevice = 'desktop'">🖥 Escritorio</button>
-          <button class="vmd-btn" :class="{ 'vmd-btn--primary': ui.previewDevice === 'mobile' }" data-device="mobile" @click="ui.previewDevice = 'mobile'">📱 Móvil</button>
+          <button type="button" class="vmd-btn" :class="{ 'vmd-btn--primary': ui.previewDevice === 'desktop' }" data-device="desktop" @click="ui.previewDevice = 'desktop'">🖥 Escritorio</button>
+          <button type="button" class="vmd-btn" :class="{ 'vmd-btn--primary': ui.previewDevice === 'mobile' }" data-device="mobile" @click="ui.previewDevice = 'mobile'">📱 Móvil</button>
         </div>
         <div class="vmd-toolbar-group">
-          <button class="vmd-btn" @click="copyHtml">{{ copied ? '✓ Copiado' : 'Copiar HTML' }}</button>
-          <button class="vmd-btn" @click="ui.previewOpen = false">Cerrar ✕</button>
+          <button type="button" class="vmd-btn" @click="copyHtml">{{ copied ? '✓ Copiado' : 'Copiar HTML' }}</button>
+          <button type="button" class="vmd-btn" @click="ui.previewOpen = false">Cerrar ✕</button>
         </div>
       </div>
       <div class="vmd-preview-stage">

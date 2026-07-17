@@ -6,8 +6,8 @@
     @click.stop="store.select({ kind: 'row', id: row.id })"
   >
     <div class="vmd-row-actions" v-if="isSelected">
-      <button class="vmd-mini-btn" title="Duplicar fila" @click.stop="store.duplicateRow(row.id)">⧉</button>
-      <button class="vmd-mini-btn vmd-mini-btn--danger" title="Eliminar fila" @click.stop="store.removeRow(row.id)">🗑</button>
+      <button type="button" class="vmd-mini-btn" title="Duplicar fila" @click.stop="store.duplicateRow(row.id)">⧉</button>
+      <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" title="Eliminar fila" @click.stop="store.removeRow(row.id)">🗑</button>
     </div>
     <div class="vmd-row-columns">
       <div

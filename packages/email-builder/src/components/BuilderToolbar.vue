@@ -1,17 +1,17 @@
 <template>
-  <header class="vmd-toolbar">
+  <header ref="headerEl" class="vmd-toolbar">
     <div class="vmd-toolbar-group">
-      <button class="vmd-btn" data-action="undo" :disabled="!store.canUndo" title="Deshacer (⌘Z)" @click="store.undo()">↶</button>
-      <button class="vmd-btn" data-action="redo" :disabled="!store.canRedo" title="Rehacer (⌘⇧Z)" @click="store.redo()">↷</button>
+      <button type="button" class="vmd-btn" data-action="undo" :disabled="!store.canUndo" title="Deshacer (⌘Z)" @click="store.undo()">↶</button>
+      <button type="button" class="vmd-btn" data-action="redo" :disabled="!store.canRedo" title="Rehacer (⌘⇧Z)" @click="store.redo()">↷</button>
     </div>
     <div class="vmd-toolbar-spacer" />
     <div class="vmd-toolbar-group">
-      <button class="vmd-btn" data-action="templates" @click="ui.galleryOpen = true">Plantillas</button>
-      <button class="vmd-btn" data-action="preview" @click="ui.previewOpen = true">Vista previa</button>
-      <button class="vmd-btn" @click="importFile">Importar JSON</button>
-      <button class="vmd-btn" @click="exportJson">Exportar JSON</button>
-      <button class="vmd-btn vmd-btn--primary" @click="exportHtml">Exportar HTML</button>
-      <button class="vmd-btn" :title="ui.theme === 'dark' ? 'Tema claro' : 'Tema oscuro'" @click="ui.toggleTheme()">
+      <button type="button" class="vmd-btn" data-action="templates" @click="ui.galleryOpen = true">Plantillas</button>
+      <button type="button" class="vmd-btn" data-action="preview" @click="ui.previewOpen = true">Vista previa</button>
+      <button type="button" class="vmd-btn" @click="importFile">Importar JSON</button>
+      <button type="button" class="vmd-btn" @click="exportJson">Exportar JSON</button>
+      <button type="button" class="vmd-btn vmd-btn--primary" @click="exportHtml">Exportar HTML</button>
+      <button type="button" class="vmd-btn" :title="ui.theme === 'dark' ? 'Tema claro' : 'Tema oscuro'" @click="ui.toggleTheme()">
         {{ ui.theme === 'dark' ? '☀' : '☾' }}
       </button>
     </div>
@@ -32,6 +32,8 @@ const pinia = useBuilderPinia()
 const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
 const fileInput = ref<HTMLInputElement | null>(null)
+const headerEl = ref<HTMLElement | null>(null)
+let root: HTMLElement | null = null
 
 function downloadFile(name: string, content: string, mime: string) {
   const blob = new Blob([content], { type: mime })
@@ -62,6 +64,14 @@ async function onFile(e: Event) {
 }
 
 function onKeydown(e: KeyboardEvent) {
+  const t = e.target as HTMLElement | null
+  // no interceptar edición de texto (inputs del host o del builder, y el editor Tiptap)
+  if (t && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName))) return
+  // solo actuar si el foco está dentro de este builder o en el body
+  // nota: con múltiples instancias del builder en la misma página y foco en body,
+  // todas las instancias manejarán el atajo (edge case aceptable)
+  if (t && t !== document.body && root && !root.contains(t)) return
+
   const meta = e.metaKey || e.ctrlKey
   if (meta && e.key.toLowerCase() === 'z') {
     e.preventDefault()
@@ -69,6 +79,9 @@ function onKeydown(e: KeyboardEvent) {
     else store.undo()
   }
 }
-onMounted(() => window.addEventListener('keydown', onKeydown))
+onMounted(() => {
+  root = headerEl.value?.closest('.vmd-root') ?? null
+  window.addEventListener('keydown', onKeydown)
+})
 onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 </script>

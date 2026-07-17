@@ -71,3 +71,6 @@ El HTML usa tablas con estilos inline, ghost tables para Outlook y una media que
 - No importa HTML existente (solo JSON).
 - Estilos iguales en desktop y móvil (salvo el apilado de columnas).
 - Los merge tags se emiten como `{{value}}`; el motor de tu plataforma los reemplaza.
+- No se pueden reordenar columnas dentro de una fila (sí filas y bloques).
+- `theme` solo acepta `'light' | 'dark'` (sin `'auto'`).
+- Algunos campos de estilo no están expuestos en el inspector todavía (fontSize del menú, padding de social/video).

@@ -60,9 +60,9 @@
         <div v-for="(n, i) in block.networks" :key="i" class="vmd-social-row">
           <SelectField :label="'Red ' + (i + 1)" :model-value="n.kind" :options="NETWORK_OPTIONS" @update:model-value="setNetwork(i, { kind: $event as SocialNetworkKind })" />
           <TextField label="URL" :model-value="n.url" @update:model-value="setNetwork(i, { url: $event })" />
-          <button class="vmd-mini-btn vmd-mini-btn--danger" @click="removeNetwork(i)">🗑</button>
+          <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" @click="removeNetwork(i)">🗑</button>
         </div>
-        <button class="vmd-btn" @click="addNetwork">+ Agregar red</button>
+        <button type="button" class="vmd-btn" @click="addNetwork">+ Agregar red</button>
         <NumberField label="Tamaño ícono" :model-value="block.iconSize" :min="16" :max="64" @update:model-value="upd({ iconSize: $event })" />
         <NumberField label="Espaciado" :model-value="block.spacing" :min="0" :max="32" @update:model-value="upd({ spacing: $event })" />
         <AlignField label="Alineación" :model-value="block.align" @update:model-value="upd({ align: $event })" />
@@ -72,9 +72,9 @@
         <div v-for="(it, i) in block.items" :key="i" class="vmd-social-row">
           <TextField label="Etiqueta" :model-value="it.label" @update:model-value="setMenuItem(i, { label: $event })" />
           <TextField label="URL" :model-value="it.href" @update:model-value="setMenuItem(i, { href: $event })" />
-          <button class="vmd-mini-btn vmd-mini-btn--danger" @click="removeMenuItem(i)">🗑</button>
+          <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" @click="removeMenuItem(i)">🗑</button>
         </div>
-        <button class="vmd-btn" @click="addMenuItem">+ Agregar ítem</button>
+        <button type="button" class="vmd-btn" @click="addMenuItem">+ Agregar ítem</button>
         <TextField label="Separador" :model-value="block.separator" @update:model-value="upd({ separator: $event })" />
         <ColorField label="Color" :model-value="block.style.color" @update:model-value="upd({ style: { color: $event } })" />
         <AlignField label="Alineación" :model-value="block.align" @update:model-value="upd({ align: $event })" />

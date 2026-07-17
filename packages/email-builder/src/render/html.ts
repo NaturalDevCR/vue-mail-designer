@@ -140,7 +140,7 @@ function renderRow(row: Row, contentWidth: number, ctx: RenderCtx): string {
   const rs = row.style
   const bg = rs.backgroundColor === 'transparent' ? '' : `background-color:${rs.backgroundColor};`
   const radius = rs.borderRadius > 0 ? `border-radius:${rs.borderRadius}px;` : ''
-  const innerWidth = contentWidth // el padding de fila vive dentro de la celda
+  const innerWidth = contentWidth - rs.padding.left - rs.padding.right // el padding de fila resta ancho disponible para las columnas
 
   const cols = row.columns
     .map((col) => {
@@ -148,7 +148,7 @@ function renderRow(row: Row, contentWidth: number, ctx: RenderCtx): string {
       const colBg = col.style.backgroundColor === 'transparent' ? '' : `background-color:${col.style.backgroundColor};`
       return (
         `<!--[if mso]><td width="${pxWidth}" valign="top"><![endif]-->` +
-        `<div class="vmd-col" style="display:inline-block;width:${col.widthPct}%;min-width:280px;max-width:${pxWidth}px;vertical-align:top;font-size:14px;">` +
+        `<div class="vmd-col" style="display:inline-block;width:100%;max-width:${pxWidth}px;vertical-align:top;font-size:14px;">` +
         `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding:${paddingCss(col.style.padding)};${colBg}">` +
         renderColumnBlocks(col.blocks, ctx) +
         `</td></tr></table></div>` +

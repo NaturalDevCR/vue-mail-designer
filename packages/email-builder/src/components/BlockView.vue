@@ -5,8 +5,8 @@
     @click.stop="store.select({ kind: 'block', id: block.id })"
   >
     <div v-if="isSelected" class="vmd-block-actions">
-      <button class="vmd-mini-btn" title="Duplicar" @click.stop="store.duplicateBlock(block.id)">⧉</button>
-      <button class="vmd-mini-btn vmd-mini-btn--danger" title="Eliminar" @click.stop="store.removeBlock(block.id)">🗑</button>
+      <button type="button" class="vmd-mini-btn" title="Duplicar" @click.stop="store.duplicateBlock(block.id)">⧉</button>
+      <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" title="Eliminar" @click.stop="store.removeBlock(block.id)">🗑</button>
     </div>
 
     <!-- heading -->

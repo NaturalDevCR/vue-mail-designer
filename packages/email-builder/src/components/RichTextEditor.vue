@@ -1,13 +1,13 @@
 <template>
   <div class="vmd-rte" @click.stop>
     <div class="vmd-rte-toolbar">
-      <button class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('bold') }" @click="editor?.chain().focus().toggleBold().run()"><b>B</b></button>
-      <button class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('italic') }" @click="editor?.chain().focus().toggleItalic().run()"><i>I</i></button>
-      <button class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('underline') }" @click="editor?.chain().focus().toggleUnderline().run()"><u>U</u></button>
-      <button class="vmd-mini-btn" @click="editor?.chain().focus().setTextAlign('left').run()">⇤</button>
-      <button class="vmd-mini-btn" @click="editor?.chain().focus().setTextAlign('center').run()">↔</button>
-      <button class="vmd-mini-btn" @click="editor?.chain().focus().setTextAlign('right').run()">⇥</button>
-      <button class="vmd-mini-btn" @click="setLink">🔗</button>
+      <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('bold') }" @click="editor?.chain().focus().toggleBold().run()"><b>B</b></button>
+      <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('italic') }" @click="editor?.chain().focus().toggleItalic().run()"><i>I</i></button>
+      <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('underline') }" @click="editor?.chain().focus().toggleUnderline().run()"><u>U</u></button>
+      <button type="button" class="vmd-mini-btn" @click="editor?.chain().focus().setTextAlign('left').run()">⇤</button>
+      <button type="button" class="vmd-mini-btn" @click="editor?.chain().focus().setTextAlign('center').run()">↔</button>
+      <button type="button" class="vmd-mini-btn" @click="editor?.chain().focus().setTextAlign('right').run()">⇥</button>
+      <button type="button" class="vmd-mini-btn" @click="setLink">🔗</button>
       <select v-if="options.mergeTags.length" class="vmd-rte-tags" @change="onTagPick">
         <option value="">Variable…</option>
         <option v-for="t in options.mergeTags" :key="t.value" :value="t.value">{{ t.name }}</option>

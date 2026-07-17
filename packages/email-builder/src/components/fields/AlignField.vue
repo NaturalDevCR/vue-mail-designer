@@ -5,6 +5,7 @@
       <button
         v-for="a in ALIGNS"
         :key="a.value"
+        type="button"
         class="vmd-mini-btn"
         :class="{ 'vmd-active': modelValue === a.value }"
         @click="$emit('update:modelValue', a.value)"

@@ -6,7 +6,7 @@
     >
       <div v-if="store.doc.rows.length === 0" class="vmd-canvas-empty">
         <p>Arrastra una fila desde la paleta o</p>
-        <button class="vmd-btn vmd-btn--primary" @click="store.addRow([100])">Agregar fila</button>
+        <button type="button" class="vmd-btn vmd-btn--primary" @click="store.addRow([100])">Agregar fila</button>
       </div>
       <draggable
         :model-value="store.doc.rows"

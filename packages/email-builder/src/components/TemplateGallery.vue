@@ -3,10 +3,10 @@
     <div class="vmd-modal-box vmd-gallery-box">
       <div class="vmd-preview-bar">
         <h3 class="vmd-inspector-title" style="margin: 0">Elegir plantilla</h3>
-        <button class="vmd-btn" @click="ui.galleryOpen = false">Cerrar ✕</button>
+        <button type="button" class="vmd-btn" @click="ui.galleryOpen = false">Cerrar ✕</button>
       </div>
       <div class="vmd-gallery-grid">
-        <button v-for="tpl in templates" :key="tpl.id" class="vmd-gallery-card" @click="pick(tpl)">
+        <button type="button" v-for="tpl in templates" :key="tpl.id" class="vmd-gallery-card" @click="pick(tpl)">
           <img v-if="tpl.thumbnail" :src="tpl.thumbnail" :alt="tpl.name" />
           <div v-else class="vmd-gallery-thumb">{{ tpl.name.charAt(0) }}</div>
           <span>{{ tpl.name }}</span>

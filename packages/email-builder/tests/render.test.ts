@@ -62,4 +62,19 @@ describe('renderHtml — frame y layout', () => {
     doc.rows.forEach((r) => { fix(r); r.columns.forEach((c) => { fix(c); c.blocks.forEach(fix) }) })
     expect(renderHtml(doc)).toMatchSnapshot()
   })
+
+  it('columnas usan fluid-hybrid sin min-width', () => {
+    const { doc } = docWith([33, 34, 33], [['heading'], ['text'], ['text']])
+    const html = renderHtml(doc)
+    expect(html).not.toContain('min-width')
+    expect(html).toContain('max-width:198px')
+  })
+
+  it('los widths MSO restan el padding horizontal de la fila', () => {
+    const { doc } = docWith([50, 50], [['heading'], ['text']])
+    doc.rows[0].style.padding = { top: 0, right: 50, bottom: 0, left: 50 }
+    const html = renderHtml(doc)
+    // (600 - 100) * 50% = 250
+    expect(html).toContain('width="250"')
+  })
 })
