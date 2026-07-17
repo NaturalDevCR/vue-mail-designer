@@ -77,3 +77,19 @@
 .vmd-block:hover { border-color: var(--vmd-border); }
 .vmd-block.vmd-selected { border: 1px solid var(--vmd-accent); }
 .vmd-ghost { opacity: 0.5; outline: 2px dashed var(--vmd-accent); }
+.vmd-block-actions { position: absolute; top: -12px; right: 4px; z-index: 6; display: flex; gap: 4px; }
+.vmd-b-text p { margin: 0 0 0.5em; }
+.vmd-b-text p:last-child { margin-bottom: 0; }
+.vmd-b-image-placeholder {
+  padding: 24px; border: 1px dashed var(--vmd-border); border-radius: 6px;
+  color: var(--vmd-muted); font-size: 13px; text-align: center; background: rgba(0,0,0,.02);
+}
+.vmd-b-button { display: inline-block; font-weight: bold; }
+.vmd-b-spacer { background: repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(0,0,0,.04) 6px, rgba(0,0,0,.04) 12px); }
+.vmd-b-social-icon { display: inline-block; border-radius: 50%; color: #fff; text-align: center; font-weight: bold; }
+.vmd-b-video { position: relative; display: inline-block; }
+.vmd-b-video-play {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 40px; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.6);
+}
+.vmd-mt { background: color-mix(in srgb, var(--vmd-accent) 15%, transparent); border-radius: 3px; padding: 0 3px; }

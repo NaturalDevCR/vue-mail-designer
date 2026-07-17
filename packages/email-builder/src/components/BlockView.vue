@@ -4,17 +4,121 @@
     :class="{ 'vmd-selected': isSelected }"
     @click.stop="store.select({ kind: 'block', id: block.id })"
   >
-    {{ block.type }}
+    <div v-if="isSelected" class="vmd-block-actions">
+      <button class="vmd-mini-btn" title="Duplicar" @click.stop="store.duplicateBlock(block.id)">⧉</button>
+      <button class="vmd-mini-btn vmd-mini-btn--danger" title="Eliminar" @click.stop="store.removeBlock(block.id)">🗑</button>
+    </div>
+
+    <!-- heading -->
+    <div
+      v-if="block.type === 'heading'"
+      :style="{
+        color: block.style.color,
+        fontSize: block.style.fontSize + 'px',
+        textAlign: block.style.align,
+        fontWeight: 'bold',
+        padding: padCss(block.style.padding),
+        fontFamily: fontFamily,
+      }"
+    >{{ block.text }}</div>
+
+    <!-- text -->
+    <div
+      v-else-if="block.type === 'text'"
+      class="vmd-b-text"
+      :style="{
+        color: block.style.color,
+        fontSize: block.style.fontSize + 'px',
+        lineHeight: String(block.style.lineHeight),
+        padding: padCss(block.style.padding),
+        fontFamily: fontFamily,
+      }"
+      v-html="block.html"
+    />
+
+    <!-- image -->
+    <div v-else-if="block.type === 'image'" :style="{ padding: padCss(block.style.padding), textAlign: block.align }">
+      <img v-if="block.src" :src="block.src" :alt="block.alt" :style="{ width: block.widthPct + '%', display: 'inline-block' }" />
+      <div v-else class="vmd-b-image-placeholder">🖼 Selecciona una imagen en el inspector</div>
+    </div>
+
+    <!-- button -->
+    <div v-else-if="block.type === 'button'" :style="{ padding: padCss(block.style.padding), textAlign: block.align }">
+      <span
+        class="vmd-b-button"
+        :style="{
+          background: block.style.backgroundColor,
+          color: block.style.color,
+          fontSize: block.style.fontSize + 'px',
+          borderRadius: block.style.borderRadius + 'px',
+          padding: block.style.innerPaddingY + 'px ' + block.style.innerPaddingX + 'px',
+          fontFamily: fontFamily,
+        }"
+      >{{ block.label }}</span>
+    </div>
+
+    <!-- divider -->
+    <div v-else-if="block.type === 'divider'" :style="{ padding: padCss(block.style.padding), textAlign: 'center' }">
+      <div :style="{ width: block.style.widthPct + '%', display: 'inline-block', borderTop: block.style.thickness + 'px solid ' + block.style.color }" />
+    </div>
+
+    <!-- spacer -->
+    <div v-else-if="block.type === 'spacer'" class="vmd-b-spacer" :style="{ height: block.height + 'px' }" />
+
+    <!-- social -->
+    <div v-else-if="block.type === 'social'" :style="{ padding: padCss(block.style.padding), textAlign: block.align }">
+      <span
+        v-for="(n, i) in block.networks"
+        :key="i"
+        class="vmd-b-social-icon"
+        :style="{
+          width: block.iconSize + 'px', height: block.iconSize + 'px',
+          lineHeight: block.iconSize + 'px',
+          margin: '0 ' + block.spacing / 2 + 'px',
+          background: SOCIAL_BRANDS[n.kind].color,
+          fontSize: Math.round(block.iconSize * 0.45) + 'px',
+        }"
+      >{{ SOCIAL_BRANDS[n.kind].label }}</span>
+    </div>
+
+    <!-- menu -->
+    <div
+      v-else-if="block.type === 'menu'"
+      :style="{ padding: padCss(block.style.padding), textAlign: block.align, color: block.style.color, fontSize: block.style.fontSize + 'px', fontFamily: fontFamily }"
+    >
+      <template v-for="(it, i) in block.items" :key="i">
+        <span v-if="i > 0" style="padding: 0 8px">{{ block.separator }}</span>
+        <span>{{ it.label }}</span>
+      </template>
+    </div>
+
+    <!-- html -->
+    <div v-else-if="block.type === 'html'" class="vmd-b-html" v-html="block.code" />
+
+    <!-- video -->
+    <div v-else-if="block.type === 'video'" :style="{ padding: padCss(block.style.padding), textAlign: 'center' }">
+      <div v-if="block.thumbnailUrl" class="vmd-b-video" :style="{ width: block.widthPct + '%' }">
+        <img :src="block.thumbnailUrl" :alt="block.alt" style="width: 100%; display: block" />
+        <span class="vmd-b-video-play">▶</span>
+      </div>
+      <div v-else class="vmd-b-image-placeholder">▶ Configura el video en el inspector</div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Block } from '../schema'
+import { SOCIAL_BRANDS } from '../render/html'
+import type { Block, Padding } from '../schema'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
 
 const props = defineProps<{ block: Block }>()
 const store = useDocumentStore(useBuilderPinia())
 const isSelected = computed(() => store.selection?.kind === 'block' && store.selection.id === props.block.id)
+const fontFamily = computed(() => store.doc.settings.fontFamily)
+
+function padCss(p: Padding): string {
+  return `${p.top}px ${p.right}px ${p.bottom}px ${p.left}px`
+}
 </script>
