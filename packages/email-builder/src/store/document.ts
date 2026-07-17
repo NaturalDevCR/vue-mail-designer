@@ -192,6 +192,12 @@ export const useDocumentStore = defineStore('vmd-document', () => {
     clearDanglingSelection()
   }
 
+  function resetHistory() {
+    past.value = []
+    future.value = []
+    lastCommitKey = null
+  }
+
   function exportJson(): string {
     return JSON.stringify(doc.value, null, 2)
   }
@@ -223,7 +229,7 @@ export const useDocumentStore = defineStore('vmd-document', () => {
     addBlockToColumn, removeBlock, duplicateBlock, replaceColumnBlocks,
     updateBlock, updateRowStyle, updateColumn, updateSettings,
     select, loadDesign,
-    canUndo, canRedo, undo, redo, exportJson, importJson,
+    canUndo, canRedo, undo, redo, resetHistory, exportJson, importJson,
   }
 })
 

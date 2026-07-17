@@ -11,6 +11,14 @@ describe('API pública de EmailBuilder', () => {
     expect(wrapper.find('.vmd-row').exists()).toBe(true)
   })
 
+  it('montar con design no deja historial de undo espurio', () => {
+    const design = createDocument()
+    design.rows.push(createRow([100]))
+    const wrapper = mount(EmailBuilder, { props: { design } })
+    const undoBtn = wrapper.find('[data-action="undo"]')
+    expect(undoBtn.attributes('disabled')).toBeDefined()
+  })
+
   it('emite update:design y change al mutar', async () => {
     const wrapper = mount(EmailBuilder)
     await wrapper.find('.vmd-canvas-empty button').trigger('click')

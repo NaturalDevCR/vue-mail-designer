@@ -70,7 +70,11 @@ watch(
   },
 )
 
-if (props.design) store.loadDesign(props.design)
+if (props.design) {
+  store.loadDesign(props.design)
+  // la carga inicial es la línea base: no debe quedar en el historial de undo
+  store.resetHistory()
+}
 
 // prop → store
 watch(
