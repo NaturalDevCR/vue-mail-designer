@@ -1,5 +1,6 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { createDocument } from '../src/schema'
 import { useDocumentStore } from '../src/store/document'
 
 describe('useDocumentStore', () => {
@@ -66,6 +67,38 @@ describe('useDocumentStore', () => {
     store.select({ kind: 'block', id: block.id })
     expect(store.selectedBlock?.id).toBe(block.id)
     store.removeBlock(block.id)
+    expect(store.selection).toBeNull()
+  })
+
+  it('updateBlock reemplaza arrays completos (no merge por índice)', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([100])
+    const block = store.addBlockToColumn(row.columns[0].id, 'social')
+    store.updateBlock(block.id, { networks: [{ kind: 'web', url: 'https://a.com' }] })
+    const found = store.findBlock(block.id)!.block
+    expect(found.type).toBe('social')
+    if (found.type === 'social') {
+      expect(found.networks).toHaveLength(1)
+      expect(found.networks[0].url).toBe('https://a.com')
+    }
+  })
+
+  it('replaceColumnBlocks reemplaza la lista de bloques de la columna', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([100])
+    const colId = row.columns[0].id
+    store.addBlockToColumn(colId, 'text')
+    store.addBlockToColumn(colId, 'button')
+    store.replaceColumnBlocks(colId, [])
+    expect(store.findRow(row.id)!.columns[0].blocks).toHaveLength(0)
+  })
+
+  it('loadDesign reemplaza el documento y limpia la selección', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([100])
+    store.select({ kind: 'row', id: row.id })
+    store.loadDesign(createDocument())
+    expect(store.doc.rows).toHaveLength(0)
     expect(store.selection).toBeNull()
   })
 })
