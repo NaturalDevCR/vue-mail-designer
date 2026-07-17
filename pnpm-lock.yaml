@@ -35,6 +35,9 @@ importers:
 
   packages/email-builder:
     dependencies:
+      '@tiptap/core':
+        specifier: ^2.26.0
+        version: 2.27.2(@tiptap/pm@2.27.2)
       '@tiptap/extension-link':
         specifier: ^2.26.0
         version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))(@tiptap/pm@2.27.2)

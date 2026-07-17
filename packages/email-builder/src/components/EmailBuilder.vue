@@ -11,7 +11,8 @@
 
 <script setup lang="ts">
 import { createPinia } from 'pinia'
-import { provide } from 'vue'
+import { provide, reactive } from 'vue'
+import { BUILDER_OPTIONS_KEY, type MergeTagDef } from '../options'
 import { BUILDER_PINIA_KEY } from '../store/keys'
 import { useUiStore } from '../store/ui'
 import BlockPalette from './BlockPalette.vue'
@@ -20,7 +21,26 @@ import BuilderToolbar from './BuilderToolbar.vue'
 import InspectorPanel from './InspectorPanel.vue'
 import '../styles.css'
 
+const props = defineProps<{
+  mergeTags?: MergeTagDef[]
+  uploadImage?: (file: File) => Promise<string>
+}>()
+
 const pinia = createPinia()
 provide(BUILDER_PINIA_KEY, pinia)
 const ui = useUiStore(pinia)
+
+// reactive con getters para que los cambios de props lleguen a los hijos
+// (computed(...).value pierde la reactividad al desenvolver el .value una sola vez)
+provide(
+  BUILDER_OPTIONS_KEY,
+  reactive({
+    get mergeTags() {
+      return props.mergeTags ?? []
+    },
+    get uploadImage() {
+      return props.uploadImage
+    },
+  }),
+)
 </script>

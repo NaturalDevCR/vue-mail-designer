@@ -25,7 +25,6 @@
     <!-- text -->
     <div
       v-else-if="block.type === 'text'"
-      class="vmd-b-text"
       :style="{
         color: block.style.color,
         fontSize: block.style.fontSize + 'px',
@@ -33,8 +32,14 @@
         padding: padCss(block.style.padding),
         fontFamily: fontFamily,
       }"
-      v-html="block.html"
-    />
+    >
+      <RichTextEditor
+        v-if="isSelected"
+        :model-value="block.html"
+        @update:model-value="store.updateBlock(block.id, { html: $event })"
+      />
+      <div v-else class="vmd-b-text" v-html="block.html" />
+    </div>
 
     <!-- image -->
     <div v-else-if="block.type === 'image'" :style="{ padding: padCss(block.style.padding), textAlign: block.align }">
@@ -112,6 +117,7 @@ import { SOCIAL_BRANDS } from '../render/html'
 import type { Block, Padding } from '../schema'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
+import RichTextEditor from './RichTextEditor.vue'
 
 const props = defineProps<{ block: Block }>()
 const store = useDocumentStore(useBuilderPinia())

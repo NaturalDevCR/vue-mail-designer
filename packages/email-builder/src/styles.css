@@ -93,3 +93,7 @@
   font-size: 40px; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.6);
 }
 .vmd-mt { background: color-mix(in srgb, var(--vmd-accent) 15%, transparent); border-radius: 3px; padding: 0 3px; }
+.vmd-rte-toolbar { display: flex; gap: 2px; padding: 4px; background: var(--vmd-panel); border: 1px solid var(--vmd-border); border-radius: 6px 6px 0 0; }
+.vmd-rte .ProseMirror { outline: none; min-height: 40px; padding: 4px; border: 1px solid var(--vmd-border); border-top: 0; border-radius: 0 0 6px 6px; }
+.vmd-active { border-color: var(--vmd-accent); color: var(--vmd-accent); }
+.vmd-rte-tags { font-size: 12px; border: 1px solid var(--vmd-border); border-radius: 4px; background: var(--vmd-panel); color: var(--vmd-fg); }
