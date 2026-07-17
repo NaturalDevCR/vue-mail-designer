@@ -39,6 +39,42 @@ export function renderBlock(block: Block, ctx: RenderCtx): string {
         `<tr><td style="padding:${paddingCss(s.padding)};font-family:${ctx.fontFamily};font-size:${s.fontSize}px;line-height:${s.lineHeight};color:${s.color};">${convertMergeTags(block.html)}</td></tr>`,
       )
     }
+    case 'image': {
+      const s = block.style
+      if (!block.src) {
+        return cellTable(`<tr><td style="padding:${paddingCss(s.padding)};"></td></tr>`)
+      }
+      const img = `<img src="${escapeHtml(block.src)}" alt="${escapeHtml(block.alt)}" width="100%" style="display:block;width:100%;max-width:100%;height:auto;border:0;">`
+      const content = block.href ? `<a href="${escapeHtml(block.href)}" target="_blank">${img}</a>` : img
+      return cellTable(
+        `<tr><td align="${block.align}" style="padding:${paddingCss(s.padding)};">` +
+        `<table role="presentation" width="${block.widthPct}%" cellpadding="0" cellspacing="0" border="0"><tr><td>${content}</td></tr></table>` +
+        `</td></tr>`,
+      )
+    }
+    case 'button': {
+      const s = block.style
+      return cellTable(
+        `<tr><td align="${block.align}" style="padding:${paddingCss(s.padding)};">` +
+        `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>` +
+        `<td style="border-radius:${s.borderRadius}px;background-color:${s.backgroundColor};">` +
+        `<a href="${escapeHtml(block.href)}" target="_blank" style="display:inline-block;padding:${s.innerPaddingY}px ${s.innerPaddingX}px;font-family:${ctx.fontFamily};font-size:${s.fontSize}px;font-weight:bold;color:${s.color};text-decoration:none;border-radius:${s.borderRadius}px;">${escapeHtml(block.label)}</a>` +
+        `</td></tr></table></td></tr>`,
+      )
+    }
+    case 'divider': {
+      const s = block.style
+      return cellTable(
+        `<tr><td align="center" style="padding:${paddingCss(s.padding)};">` +
+        `<table role="presentation" width="${s.widthPct}%" cellpadding="0" cellspacing="0" border="0"><tr>` +
+        `<td style="border-top:${s.thickness}px solid ${s.color};font-size:0;line-height:0;">&nbsp;</td>` +
+        `</tr></table></td></tr>`,
+      )
+    }
+    case 'spacer':
+      return cellTable(
+        `<tr><td style="height:${block.height}px;font-size:0;line-height:0;">&nbsp;</td></tr>`,
+      )
     default:
       // Tasks 6 y 7 completan el resto de los tipos.
       return ''
