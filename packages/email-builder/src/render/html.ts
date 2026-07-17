@@ -1,6 +1,17 @@
-import type { Block, EmailDocument, Padding, Row } from '../schema'
+import type { Block, EmailDocument, Padding, Row, SocialNetworkKind } from '../schema'
 
 export type RenderCtx = { fontFamily: string }
+
+export const SOCIAL_BRANDS: Record<SocialNetworkKind, { label: string; color: string }> = {
+  facebook: { label: 'f', color: '#1877f2' },
+  instagram: { label: 'ig', color: '#e4405f' },
+  x: { label: 'x', color: '#000000' },
+  linkedin: { label: 'in', color: '#0a66c2' },
+  youtube: { label: '▶', color: '#ff0000' },
+  tiktok: { label: 'tt', color: '#010101' },
+  whatsapp: { label: 'wa', color: '#25d366' },
+  web: { label: '@', color: '#6b7280' },
+}
 
 export const MERGE_TAG_RE = /<span[^>]*\bdata-mt="([^"]+)"[^>]*>.*?<\/span>/gs
 
@@ -75,9 +86,49 @@ export function renderBlock(block: Block, ctx: RenderCtx): string {
       return cellTable(
         `<tr><td style="height:${block.height}px;font-size:0;line-height:0;">&nbsp;</td></tr>`,
       )
-    default:
-      // Tasks 6 y 7 completan el resto de los tipos.
-      return ''
+    case 'social': {
+      const s = block.style
+      const icons = block.networks
+        .map(({ kind, url }) => {
+          const brand = SOCIAL_BRANDS[kind]
+          return (
+            `<td style="padding:0 ${block.spacing / 2}px;">` +
+            `<a href="${escapeHtml(url)}" target="_blank" style="display:inline-block;width:${block.iconSize}px;height:${block.iconSize}px;line-height:${block.iconSize}px;border-radius:50%;background-color:${brand.color};color:#ffffff;text-align:center;text-decoration:none;font-family:${ctx.fontFamily};font-size:${Math.round(block.iconSize * 0.45)}px;font-weight:bold;">${brand.label}</a>` +
+            `</td>`
+          )
+        })
+        .join('')
+      return cellTable(
+        `<tr><td align="${block.align}" style="padding:${paddingCss(s.padding)};">` +
+        `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>${icons}</tr></table>` +
+        `</td></tr>`,
+      )
+    }
+    case 'menu': {
+      const s = block.style
+      const sep = `<span style="padding:0 8px;color:${s.color};">${escapeHtml(block.separator)}</span>`
+      const items = block.items
+        .map((it) => `<a href="${escapeHtml(it.href)}" target="_blank" style="color:${s.color};font-family:${ctx.fontFamily};font-size:${s.fontSize}px;text-decoration:none;">${escapeHtml(it.label)}</a>`)
+        .join(sep)
+      return cellTable(
+        `<tr><td align="${block.align}" style="padding:${paddingCss(s.padding)};font-family:${ctx.fontFamily};font-size:${s.fontSize}px;">${items}</td></tr>`,
+      )
+    }
+    case 'html':
+      return cellTable(`<tr><td>${block.code}</td></tr>`)
+    case 'video': {
+      const s = block.style
+      if (!block.thumbnailUrl || !block.videoUrl) {
+        return cellTable(`<tr><td style="padding:${paddingCss(s.padding)};"></td></tr>`)
+      }
+      return cellTable(
+        `<tr><td align="center" style="padding:${paddingCss(s.padding)};">` +
+        `<table role="presentation" width="${block.widthPct}%" cellpadding="0" cellspacing="0" border="0"><tr><td>` +
+        `<a href="${escapeHtml(block.videoUrl)}" target="_blank">` +
+        `<img src="${escapeHtml(block.thumbnailUrl)}" alt="${escapeHtml(block.alt)}" width="100%" style="display:block;width:100%;max-width:100%;height:auto;border:0;">` +
+        `</a></td></tr></table></td></tr>`,
+      )
+    }
   }
 }
 
