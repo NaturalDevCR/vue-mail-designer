@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import type { Block, BlockType, Column, EmailDocument, EmailSettings, Row } from '../schema'
-import { createBlock, createId, createDocument, createRow } from '../schema'
+import { createBlock, createId, createDocument, createRow, zEmailDocument } from '../schema'
 
 export type Selection = { kind: 'row' | 'block'; id: string }
 
@@ -171,6 +171,50 @@ export const useDocumentStore = defineStore('vmd-document', () => {
     selection.value = null
   }
 
+  const canUndo = computed(() => past.value.length > 0)
+  const canRedo = computed(() => future.value.length > 0)
+
+  function undo() {
+    const prev = past.value.pop()
+    if (prev === undefined) return
+    future.value.push(JSON.stringify(doc.value))
+    doc.value = JSON.parse(prev) as EmailDocument
+    lastCommitKey = null
+    clearDanglingSelection()
+  }
+
+  function redo() {
+    const next = future.value.pop()
+    if (next === undefined) return
+    past.value.push(JSON.stringify(doc.value))
+    doc.value = JSON.parse(next) as EmailDocument
+    lastCommitKey = null
+    clearDanglingSelection()
+  }
+
+  function exportJson(): string {
+    return JSON.stringify(doc.value, null, 2)
+  }
+
+  function importJson(text: string): { ok: true } | { ok: false; error: string } {
+    let parsed: unknown
+    try {
+      parsed = JSON.parse(text)
+    } catch {
+      return { ok: false, error: 'El archivo no es JSON válido.' }
+    }
+    const result = zEmailDocument.safeParse(parsed)
+    if (!result.success) {
+      const issues = result.error.issues
+        .slice(0, 3)
+        .map((i) => `${i.path.join('.')}: ${i.message}`)
+        .join('; ')
+      return { ok: false, error: `El diseño no es válido — ${issues}` }
+    }
+    loadDesign(result.data)
+    return { ok: true }
+  }
+
   return {
     doc, selection, past, future,
     selectedBlock, selectedRow,
@@ -179,6 +223,7 @@ export const useDocumentStore = defineStore('vmd-document', () => {
     addBlockToColumn, removeBlock, duplicateBlock, replaceColumnBlocks,
     updateBlock, updateRowStyle, updateColumn, updateSettings,
     select, loadDesign,
+    canUndo, canRedo, undo, redo, exportJson, importJson,
   }
 })
 
