@@ -12,8 +12,11 @@
 
 <script setup lang="ts">
 import { createPinia } from 'pinia'
-import { provide, reactive } from 'vue'
+import { provide, reactive, watch } from 'vue'
 import { BUILDER_OPTIONS_KEY, type MergeTagDef } from '../options'
+import { renderHtml } from '../render/html'
+import type { EmailDocument } from '../schema'
+import { useDocumentStore } from '../store/document'
 import { BUILDER_PINIA_KEY } from '../store/keys'
 import { useUiStore } from '../store/ui'
 import type { EmailTemplate } from '../templates'
@@ -25,17 +28,25 @@ import TemplateGallery from './TemplateGallery.vue'
 import '../styles.css'
 
 const props = defineProps<{
+  design?: EmailDocument
   mergeTags?: MergeTagDef[]
-  uploadImage?: (file: File) => Promise<string>
   templates?: EmailTemplate[]
+  uploadImage?: (file: File) => Promise<string>
+  theme?: 'light' | 'dark'
+}>()
+
+const emit = defineEmits<{
+  'update:design': [design: EmailDocument]
+  change: [design: EmailDocument]
+  'export-html': [html: string]
 }>()
 
 const pinia = createPinia()
 provide(BUILDER_PINIA_KEY, pinia)
+const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
 
-// reactive con getters para que los cambios de props lleguen a los hijos
-// (computed(...).value pierde la reactividad al desenvolver el .value una sola vez)
+// opciones reactivas para los hijos (getters mantienen la reactividad de props)
 provide(
   BUILDER_OPTIONS_KEY,
   reactive({
@@ -50,4 +61,52 @@ provide(
     },
   }),
 )
+
+if (props.theme) ui.theme = props.theme
+watch(
+  () => props.theme,
+  (t) => {
+    if (t) ui.theme = t
+  },
+)
+
+if (props.design) store.loadDesign(props.design)
+
+// prop → store
+watch(
+  () => props.design,
+  (next) => {
+    if (next && JSON.stringify(next) !== JSON.stringify(store.doc)) {
+      store.loadDesign(next)
+    }
+  },
+)
+
+// store → emits
+watch(
+  () => store.doc,
+  (doc) => {
+    const snapshot = JSON.parse(JSON.stringify(doc)) as EmailDocument
+    emit('update:design', snapshot)
+    emit('change', snapshot)
+  },
+  { deep: true },
+)
+
+function exportHtml(): string {
+  const html = renderHtml(store.doc)
+  emit('export-html', html)
+  return html
+}
+function exportJson(): string {
+  return store.exportJson()
+}
+function getDesign(): EmailDocument {
+  return JSON.parse(JSON.stringify(store.doc)) as EmailDocument
+}
+function loadDesign(doc: EmailDocument): void {
+  store.loadDesign(doc)
+}
+
+defineExpose({ exportHtml, exportJson, getDesign, loadDesign })
 </script>
