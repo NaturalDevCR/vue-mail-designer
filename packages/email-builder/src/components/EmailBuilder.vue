@@ -1,9 +1,12 @@
 <template>
   <div class="vmd-root" :class="{ 'vmd-dark': ui.theme === 'dark' }">
-    <BuilderToolbar />
-    <div class="vmd-body">
-      <BlockPalette />
-      <BuilderCanvas />
+    <BuilderHeader />
+    <PreviewDialog v-if="ui.previewOpen" />
+    <div class="vmd-main">
+      <section class="vmd-canvas-area">
+        <CanvasBar />
+        <BuilderCanvas />
+      </section>
       <InspectorPanel />
     </div>
     <TemplateGallery v-if="ui.galleryOpen" />
@@ -20,10 +23,11 @@ import { useDocumentStore } from '../store/document'
 import { BUILDER_PINIA_KEY } from '../store/keys'
 import { useUiStore } from '../store/ui'
 import type { EmailTemplate } from '../templates'
-import BlockPalette from './BlockPalette.vue'
 import BuilderCanvas from './BuilderCanvas.vue'
-import BuilderToolbar from './BuilderToolbar.vue'
+import BuilderHeader from './BuilderHeader.vue'
+import CanvasBar from './CanvasBar.vue'
 import InspectorPanel from './InspectorPanel.vue'
+import PreviewDialog from './PreviewDialog.vue'
 import TemplateGallery from './TemplateGallery.vue'
 import '../styles.css'
 

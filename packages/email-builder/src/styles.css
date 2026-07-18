@@ -24,6 +24,13 @@
   --vmd-accent: #60a5fa;
 }
 .vmd-body { display: flex; flex: 1; min-height: 0; }
+.vmd-main { display: flex; flex: 1; min-height: 0; }
+.vmd-canvas-area { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.vmd-canvasbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 12px; background: var(--vmd-panel); border-bottom: 1px solid var(--vmd-border);
+}
+.vmd-canvasbar-center { display: flex; gap: 4px; }
 .vmd-toolbar {
   display: flex; align-items: center; gap: 8px;
   padding: 8px 12px; background: var(--vmd-panel);
@@ -57,7 +64,7 @@
 }
 .vmd-palette-item:hover { border-color: var(--vmd-accent); }
 .vmd-palette-icon { font-size: 16px; }
-.vmd-canvas-page { margin: 0 auto; max-width: 100%; min-height: 200px; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+.vmd-canvas-page { margin: 0 auto; max-width: 100%; min-height: 200px; box-shadow: 0 1px 4px rgba(0,0,0,.12); transition: width 0.25s ease; }
 .vmd-canvas-empty { padding: 48px 16px; text-align: center; color: var(--vmd-muted); }
 .vmd-canvas-rows { min-height: 40px; }
 .vmd-row { position: relative; border: 1px dashed transparent; }
