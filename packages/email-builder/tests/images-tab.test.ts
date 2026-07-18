@@ -1,6 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import EmailBuilder from '../src/components/EmailBuilder.vue'
+import { createBlock, createDocument, createRow } from '../src/schema'
 
 const results = [
   { url: 'https://img.example/full1.jpg', thumbnailUrl: 'https://img.example/t1.jpg', title: 'Uno' },
@@ -38,5 +39,59 @@ describe('ImagesTab', () => {
     const wrapper = mount(EmailBuilder, { props: { imageSearch: vi.fn().mockRejectedValue(new Error('boom')) } })
     await searchIn(wrapper)
     expect(wrapper.find('.vmd-image-error').exists()).toBe(true)
+  })
+
+  it('no pisa el alt existente al cambiar la imagen de un bloque seleccionado', async () => {
+    const design = createDocument()
+    const row = createRow([100])
+    const img = createBlock('image')
+    if (img.type !== 'image') throw new Error()
+    img.src = 'x'
+    img.alt = 'Mi alt'
+    row.columns[0].blocks.push(img)
+    design.rows.push(row)
+
+    const wrapper = mount(EmailBuilder, {
+      props: { design, imageSearch: vi.fn().mockResolvedValue(results) },
+    })
+    await wrapper.find('.vmd-block').trigger('click') // selecciona el bloque imagen
+    await searchIn(wrapper)
+    await wrapper.find('.vmd-image-result').trigger('click')
+
+    const emitted = wrapper.emitted('update:design')
+    const doc = emitted![emitted!.length - 1][0] as {
+      rows: { columns: { blocks: { type: string; src?: string; alt?: string }[] }[] }[]
+    }
+    const blocks = doc.rows.flatMap((r) => r.columns.flatMap((c) => c.blocks))
+    const image = blocks.find((b) => b.type === 'image')
+    expect(image?.src).toBe('https://img.example/full1.jpg')
+    expect(image?.alt).toBe('Mi alt')
+  })
+
+  it('descarta respuestas fuera de orden', async () => {
+    function deferred<T>() {
+      let resolve!: (v: T) => void
+      const promise = new Promise<T>((r) => (resolve = r))
+      return { promise, resolve }
+    }
+    const first = deferred<typeof results>()
+    const second = deferred<typeof results>()
+    const imageSearch = vi.fn().mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise)
+    const wrapper = mount(EmailBuilder, { props: { imageSearch } })
+
+    await wrapper.find('[data-tab="images"]').trigger('click')
+    const input = wrapper.find('.vmd-image-search input')
+    await input.setValue('a')
+    await new Promise((r) => setTimeout(r, 450)) // dispara la búsqueda 'a' (queda pendiente)
+    await input.setValue('b')
+    await new Promise((r) => setTimeout(r, 450)) // dispara la búsqueda 'b'
+    expect(imageSearch).toHaveBeenCalledTimes(2)
+
+    second.resolve(results) // la nueva resuelve primero, con 2 resultados
+    await flushPromises()
+    first.resolve([results[0]]) // la vieja llega tarde, con 1 resultado: se descarta
+    await flushPromises()
+
+    expect(wrapper.findAll('.vmd-image-result')).toHaveLength(2)
   })
 })

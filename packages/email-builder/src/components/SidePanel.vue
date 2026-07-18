@@ -1,12 +1,13 @@
 <template>
   <aside class="vmd-sidepanel">
     <div class="vmd-sidepanel-content">
-      <PropertiesPanel v-if="store.selection" />
+      <!-- la pestaña Imágenes se muestra aun con selección: permite cambiar la imagen del bloque seleccionado -->
+      <ImagesTab v-if="ui.sidebarTab === 'images'" />
+      <PropertiesPanel v-else-if="store.selection" />
       <template v-else>
         <ContentTab v-if="ui.sidebarTab === 'content'" />
         <BlocksTab v-else-if="ui.sidebarTab === 'blocks'" />
         <BodyTab v-else-if="ui.sidebarTab === 'body'" />
-        <ImagesTab v-else-if="ui.sidebarTab === 'images'" />
       </template>
     </div>
     <nav class="vmd-rail">

@@ -48,6 +48,7 @@ const results = ref<ImageResult[]>([])
 const status = ref<'idle' | 'loading' | 'error' | 'empty' | 'results'>('idle')
 
 let timer: ReturnType<typeof setTimeout> | undefined
+let searchSeq = 0
 
 function onInput() {
   if (timer) clearTimeout(timer)
@@ -62,6 +63,7 @@ async function runSearch() {
     timer = undefined
   }
   const q = query.value.trim()
+  const seq = ++searchSeq
   if (!q) {
     status.value = 'idle'
     results.value = []
@@ -71,9 +73,11 @@ async function runSearch() {
   try {
     const search = options.imageSearch ?? openverseSearch
     const found = await search(q)
+    if (seq !== searchSeq) return // llegó una búsqueda más nueva: descartar
     results.value = found
     status.value = found.length ? 'results' : 'empty'
   } catch {
+    if (seq !== searchSeq) return
     results.value = []
     status.value = 'error'
   }
@@ -82,7 +86,8 @@ async function runSearch() {
 function selectImage(result: ImageResult) {
   const selected = store.selectedBlock
   if (selected && selected.type === 'image') {
-    store.updateBlock(selected.id, { src: result.url, alt: result.title || '' })
+    // no pisar alt escrito por el usuario: solo setearlo si está vacío
+    store.updateBlock(selected.id, { src: result.url, ...(selected.alt ? {} : { alt: result.title ?? '' }) })
     return
   }
   const row = store.addRow([100])
