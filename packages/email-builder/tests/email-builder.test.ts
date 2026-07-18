@@ -10,7 +10,7 @@ describe('EmailBuilder shell', () => {
     expect(wrapper.find('.vmd-canvasbar').exists()).toBe(true)
     expect(wrapper.find('.vmd-canvas-area').exists()).toBe(true)
     expect(wrapper.find('.vmd-canvas').exists()).toBe(true)
-    expect(wrapper.find('.vmd-inspector').exists()).toBe(true)
+    expect(wrapper.find('.vmd-sidepanel').exists()).toBe(true)
   })
 
   it('no requiere pinia global (dos instancias aisladas)', () => {

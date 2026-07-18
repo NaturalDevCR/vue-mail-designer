@@ -1,0 +1,43 @@
+import { mount } from '@vue/test-utils'
+import { describe, expect, it } from 'vitest'
+import EmailBuilder from '../src/components/EmailBuilder.vue'
+
+describe('SidePanel', () => {
+  it('riel con 4 tabs; Content activo por defecto muestra los 10 bloques', () => {
+    const wrapper = mount(EmailBuilder)
+    expect(wrapper.findAll('.vmd-rail [data-tab]')).toHaveLength(4)
+    expect(wrapper.findAll('.vmd-content-item')).toHaveLength(10)
+  })
+
+  it('tab Blocks muestra 6 miniaturas de layout', async () => {
+    const wrapper = mount(EmailBuilder)
+    await wrapper.find('[data-tab="blocks"]').trigger('click')
+    expect(wrapper.findAll('.vmd-layout-thumb')).toHaveLength(6)
+  })
+
+  it('tab Body edita settings incluidos los nuevos', async () => {
+    const wrapper = mount(EmailBuilder)
+    await wrapper.find('[data-tab="body"]').trigger('click')
+    expect(wrapper.text()).toContain('Preheader')
+    expect(wrapper.text()).toContain('Subrayar links')
+  })
+
+  it('seleccionar un elemento muestra propiedades con acciones y cerrar vuelve al tab', async () => {
+    const wrapper = mount(EmailBuilder)
+    await wrapper.find('.vmd-canvas-empty button').trigger('click')
+    await wrapper.find('.vmd-row').trigger('click')
+    expect(wrapper.find('.vmd-props-header').exists()).toBe(true)
+    expect(wrapper.text()).toContain('Fila')
+    await wrapper.find('[data-action="props-close"]').trigger('click')
+    expect(wrapper.find('.vmd-props-header').exists()).toBe(false)
+    expect(wrapper.findAll('.vmd-content-item')).toHaveLength(10)
+  })
+
+  it('eliminar desde el header de propiedades borra la fila', async () => {
+    const wrapper = mount(EmailBuilder)
+    await wrapper.find('.vmd-canvas-empty button').trigger('click')
+    await wrapper.find('.vmd-row').trigger('click')
+    await wrapper.find('[data-action="props-delete"]').trigger('click')
+    expect(wrapper.find('.vmd-row').exists()).toBe(false)
+  })
+})

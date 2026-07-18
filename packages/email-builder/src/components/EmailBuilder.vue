@@ -7,7 +7,7 @@
         <CanvasBar />
         <BuilderCanvas />
       </section>
-      <InspectorPanel />
+      <SidePanel />
     </div>
     <TemplateGallery v-if="ui.galleryOpen" />
   </div>
@@ -26,8 +26,8 @@ import type { EmailTemplate } from '../templates'
 import BuilderCanvas from './BuilderCanvas.vue'
 import BuilderHeader from './BuilderHeader.vue'
 import CanvasBar from './CanvasBar.vue'
-import InspectorPanel from './InspectorPanel.vue'
 import PreviewDialog from './PreviewDialog.vue'
+import SidePanel from './SidePanel.vue'
 import TemplateGallery from './TemplateGallery.vue'
 import '../styles.css'
 

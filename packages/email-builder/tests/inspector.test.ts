@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { describe, expect, it } from 'vitest'
 import { defineComponent, h, provide } from 'vue'
-import InspectorPanel from '../src/components/InspectorPanel.vue'
+import PropertiesPanel from '../src/components/PropertiesPanel.vue'
 import { useDocumentStore } from '../src/store/document'
 import { BUILDER_PINIA_KEY } from '../src/store/keys'
 
@@ -11,19 +11,13 @@ function mountInspector() {
   const Host = defineComponent({
     setup() {
       provide(BUILDER_PINIA_KEY, pinia)
-      return () => h(InspectorPanel)
+      return () => h(PropertiesPanel)
     },
   })
   return { wrapper: mount(Host), store: useDocumentStore(pinia) }
 }
 
-describe('InspectorPanel', () => {
-  it('sin selección muestra settings del documento', () => {
-    const { wrapper } = mountInspector()
-    expect(wrapper.text()).toContain('Documento')
-    expect(wrapper.text()).toContain('Preheader')
-  })
-
+describe('PropertiesPanel', () => {
   it('con bloque button seleccionado muestra sus campos y edita el label', async () => {
     const { wrapper, store } = mountInspector()
     const row = store.addRow([100])
