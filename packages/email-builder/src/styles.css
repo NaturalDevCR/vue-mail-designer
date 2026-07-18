@@ -45,7 +45,7 @@
 .vmd-row { position: relative; border: 1px dashed transparent; }
 .vmd-row:hover { border-color: var(--vmd-border); }
 .vmd-row.vmd-selected { border: 1px solid var(--vmd-accent); }
-.vmd-row-actions { position: absolute; top: -12px; right: 8px; z-index: 5; display: flex; gap: 4px; }
+.vmd-row-actions { position: absolute; top: -12px; right: 8px; z-index: 5; gap: 4px; }
 .vmd-mini-btn {
   width: 24px; height: 24px; border: 1px solid var(--vmd-border); border-radius: 4px;
   background: var(--vmd-panel); color: var(--vmd-fg); cursor: pointer; font-size: 12px;
@@ -58,8 +58,25 @@
 .vmd-block { position: relative; border: 1px dashed transparent; cursor: pointer; }
 .vmd-block:hover { border-color: var(--vmd-border); }
 .vmd-block.vmd-selected { border: 1px solid var(--vmd-accent); }
-.vmd-ghost { opacity: 0.5; outline: 2px dashed var(--vmd-accent); }
-.vmd-block-actions { position: absolute; top: -12px; right: 4px; z-index: 6; display: flex; gap: 4px; }
+.vmd-block-actions { position: absolute; top: -12px; right: 4px; z-index: 6; gap: 4px; }
+
+.vmd-ghost {
+  opacity: 1 !important; min-height: 36px;
+  background: color-mix(in srgb, var(--vmd-accent) 12%, transparent) !important;
+  border: 2px dashed var(--vmd-accent) !important; border-radius: 6px;
+  outline: none;
+}
+.vmd-ghost > * { visibility: hidden; }
+.vmd-drag-card {
+  opacity: 0.92 !important; transform: scale(0.92); border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.25); background: var(--vmd-panel);
+  border: 1px solid var(--vmd-accent); cursor: grabbing !important;
+}
+.vmd-drag-handle { cursor: grab; }
+.vmd-row-actions, .vmd-block-actions { display: none; }
+.vmd-row:hover > .vmd-row-actions, .vmd-row.vmd-selected > .vmd-row-actions { display: flex; }
+.vmd-block:hover > .vmd-block-actions, .vmd-block.vmd-selected > .vmd-block-actions { display: flex; }
+.vmd-column:has(.vmd-ghost) .vmd-column-empty { display: none; }
 .vmd-b-text p { margin: 0 0 0.5em; }
 .vmd-b-text p:last-child { margin-bottom: 0; }
 .vmd-b-image-placeholder {

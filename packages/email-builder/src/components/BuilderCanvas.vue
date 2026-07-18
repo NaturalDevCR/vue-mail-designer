@@ -13,8 +13,7 @@
         group="rows"
         item-key="id"
         class="vmd-canvas-rows"
-        ghost-class="vmd-ghost"
-        :animation="150"
+        v-bind="DND_OPTIONS"
         @update:model-value="store.replaceRows($event)"
       >
         <template #item="{ element }">
@@ -31,6 +30,7 @@ import draggable from 'vuedraggable'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
 import { useUiStore } from '../store/ui'
+import { DND_OPTIONS } from './dnd'
 import RowView from './RowView.vue'
 
 const pinia = useBuilderPinia()

@@ -3,7 +3,7 @@
     :list="blockItems"
     :group="{ name: 'blocks', pull: 'clone', put: false }"
     :sort="false"
-    :force-fallback="true"
+    v-bind="DND_OPTIONS"
     :clone="cloneBlock"
     item-key="type"
     class="vmd-content-grid"
@@ -17,6 +17,7 @@
 <script setup lang="ts">
 import draggable from 'vuedraggable'
 import { createBlock } from '../../schema'
+import { DND_OPTIONS } from '../dnd'
 import { ICONS } from '../icons'
 import { PALETTE_BLOCKS } from '../palette-items'
 

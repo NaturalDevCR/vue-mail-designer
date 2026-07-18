@@ -3,7 +3,7 @@
     :list="rowItems"
     :group="{ name: 'rows', pull: 'clone', put: false }"
     :sort="false"
-    :force-fallback="true"
+    v-bind="DND_OPTIONS"
     :clone="cloneRow"
     item-key="key"
   >
@@ -18,6 +18,7 @@
 <script setup lang="ts">
 import draggable from 'vuedraggable'
 import { createRow } from '../../schema'
+import { DND_OPTIONS } from '../dnd'
 import { ROW_LAYOUTS } from '../palette-items'
 
 const rowItems = [...ROW_LAYOUTS]
