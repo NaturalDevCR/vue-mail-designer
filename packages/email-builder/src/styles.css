@@ -177,3 +177,11 @@
   background: transparent; color: var(--vmd-fg); cursor: pointer; font-size: 13px;
 }
 .vmd-export-menu button:hover { background: var(--vmd-bg); }
+
+.vmd-image-search input { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--vmd-border); border-radius: 8px; background: var(--vmd-bg); color: var(--vmd-fg); }
+.vmd-image-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.vmd-image-result { padding: 0; border: 1px solid var(--vmd-border); border-radius: 8px; overflow: hidden; cursor: pointer; background: none; }
+.vmd-image-result img { display: block; width: 100%; height: 90px; object-fit: cover; }
+.vmd-image-result:hover { border-color: var(--vmd-accent); }
+.vmd-image-error { color: var(--vmd-danger); font-size: 13px; margin-top: 10px; }
+.vmd-image-credit { margin-top: 12px; font-size: 11px; color: var(--vmd-muted); text-align: center; }

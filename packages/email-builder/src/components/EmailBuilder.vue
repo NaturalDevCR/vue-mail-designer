@@ -16,6 +16,7 @@
 <script setup lang="ts">
 import { createPinia } from 'pinia'
 import { provide, reactive, watch } from 'vue'
+import type { ImageResult } from '../imageSearch'
 import { BUILDER_OPTIONS_KEY, type MergeTagDef } from '../options'
 import { renderHtml } from '../render/html'
 import type { EmailDocument } from '../schema'
@@ -36,6 +37,7 @@ const props = defineProps<{
   mergeTags?: MergeTagDef[]
   templates?: EmailTemplate[]
   uploadImage?: (file: File) => Promise<string>
+  imageSearch?: (query: string) => Promise<ImageResult[]>
   theme?: 'light' | 'dark'
 }>()
 
@@ -62,6 +64,9 @@ provide(
     },
     get templates() {
       return props.templates
+    },
+    get imageSearch() {
+      return props.imageSearch
     },
   }),
 )

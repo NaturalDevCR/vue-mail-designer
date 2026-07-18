@@ -6,7 +6,7 @@
         <ContentTab v-if="ui.sidebarTab === 'content'" />
         <BlocksTab v-else-if="ui.sidebarTab === 'blocks'" />
         <BodyTab v-else-if="ui.sidebarTab === 'body'" />
-        <p v-else class="vmd-tab-placeholder">Próximamente</p>
+        <ImagesTab v-else-if="ui.sidebarTab === 'images'" />
       </template>
     </div>
     <nav class="vmd-rail">
@@ -34,6 +34,7 @@ import PropertiesPanel from './PropertiesPanel.vue'
 import BlocksTab from './tabs/BlocksTab.vue'
 import BodyTab from './tabs/BodyTab.vue'
 import ContentTab from './tabs/ContentTab.vue'
+import ImagesTab from './tabs/ImagesTab.vue'
 
 const pinia = useBuilderPinia()
 const store = useDocumentStore(pinia)
