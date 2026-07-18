@@ -124,3 +124,32 @@
 .vmd-gallery-card:hover { border-color: var(--vmd-accent); }
 .vmd-gallery-card img, .vmd-gallery-thumb { width: 100%; height: 100px; border-radius: 6px; object-fit: cover; }
 .vmd-gallery-thumb { display: flex; align-items: center; justify-content: center; font-size: 32px; background: var(--vmd-panel); color: var(--vmd-muted); }
+
+.vmd-header {
+  display: flex; align-items: center; gap: 12px; padding: 0 16px; height: 52px;
+  background: #0e1a2b; color: #e5e7eb; flex-shrink: 0;
+}
+.vmd-header-brand { font-weight: 700; font-size: 15px; letter-spacing: .2px; }
+.vmd-header-btn {
+  padding: 6px 10px; border: 1px solid transparent; border-radius: 6px;
+  background: transparent; color: #cbd5e1; cursor: pointer; font-size: 13px;
+}
+.vmd-header-btn:hover { background: rgba(255,255,255,.08); color: #fff; }
+.vmd-header-spacer { flex: 1; }
+.vmd-header-status { font-size: 12px; color: #7dd3a8; }
+.vmd-export { position: relative; }
+.vmd-btn-export {
+  padding: 8px 18px; border: 0; border-radius: 6px; background: #2f9bf4; color: #fff;
+  font-weight: 700; font-size: 13px; letter-spacing: .4px; cursor: pointer;
+}
+.vmd-btn-export:hover { background: #2589dc; }
+.vmd-export-menu {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 50; min-width: 180px;
+  background: var(--vmd-panel); border: 1px solid var(--vmd-border); border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.18); padding: 4px; display: flex; flex-direction: column;
+}
+.vmd-export-menu button {
+  text-align: left; padding: 8px 10px; border: 0; border-radius: 6px;
+  background: transparent; color: var(--vmd-fg); cursor: pointer; font-size: 13px;
+}
+.vmd-export-menu button:hover { background: var(--vmd-bg); }
