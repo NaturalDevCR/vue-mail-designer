@@ -170,6 +170,9 @@ export const zEmailSettings = z.object({
   backgroundColor: z.string(),
   fontFamily: z.string(),
   preheader: z.string(),
+  contentAlignment: z.enum(['left', 'center']).default('center'),
+  linkColor: z.string().default('#3b82f6'),
+  linkUnderline: z.boolean().default(true),
 })
 
 export const zEmailDocument = z.object({

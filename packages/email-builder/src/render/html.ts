@@ -1,6 +1,6 @@
 import type { Block, EmailDocument, Padding, Row, SocialNetworkKind } from '../schema'
 
-export type RenderCtx = { fontFamily: string }
+export type RenderCtx = { fontFamily: string; linkColor: string; linkUnderline: boolean }
 
 export const SOCIAL_BRANDS: Record<SocialNetworkKind, { label: string; color: string }> = {
   facebook: { label: 'f', color: '#1877f2' },
@@ -31,6 +31,13 @@ function convertMergeTags(html: string): string {
   return html.replace(MERGE_TAG_RE, (_m, value: string) => `{{${value}}}`)
 }
 
+function styleLinks(html: string, ctx: RenderCtx): string {
+  return html.replace(
+    /<a\s/g,
+    `<a style="color:${ctx.linkColor};text-decoration:${ctx.linkUnderline ? 'underline' : 'none'};" `,
+  )
+}
+
 /** Tabla 100% de una celda — wrapper estándar para el contenido de un bloque. */
 function cellTable(innerTd: string): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${innerTd}</table>`
@@ -47,7 +54,7 @@ export function renderBlock(block: Block, ctx: RenderCtx): string {
     case 'text': {
       const s = block.style
       return cellTable(
-        `<tr><td style="padding:${paddingCss(s.padding)};font-family:${ctx.fontFamily};font-size:${s.fontSize}px;line-height:${s.lineHeight};color:${s.color};">${convertMergeTags(block.html)}</td></tr>`,
+        `<tr><td style="padding:${paddingCss(s.padding)};font-family:${ctx.fontFamily};font-size:${s.fontSize}px;line-height:${s.lineHeight};color:${s.color};">${styleLinks(convertMergeTags(block.html), ctx)}</td></tr>`,
       )
     }
     case 'image': {
@@ -169,7 +176,7 @@ function renderRow(row: Row, contentWidth: number, ctx: RenderCtx): string {
 
 export function renderHtml(doc: EmailDocument): string {
   const { settings } = doc
-  const ctx: RenderCtx = { fontFamily: settings.fontFamily }
+  const ctx: RenderCtx = { fontFamily: settings.fontFamily, linkColor: settings.linkColor, linkUnderline: settings.linkUnderline }
   const preheader = settings.preheader
     ? `<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">${escapeHtml(settings.preheader)}</div>`
     : ''
@@ -195,7 +202,7 @@ export function renderHtml(doc: EmailDocument): string {
 <body style="margin:0;padding:0;background-color:${settings.backgroundColor};">
 ${preheader}
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${settings.backgroundColor};">
-<tr><td align="center" style="padding:16px 8px;">
+<tr><td align="${settings.contentAlignment}" style="padding:16px 8px;">
 <table role="presentation" width="${settings.contentWidth}" cellpadding="0" cellspacing="0" border="0" class="vmd-container" style="width:${settings.contentWidth}px;max-width:100%;">
 <tr><td>
 ${rows}

@@ -26,6 +26,9 @@ export function createDocument(): EmailDocument {
       backgroundColor: '#f4f4f5',
       fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif",
       preheader: '',
+      contentAlignment: 'center',
+      linkColor: '#3b82f6',
+      linkUnderline: true,
     },
     rows: [],
   }
