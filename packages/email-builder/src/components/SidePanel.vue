@@ -1,13 +1,12 @@
 <template>
   <aside class="vmd-sidepanel">
     <div class="vmd-sidepanel-content">
-      <!-- la pestaña Imágenes se muestra aun con selección: permite cambiar la imagen del bloque seleccionado -->
-      <ImagesTab v-if="ui.sidebarTab === 'images'" />
-      <PropertiesPanel v-else-if="store.selection" />
+      <PropertiesPanel v-if="store.selection && ui.panelMode === 'props'" />
       <template v-else>
         <ContentTab v-if="ui.sidebarTab === 'content'" />
         <BlocksTab v-else-if="ui.sidebarTab === 'blocks'" />
         <BodyTab v-else-if="ui.sidebarTab === 'body'" />
+        <ImagesTab v-else-if="ui.sidebarTab === 'images'" />
       </template>
     </div>
     <nav class="vmd-rail">
@@ -16,8 +15,8 @@
         :key="tab.key"
         type="button"
         :data-tab="tab.key"
-        :class="{ 'vmd-active': ui.sidebarTab === tab.key }"
-        @click="ui.sidebarTab = tab.key"
+        :class="{ 'vmd-active': ui.panelMode === 'tab' && ui.sidebarTab === tab.key }"
+        @click="ui.sidebarTab = tab.key; ui.panelMode = 'tab'"
       >
         <span v-html="ICONS[tab.icon]"></span>
         <span>{{ tab.label }}</span>
@@ -27,6 +26,7 @@
 </template>
 
 <script setup lang="ts">
+import { watch } from 'vue'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
 import { useUiStore } from '../store/ui'
@@ -47,4 +47,11 @@ const TABS: { key: 'content' | 'blocks' | 'body' | 'images'; label: string; icon
   { key: 'body', label: 'Cuerpo', icon: 'tabBody' },
   { key: 'images', label: 'Imágenes', icon: 'tabImages' },
 ]
+
+watch(
+  () => store.selection,
+  (selection) => {
+    if (!selection) ui.panelMode = 'tab'
+  },
+)
 </script>

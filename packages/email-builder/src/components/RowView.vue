@@ -3,7 +3,7 @@
     class="vmd-row"
     :class="{ 'vmd-selected': isSelected }"
     :style="{ background: row.style.backgroundColor, borderRadius: row.style.borderRadius + 'px' }"
-    @click.stop="store.select({ kind: 'row', id: row.id })"
+    @click.stop="selectRow"
   >
     <div class="vmd-row-actions">
       <button type="button" class="vmd-mini-btn vmd-drag-handle" title="Mover">✥</button>
@@ -24,6 +24,8 @@
           class="vmd-column-blocks"
           v-bind="DND_OPTIONS"
           @update:model-value="store.replaceColumnBlocks(column.id, $event)"
+          @start="ui.isDragging = true"
+          @end="onDragEnd"
         >
           <template #item="{ element }">
             <BlockView :block="element" />
@@ -41,10 +43,22 @@ import draggable from 'vuedraggable'
 import type { Row } from '../schema'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
+import { useUiStore } from '../store/ui'
 import BlockView from './BlockView.vue'
 import { DND_OPTIONS } from './dnd'
 
 const props = defineProps<{ row: Row }>()
 const store = useDocumentStore(useBuilderPinia())
+const ui = useUiStore(useBuilderPinia())
 const isSelected = computed(() => store.selection?.kind === 'row' && store.selection.id === props.row.id)
+
+function selectRow() {
+  store.select({ kind: 'row', id: props.row.id })
+  ui.panelMode = 'props'
+}
+
+function onDragEnd() {
+  ui.isDragging = false
+  store.sealHistory()
+}
 </script>

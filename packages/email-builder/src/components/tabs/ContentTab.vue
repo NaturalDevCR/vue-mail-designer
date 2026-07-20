@@ -7,6 +7,8 @@
     :clone="cloneBlock"
     item-key="type"
     class="vmd-content-grid"
+    @start="ui.isDragging = true"
+    @end="onDragEnd"
   >
     <template #item="{ element }">
       <div class="vmd-content-item" v-html="itemHtml(element)"></div>
@@ -17,14 +19,24 @@
 <script setup lang="ts">
 import draggable from 'vuedraggable'
 import { createBlock } from '../../schema'
+import { useDocumentStore } from '../../store/document'
+import { useBuilderPinia } from '../../store/keys'
+import { useUiStore } from '../../store/ui'
 import { DND_OPTIONS } from '../dnd'
 import { ICONS } from '../icons'
 import { PALETTE_BLOCKS } from '../palette-items'
 
+const store = useDocumentStore(useBuilderPinia())
+const ui = useUiStore(useBuilderPinia())
 const blockItems = [...PALETTE_BLOCKS]
 
 function cloneBlock(item: (typeof PALETTE_BLOCKS)[number]) {
   return createBlock(item.type)
+}
+
+function onDragEnd() {
+  ui.isDragging = false
+  store.sealHistory()
 }
 
 // contenido estático propio (no user input), seguro para v-html

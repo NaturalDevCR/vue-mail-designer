@@ -198,6 +198,11 @@ export const useDocumentStore = defineStore('vmd-document', () => {
     lastCommitKey = null
   }
 
+  /** Corta la coalescencia sin tocar past/future: el próximo commit(coalesceKey) no fusiona con el anterior. */
+  function sealHistory() {
+    lastCommitKey = null
+  }
+
   function exportJson(): string {
     return JSON.stringify(doc.value, null, 2)
   }
@@ -229,7 +234,7 @@ export const useDocumentStore = defineStore('vmd-document', () => {
     addBlockToColumn, removeBlock, duplicateBlock, replaceColumnBlocks,
     updateBlock, updateRowStyle, updateColumn, updateSettings,
     select, loadDesign,
-    canUndo, canRedo, undo, redo, resetHistory, exportJson, importJson,
+    canUndo, canRedo, undo, redo, resetHistory, sealHistory, exportJson, importJson,
   }
 })
 

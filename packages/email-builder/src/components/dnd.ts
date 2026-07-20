@@ -5,4 +5,12 @@ export const DND_OPTIONS = {
   swapThreshold: 0.65,
   ghostClass: 'vmd-ghost',
   fallbackClass: 'vmd-drag-card',
+  easing: 'cubic-bezier(0.2, 0, 0, 1)',
+  fallbackTolerance: 5,
+  emptyInsertThreshold: 24,
+  scroll: true,
+  scrollSensitivity: 80,
+  scrollSpeed: 12,
+  bubbleScroll: true,
+  direction: 'vertical',
 } as const

@@ -15,6 +15,8 @@
         class="vmd-canvas-rows"
         v-bind="DND_OPTIONS"
         @update:model-value="store.replaceRows($event)"
+        @start="ui.isDragging = true"
+        @end="onDragEnd"
       >
         <template #item="{ element }">
           <RowView :row="element" />
@@ -38,4 +40,9 @@ const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
 
 const pageWidth = computed(() => (ui.canvasDevice === 'mobile' ? 375 : store.doc.settings.contentWidth))
+
+function onDragEnd() {
+  ui.isDragging = false
+  store.sealHistory()
+}
 </script>

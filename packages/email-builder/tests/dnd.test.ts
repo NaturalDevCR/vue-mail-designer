@@ -17,4 +17,23 @@ describe('contrato DnD', () => {
     await wrapper.find('.vmd-row').trigger('click')
     expect(wrapper.find('.vmd-row .vmd-drag-handle').exists()).toBe(true)
   })
+
+  it('opciones ampliadas de fluidez', () => {
+    expect(DND_OPTIONS.fallbackTolerance).toBe(5)
+    expect(DND_OPTIONS.emptyInsertThreshold).toBe(24)
+    expect(DND_OPTIONS.scroll).toBe(true)
+    expect(DND_OPTIONS.easing).toBe('cubic-bezier(0.2, 0, 0, 1)')
+  })
+
+  it('el drag activa la clase vmd-is-dragging en la raíz', async () => {
+    const wrapper = mount(EmailBuilder)
+    await wrapper.find('.vmd-canvas-empty button').trigger('click')
+    const drag = wrapper.findComponent({ name: 'draggable' })
+    drag.vm.$emit('start')
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('.vmd-root.vmd-is-dragging').exists()).toBe(true)
+    drag.vm.$emit('end')
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('.vmd-root.vmd-is-dragging').exists()).toBe(false)
+  })
 })

@@ -40,4 +40,25 @@ describe('SidePanel', () => {
     await wrapper.find('[data-action="props-delete"]').trigger('click')
     expect(wrapper.find('.vmd-row').exists()).toBe(false)
   })
+
+  it('con selección activa, click en un tab toma precedencia', async () => {
+    const wrapper = mount(EmailBuilder)
+    await wrapper.find('.vmd-canvas-empty button').trigger('click')
+    await wrapper.find('.vmd-row').trigger('click')
+    expect(wrapper.find('.vmd-props-header').exists()).toBe(true)
+    await wrapper.find('[data-tab="body"]').trigger('click')
+    expect(wrapper.find('.vmd-props-header').exists()).toBe(false)
+    expect(wrapper.text()).toContain('Preheader')
+  })
+
+  it('re-seleccionar un elemento vuelve a propiedades', async () => {
+    const wrapper = mount(EmailBuilder)
+    await wrapper.find('.vmd-canvas-empty button').trigger('click')
+    await wrapper.find('.vmd-row').trigger('click')
+    await wrapper.find('[data-tab="content"]').trigger('click')
+    expect(wrapper.find('.vmd-props-header').exists()).toBe(false)
+    // clickear el MISMO elemento otra vez debe re-abrir propiedades
+    await wrapper.find('.vmd-row').trigger('click')
+    expect(wrapper.find('.vmd-props-header').exists()).toBe(true)
+  })
 })

@@ -1,6 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { useDocumentStore } from '../src/store/document'
+import { useUiStore } from '../src/store/ui'
 
 describe('undo/redo e import/export', () => {
   beforeEach(() => {
@@ -52,5 +53,56 @@ describe('undo/redo e import/export', () => {
 
     const notJson = store.importJson('esto no es json')
     expect(notJson.ok).toBe(false)
+  })
+
+  it('un drag entre columnas (dos replaceColumnBlocks seguidos) es un solo undo', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([50, 50])
+    const [colA, colB] = row.columns
+    const block = store.addBlockToColumn(colA.id, 'text')
+    const stepsBefore = store.past.length
+    // simulación del gesto: sortable dispara update en origen y destino
+    store.replaceColumnBlocks(colA.id, [])
+    store.replaceColumnBlocks(colB.id, [block])
+    expect(store.past.length).toBe(stepsBefore + 1)
+    store.undo()
+    expect(store.findRow(row.id)!.columns[0].blocks).toHaveLength(1)
+  })
+
+  it('dos drags separados por sealHistory son dos undos', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([50, 50])
+    const block = store.addBlockToColumn(row.columns[0].id, 'text')
+    const base = store.past.length
+    store.replaceColumnBlocks(row.columns[0].id, [])
+    store.replaceColumnBlocks(row.columns[1].id, [block])
+    store.sealHistory()
+    store.replaceColumnBlocks(row.columns[1].id, [])
+    store.replaceColumnBlocks(row.columns[0].id, [block])
+    expect(store.past.length).toBe(base + 2)
+  })
+
+  it('mutaciones de bloques distintos no coalescen', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([100])
+    const a = store.addBlockToColumn(row.columns[0].id, 'heading')
+    const b = store.addBlockToColumn(row.columns[0].id, 'heading')
+    const base = store.past.length
+    store.updateBlock(a.id, { text: 'A' })
+    store.updateBlock(b.id, { text: 'B' })
+    expect(store.past.length).toBe(base + 2)
+  })
+
+  it('mutaciones de UI no crecen el historial del documento', () => {
+    const store = useDocumentStore()
+    const ui = useUiStore()
+    const base = store.past.length
+
+    ui.previewWidth = 500
+    ui.sidebarTab = 'blocks'
+    ui.toggleTheme()
+    ui.canvasDevice = 'mobile'
+
+    expect(store.past.length).toBe(base)
   })
 })

@@ -1,5 +1,5 @@
 <template>
-  <div class="vmd-root" :class="{ 'vmd-dark': ui.theme === 'dark' }">
+  <div class="vmd-root" :class="{ 'vmd-dark': ui.theme === 'dark', 'vmd-is-dragging': ui.isDragging }">
     <BuilderHeader />
     <PreviewDialog v-if="ui.previewOpen" />
     <div class="vmd-main">

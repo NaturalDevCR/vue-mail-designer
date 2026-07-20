@@ -2,7 +2,7 @@
   <div
     class="vmd-block"
     :class="{ 'vmd-selected': isSelected }"
-    @click.stop="store.select({ kind: 'block', id: block.id })"
+    @click.stop="selectBlock"
   >
     <div class="vmd-block-actions">
       <button type="button" class="vmd-mini-btn vmd-drag-handle" title="Mover">✥</button>
@@ -118,14 +118,22 @@ import { SOCIAL_BRANDS } from '../render/html'
 import type { Block, Padding } from '../schema'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
+import { useUiStore } from '../store/ui'
 import RichTextEditor from './RichTextEditor.vue'
 
 const props = defineProps<{ block: Block }>()
-const store = useDocumentStore(useBuilderPinia())
+const pinia = useBuilderPinia()
+const store = useDocumentStore(pinia)
+const ui = useUiStore(pinia)
 const isSelected = computed(() => store.selection?.kind === 'block' && store.selection.id === props.block.id)
 const fontFamily = computed(() => store.doc.settings.fontFamily)
 
 function padCss(p: Padding): string {
   return `${p.top}px ${p.right}px ${p.bottom}px ${p.left}px`
+}
+
+function selectBlock() {
+  store.select({ kind: 'block', id: props.block.id })
+  ui.panelMode = 'props'
 }
 </script>
