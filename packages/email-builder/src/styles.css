@@ -142,6 +142,7 @@
 .vmd-modal-box { background: var(--vmd-panel); border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.3); overflow: hidden; }
 .vmd-preview-box { width: 90vw; max-width: 900px; height: 88vh; display: flex; flex-direction: column; }
 .vmd-preview-bar { display: flex; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid var(--vmd-border); }
+.vmd-preview-width { width: 72px; }
 .vmd-preview-stage { flex: 1; overflow: auto; display: flex; justify-content: center; padding: 20px; background: #e4e4e7; }
 .vmd-preview-frame { height: 100%; border: 0; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,.15); transition: width .2s; }
 

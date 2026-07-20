@@ -19,11 +19,15 @@ describe('toolbar y preview', () => {
     expect(iframe.attributes('srcdoc')).toContain('<!doctype html>')
   })
 
-  it('toggle mobile cambia el ancho del iframe', async () => {
+  it('presets y ancho custom cambian el iframe', async () => {
     const wrapper = mount(EmailBuilder)
     await wrapper.find('[data-action="preview"]').trigger('click')
-    await wrapper.find('[data-device="mobile"]').trigger('click')
-    const iframe = wrapper.find('iframe.vmd-preview-frame')
-    expect(iframe.attributes('style')).toContain('375px')
+    await wrapper.find('[data-preset="mobile"]').trigger('click')
+    expect(wrapper.find('iframe.vmd-preview-frame').attributes('style')).toContain('375px')
+    await wrapper.find('[data-preset="tablet"]').trigger('click')
+    expect(wrapper.find('iframe.vmd-preview-frame').attributes('style')).toContain('768px')
+    const custom = wrapper.find('input.vmd-preview-width')
+    await custom.setValue('500')
+    expect(wrapper.find('iframe.vmd-preview-frame').attributes('style')).toContain('500px')
   })
 })

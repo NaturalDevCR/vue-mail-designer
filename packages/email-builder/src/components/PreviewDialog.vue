@@ -3,8 +3,23 @@
     <div class="vmd-modal-box vmd-preview-box">
       <div class="vmd-preview-bar">
         <div class="vmd-toolbar-group">
-          <button type="button" class="vmd-btn" :class="{ 'vmd-btn--primary': ui.previewDevice === 'desktop' }" data-device="desktop" @click="ui.previewDevice = 'desktop'">🖥 Escritorio</button>
-          <button type="button" class="vmd-btn" :class="{ 'vmd-btn--primary': ui.previewDevice === 'mobile' }" data-device="mobile" @click="ui.previewDevice = 'mobile'">📱 Móvil</button>
+          <button
+            v-for="preset in presets"
+            :key="preset.name"
+            type="button"
+            class="vmd-btn"
+            :class="{ 'vmd-btn--primary': ui.previewWidth === preset.width }"
+            :data-preset="preset.name"
+            :title="preset.title"
+            @click="ui.previewWidth = preset.width"
+          >{{ preset.icon }} {{ preset.title }}</button>
+          <input
+            type="number"
+            class="vmd-preview-width vmd-field-input"
+            min="320"
+            max="1400"
+            v-model.number="ui.previewWidth"
+          />
         </div>
         <div class="vmd-toolbar-group">
           <button type="button" class="vmd-btn" @click="copyHtml">{{ copied ? '✓ Copiado' : 'Copiar HTML' }}</button>
@@ -15,7 +30,7 @@
         <iframe
           class="vmd-preview-frame"
           :srcdoc="html"
-          :style="{ width: ui.previewDevice === 'mobile' ? '375px' : '600px' }"
+          :style="{ width: ui.previewWidth + 'px' }"
         />
       </div>
     </div>
@@ -34,6 +49,11 @@ const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
 const html = computed(() => renderHtml(store.doc))
 const copied = ref(false)
+const presets = [
+  { name: 'desktop', title: 'Escritorio', icon: '🖥', width: 1000 },
+  { name: 'tablet', title: 'Tablet', icon: '💻', width: 768 },
+  { name: 'mobile', title: 'Móvil', icon: '📱', width: 375 },
+]
 
 async function copyHtml() {
   try {

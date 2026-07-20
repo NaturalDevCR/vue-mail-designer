@@ -4,7 +4,7 @@ import { ref } from 'vue'
 export const useUiStore = defineStore('vmd-ui', () => {
   const theme = ref<'light' | 'dark'>('light')
   const previewOpen = ref(false)
-  const previewDevice = ref<'desktop' | 'mobile'>('desktop')
+  const previewWidth = ref(1000)
   const galleryOpen = ref(false)
   const canvasDevice = ref<'desktop' | 'mobile'>('desktop')
   const sidebarTab = ref<'content' | 'blocks' | 'body' | 'images'>('content')
@@ -18,7 +18,7 @@ export const useUiStore = defineStore('vmd-ui', () => {
   return {
     theme,
     previewOpen,
-    previewDevice,
+    previewWidth,
     galleryOpen,
     canvasDevice,
     sidebarTab,
