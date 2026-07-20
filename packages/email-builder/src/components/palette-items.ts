@@ -11,6 +11,9 @@ export const PALETTE_BLOCKS: { type: BlockType; label: string }[] = [
   { type: 'menu', label: 'Menú' },
   { type: 'html', label: 'HTML' },
   { type: 'video', label: 'Video' },
+  { type: 'table', label: 'Tabla' },
+  { type: 'gallery', label: 'Galería' },
+  { type: 'timer', label: 'Timer' },
 ]
 
 export const ROW_LAYOUTS: { key: string; label: string; widths: number[] }[] = [

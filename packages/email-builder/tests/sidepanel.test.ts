@@ -3,10 +3,10 @@ import { describe, expect, it } from 'vitest'
 import EmailBuilder from '../src/components/EmailBuilder.vue'
 
 describe('SidePanel', () => {
-  it('riel con 4 tabs; Content activo por defecto muestra los 10 bloques', () => {
+  it('riel con 4 tabs; Content activo por defecto muestra los 13 bloques', () => {
     const wrapper = mount(EmailBuilder)
     expect(wrapper.findAll('.vmd-rail [data-tab]')).toHaveLength(4)
-    expect(wrapper.findAll('.vmd-content-item')).toHaveLength(10)
+    expect(wrapper.findAll('.vmd-content-item')).toHaveLength(13)
   })
 
   it('tab Blocks muestra 6 miniaturas de layout', async () => {
@@ -30,7 +30,7 @@ describe('SidePanel', () => {
     expect(wrapper.text()).toContain('Fila')
     await wrapper.find('[data-action="props-close"]').trigger('click')
     expect(wrapper.find('.vmd-props-header').exists()).toBe(false)
-    expect(wrapper.findAll('.vmd-content-item')).toHaveLength(10)
+    expect(wrapper.findAll('.vmd-content-item')).toHaveLength(13)
   })
 
   it('eliminar desde el header de propiedades borra la fila', async () => {
