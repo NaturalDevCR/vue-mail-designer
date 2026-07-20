@@ -92,6 +92,6 @@ function selectImage(result: ImageResult) {
   }
   const row = store.addRow([100])
   const block = store.addBlockToColumn(row.columns[0].id, 'image')
-  store.updateBlock(block.id, { src: result.url, alt: result.title || '' })
+  store.updateBlock(block.id, { src: result.url, alt: result.title ?? '' })
 }
 </script>

@@ -5,7 +5,7 @@
       :style="{ width: pageWidth + 'px', background: store.doc.settings.backgroundColor }"
     >
       <div v-if="store.doc.rows.length === 0" class="vmd-canvas-empty">
-        <p>Arrastra una fila desde la paleta o</p>
+        <p>Arrastra una fila desde el tab Bloques o</p>
         <button type="button" class="vmd-btn vmd-btn--primary" @click="store.addRow([100])">Agregar fila</button>
       </div>
       <draggable
