@@ -37,6 +37,18 @@ describe('renderer fase B — bloques nuevos', () => {
     expect(html).toContain('https://x/2.jpg')
   })
 
+  it('galería de 3 columnas apila en mobile via clase vmd-gallery-cell', () => {
+    const g = createBlock('gallery') as GalleryBlock
+    g.columns = 3
+    g.images = [
+      { src: 'https://x/1.jpg', alt: 'uno' }, { src: 'https://x/2.jpg', alt: 'dos' },
+      { src: 'https://x/3.jpg', alt: 'tres' },
+    ]
+    const html = render(g)
+    expect(html).toContain('vmd-gallery-cell')
+    expect(html).toMatch(/@media \(max-width: 480px\)[\s\S]*\.vmd-gallery-cell\s*\{\s*display:\s*block\s*!important;\s*width:\s*100%\s*!important;\s*\}/)
+  })
+
   it('timer con imageUrl renderiza img linkeable', () => {
     const t = createBlock('timer') as TimerBlock
     t.imageUrl = 'https://timers.x/abc.gif'

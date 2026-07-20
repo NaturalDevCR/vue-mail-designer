@@ -17,6 +17,7 @@ exports[`renderHtml — frame y layout > snapshot estable de un documento de ref
     .vmd-container { width: 100% !important; }
     .vmd-hide-desktop { display:block !important; max-height:none !important; }
     .vmd-hide-mobile { display:none !important; }
+    .vmd-gallery-cell { display: block !important; width: 100% !important; }
   }
 </style>
 </head>

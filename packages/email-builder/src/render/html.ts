@@ -185,7 +185,7 @@ function renderGallery(block: GalleryBlock): string {
   const cells = withSrc.map((im) => {
     const img = `<img src="${escapeHtml(im.src)}" alt="${escapeHtml(im.alt)}" width="100%" style="display:block;width:100%;max-width:100%;height:auto;border:0;">`
     const inner = im.href ? `<a href="${escapeHtml(im.href)}" target="_blank">${img}</a>` : img
-    return `<td width="${cellW}%" style="padding:${block.gap / 2}px;" valign="top">${inner}</td>`
+    return `<td class="vmd-gallery-cell" width="${cellW}%" style="padding:${block.gap / 2}px;" valign="top">${inner}</td>`
   })
   // agrupar en filas de `cols`
   const trs: string[] = []
@@ -229,7 +229,7 @@ function renderRow(row: Row, contentWidth: number, ctx: RenderCtx): string {
   const bgImg = rs.backgroundImage
   const bgAttr = bgImg ? ` background="${escapeHtml(bgImg.url)}"` : ''
   const bgStyle = bgImg
-    ? `background-image:url(${bgImg.url});background-size:${bgImg.size};background-position:${bgImg.position};background-repeat:${bgImg.repeat};`
+    ? `background-image:url(${escapeHtml(bgImg.url)});background-size:${bgImg.size};background-position:${escapeHtml(bgImg.position)};background-repeat:${bgImg.repeat};`
     : ''
 
   const cols = row.columns
@@ -288,6 +288,7 @@ export function renderHtml(doc: EmailDocument): string {
     .vmd-container { width: 100% !important; }
     .vmd-hide-desktop { display:block !important; max-height:none !important; }
     .vmd-hide-mobile { display:none !important; }
+    .vmd-gallery-cell { display: block !important; width: 100% !important; }
   }
 </style>
 </head>
