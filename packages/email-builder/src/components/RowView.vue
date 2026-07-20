@@ -25,7 +25,7 @@
           v-bind="DND_OPTIONS"
           @update:model-value="store.replaceColumnBlocks(column.id, $event)"
           @start="ui.isDragging = true"
-          @end="ui.isDragging = false"
+          @end="onDragEnd"
         >
           <template #item="{ element }">
             <BlockView :block="element" />
@@ -55,5 +55,10 @@ const isSelected = computed(() => store.selection?.kind === 'row' && store.selec
 function selectRow() {
   store.select({ kind: 'row', id: props.row.id })
   ui.panelMode = 'props'
+}
+
+function onDragEnd() {
+  ui.isDragging = false
+  store.sealHistory()
 }
 </script>
