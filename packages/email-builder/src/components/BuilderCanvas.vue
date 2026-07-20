@@ -2,10 +2,10 @@
   <section class="vmd-canvas" @click.self="store.select(null)">
     <div
       class="vmd-canvas-page"
-      :style="{ width: store.doc.settings.contentWidth + 'px', background: store.doc.settings.backgroundColor }"
+      :style="{ width: pageWidth + 'px', background: store.doc.settings.backgroundColor }"
     >
       <div v-if="store.doc.rows.length === 0" class="vmd-canvas-empty">
-        <p>Arrastra una fila desde la paleta o</p>
+        <p>Arrastra una fila desde el tab Bloques o</p>
         <button type="button" class="vmd-btn vmd-btn--primary" @click="store.addRow([100])">Agregar fila</button>
       </div>
       <draggable
@@ -13,8 +13,7 @@
         group="rows"
         item-key="id"
         class="vmd-canvas-rows"
-        ghost-class="vmd-ghost"
-        :animation="150"
+        v-bind="DND_OPTIONS"
         @update:model-value="store.replaceRows($event)"
       >
         <template #item="{ element }">
@@ -26,10 +25,17 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import draggable from 'vuedraggable'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
+import { useUiStore } from '../store/ui'
+import { DND_OPTIONS } from './dnd'
 import RowView from './RowView.vue'
 
-const store = useDocumentStore(useBuilderPinia())
+const pinia = useBuilderPinia()
+const store = useDocumentStore(pinia)
+const ui = useUiStore(pinia)
+
+const pageWidth = computed(() => (ui.canvasDevice === 'mobile' ? 375 : store.doc.settings.contentWidth))
 </script>

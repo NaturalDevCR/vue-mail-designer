@@ -1,10 +1,13 @@
 <template>
   <div class="vmd-root" :class="{ 'vmd-dark': ui.theme === 'dark' }">
-    <BuilderToolbar />
-    <div class="vmd-body">
-      <BlockPalette />
-      <BuilderCanvas />
-      <InspectorPanel />
+    <BuilderHeader />
+    <PreviewDialog v-if="ui.previewOpen" />
+    <div class="vmd-main">
+      <section class="vmd-canvas-area">
+        <CanvasBar />
+        <BuilderCanvas />
+      </section>
+      <SidePanel />
     </div>
     <TemplateGallery v-if="ui.galleryOpen" />
   </div>
@@ -13,6 +16,7 @@
 <script setup lang="ts">
 import { createPinia } from 'pinia'
 import { provide, reactive, watch } from 'vue'
+import type { ImageResult } from '../imageSearch'
 import { BUILDER_OPTIONS_KEY, type MergeTagDef } from '../options'
 import { renderHtml } from '../render/html'
 import type { EmailDocument } from '../schema'
@@ -20,10 +24,11 @@ import { useDocumentStore } from '../store/document'
 import { BUILDER_PINIA_KEY } from '../store/keys'
 import { useUiStore } from '../store/ui'
 import type { EmailTemplate } from '../templates'
-import BlockPalette from './BlockPalette.vue'
 import BuilderCanvas from './BuilderCanvas.vue'
-import BuilderToolbar from './BuilderToolbar.vue'
-import InspectorPanel from './InspectorPanel.vue'
+import BuilderHeader from './BuilderHeader.vue'
+import CanvasBar from './CanvasBar.vue'
+import PreviewDialog from './PreviewDialog.vue'
+import SidePanel from './SidePanel.vue'
 import TemplateGallery from './TemplateGallery.vue'
 import '../styles.css'
 
@@ -32,6 +37,7 @@ const props = defineProps<{
   mergeTags?: MergeTagDef[]
   templates?: EmailTemplate[]
   uploadImage?: (file: File) => Promise<string>
+  imageSearch?: (query: string) => Promise<ImageResult[]>
   theme?: 'light' | 'dark'
 }>()
 
@@ -58,6 +64,9 @@ provide(
     },
     get templates() {
       return props.templates
+    },
+    get imageSearch() {
+      return props.imageSearch
     },
   }),
 )

@@ -47,6 +47,7 @@ function onHtml(html: string) {
 | `mergeTags` | `MergeTagDef[]` | Variables insertables en texto (`{ name, value }`). |
 | `templates` | `EmailTemplate[]` | Plantillas extra además de las incluidas. |
 | `uploadImage` | `(file: File) => Promise<string>` | Handler de subida; devuelve la URL final. |
+| `imageSearch` | `(query: string) => Promise<ImageResult[]>` | Handler de búsqueda para la pestaña Imágenes; por defecto usa `openverseSearch`. |
 | `theme` | `'light' \| 'dark'` | Tema de la UI del builder. |
 
 ## Eventos

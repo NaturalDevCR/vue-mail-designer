@@ -1,16 +1,16 @@
 import type { BlockType } from '../schema'
 
-export const PALETTE_BLOCKS: { type: BlockType; label: string; icon: string }[] = [
-  { type: 'heading', label: 'Título', icon: 'H' },
-  { type: 'text', label: 'Texto', icon: '¶' },
-  { type: 'image', label: 'Imagen', icon: '🖼' },
-  { type: 'button', label: 'Botón', icon: '⬢' },
-  { type: 'divider', label: 'Divisor', icon: '—' },
-  { type: 'spacer', label: 'Espacio', icon: '↕' },
-  { type: 'social', label: 'Redes', icon: '@' },
-  { type: 'menu', label: 'Menú', icon: '≡' },
-  { type: 'html', label: 'HTML', icon: '<>' },
-  { type: 'video', label: 'Video', icon: '▶' },
+export const PALETTE_BLOCKS: { type: BlockType; label: string }[] = [
+  { type: 'heading', label: 'Título' },
+  { type: 'text', label: 'Texto' },
+  { type: 'image', label: 'Imagen' },
+  { type: 'button', label: 'Botón' },
+  { type: 'divider', label: 'Divisor' },
+  { type: 'spacer', label: 'Espacio' },
+  { type: 'social', label: 'Redes' },
+  { type: 'menu', label: 'Menú' },
+  { type: 'html', label: 'HTML' },
+  { type: 'video', label: 'Video' },
 ]
 
 export const ROW_LAYOUTS: { key: string; label: string; widths: number[] }[] = [

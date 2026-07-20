@@ -5,7 +5,8 @@
     :style="{ background: row.style.backgroundColor, borderRadius: row.style.borderRadius + 'px' }"
     @click.stop="store.select({ kind: 'row', id: row.id })"
   >
-    <div class="vmd-row-actions" v-if="isSelected">
+    <div class="vmd-row-actions">
+      <button type="button" class="vmd-mini-btn vmd-drag-handle" title="Mover">✥</button>
       <button type="button" class="vmd-mini-btn" title="Duplicar fila" @click.stop="store.duplicateRow(row.id)">⧉</button>
       <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" title="Eliminar fila" @click.stop="store.removeRow(row.id)">🗑</button>
     </div>
@@ -21,8 +22,7 @@
           group="blocks"
           item-key="id"
           class="vmd-column-blocks"
-          ghost-class="vmd-ghost"
-          :animation="150"
+          v-bind="DND_OPTIONS"
           @update:model-value="store.replaceColumnBlocks(column.id, $event)"
         >
           <template #item="{ element }">
@@ -42,6 +42,7 @@ import type { Row } from '../schema'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
 import BlockView from './BlockView.vue'
+import { DND_OPTIONS } from './dnd'
 
 const props = defineProps<{ row: Row }>()
 const store = useDocumentStore(useBuilderPinia())

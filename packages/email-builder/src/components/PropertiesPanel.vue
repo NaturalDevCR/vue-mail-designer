@@ -1,9 +1,16 @@
 <template>
-  <aside class="vmd-inspector" @click.stop>
+  <div class="vmd-props" @click.stop>
+    <div class="vmd-props-header">
+      <h3>{{ title }}</h3>
+      <div class="vmd-toolbar-group">
+        <button type="button" class="vmd-mini-btn" title="Duplicar" data-action="props-duplicate" @click="duplicate">⧉</button>
+        <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" title="Eliminar" data-action="props-delete" @click="remove">🗑</button>
+        <button type="button" class="vmd-mini-btn" title="Cerrar" data-action="props-close" @click="store.select(null)">✕</button>
+      </div>
+    </div>
+
     <!-- Bloque seleccionado -->
     <template v-if="block">
-      <h3 class="vmd-inspector-title">Bloque: {{ block.type }}</h3>
-
       <template v-if="block.type === 'heading'">
         <TextField label="Texto" :model-value="block.text" @update:model-value="upd({ text: $event })" />
         <SelectField label="Nivel" :model-value="String(block.level)" :options="[{label:'H1',value:'1'},{label:'H2',value:'2'},{label:'H3',value:'3'}]" @update:model-value="upd({ level: Number($event) })" />
@@ -97,21 +104,11 @@
 
     <!-- Fila seleccionada -->
     <template v-else-if="row">
-      <h3 class="vmd-inspector-title">Fila</h3>
       <ColorField label="Fondo" :model-value="row.style.backgroundColor" @update:model-value="store.updateRowStyle(row.id, { backgroundColor: $event })" />
       <NumberField label="Radio borde" :model-value="row.style.borderRadius" :min="0" :max="32" @update:model-value="store.updateRowStyle(row.id, { borderRadius: $event })" />
       <PaddingField label="Padding" :model-value="row.style.padding" @update:model-value="store.updateRowStyle(row.id, { padding: $event })" />
     </template>
-
-    <!-- Sin selección: settings del documento -->
-    <template v-else>
-      <h3 class="vmd-inspector-title">Documento</h3>
-      <NumberField label="Ancho contenido" :model-value="store.doc.settings.contentWidth" :min="320" :max="900" @update:model-value="store.updateSettings({ contentWidth: $event })" />
-      <ColorField label="Color de fondo" :model-value="store.doc.settings.backgroundColor" @update:model-value="store.updateSettings({ backgroundColor: $event })" />
-      <TextField label="Fuente" :model-value="store.doc.settings.fontFamily" @update:model-value="store.updateSettings({ fontFamily: $event })" />
-      <TextField label="Preheader" :model-value="store.doc.settings.preheader" @update:model-value="store.updateSettings({ preheader: $event })" />
-    </template>
-  </aside>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -132,6 +129,40 @@ const options = useBuilderOptions()
 const block = computed(() => store.selectedBlock)
 const row = computed(() => store.selectedRow)
 const uploading = ref(false)
+
+const TYPE_LABELS: Record<string, string> = {
+  heading: 'Título',
+  text: 'Texto',
+  image: 'Imagen',
+  button: 'Botón',
+  divider: 'Divisor',
+  spacer: 'Espacio',
+  social: 'Redes',
+  menu: 'Menú',
+  html: 'HTML',
+  video: 'Video',
+  row: 'Fila',
+}
+
+const title = computed(() => {
+  if (block.value) return TYPE_LABELS[block.value.type] ?? block.value.type
+  if (row.value) return TYPE_LABELS.row
+  return ''
+})
+
+function duplicate() {
+  const sel = store.selection
+  if (!sel) return
+  if (sel.kind === 'block') store.duplicateBlock(sel.id)
+  else store.duplicateRow(sel.id)
+}
+
+function remove() {
+  const sel = store.selection
+  if (!sel) return
+  if (sel.kind === 'block') store.removeBlock(sel.id)
+  else store.removeRow(sel.id)
+}
 
 const NETWORK_OPTIONS = [
   'facebook', 'instagram', 'x', 'linkedin', 'youtube', 'tiktok', 'whatsapp', 'web',
