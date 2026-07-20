@@ -1,6 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { useDocumentStore } from '../src/store/document'
+import { useUiStore } from '../src/store/ui'
 
 describe('undo/redo e import/export', () => {
   beforeEach(() => {
@@ -90,5 +91,18 @@ describe('undo/redo e import/export', () => {
     store.updateBlock(a.id, { text: 'A' })
     store.updateBlock(b.id, { text: 'B' })
     expect(store.past.length).toBe(base + 2)
+  })
+
+  it('mutaciones de UI no crecen el historial del documento', () => {
+    const store = useDocumentStore()
+    const ui = useUiStore()
+    const base = store.past.length
+
+    ui.previewWidth = 500
+    ui.sidebarTab = 'blocks'
+    ui.toggleTheme()
+    ui.canvasDevice = 'mobile'
+
+    expect(store.past.length).toBe(base)
   })
 })

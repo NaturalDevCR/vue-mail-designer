@@ -7,7 +7,7 @@
     :clone="cloneRow"
     item-key="key"
     @start="ui.isDragging = true"
-    @end="ui.isDragging = false"
+    @end="onDragEnd"
   >
     <template #item="{ element }">
       <div class="vmd-layout-thumb" :title="element.label">
@@ -20,15 +20,22 @@
 <script setup lang="ts">
 import draggable from 'vuedraggable'
 import { createRow } from '../../schema'
+import { useDocumentStore } from '../../store/document'
 import { useBuilderPinia } from '../../store/keys'
 import { useUiStore } from '../../store/ui'
 import { DND_OPTIONS } from '../dnd'
 import { ROW_LAYOUTS } from '../palette-items'
 
+const store = useDocumentStore(useBuilderPinia())
 const ui = useUiStore(useBuilderPinia())
 const rowItems = [...ROW_LAYOUTS]
 
 function cloneRow(item: (typeof ROW_LAYOUTS)[number]) {
   return createRow(item.widths)
+}
+
+function onDragEnd() {
+  ui.isDragging = false
+  store.sealHistory()
 }
 </script>
