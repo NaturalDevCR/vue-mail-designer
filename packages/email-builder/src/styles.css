@@ -95,6 +95,15 @@
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
   font-size: 40px; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.6);
 }
+.vmd-b-table { width: 100%; }
+.vmd-b-table th, .vmd-b-table td { vertical-align: top; }
+.vmd-b-gallery { width: 100%; }
+.vmd-b-gallery-placeholder { padding: 12px; font-size: 20px; }
+.vmd-hidden-badge {
+  position: absolute; top: -10px; left: 4px; z-index: 5; pointer-events: none;
+  background: var(--vmd-accent); color: #fff; font-size: 10px; line-height: 1;
+  padding: 3px 6px; border-radius: 4px; white-space: nowrap;
+}
 .vmd-mt { background: color-mix(in srgb, var(--vmd-accent) 15%, transparent); border-radius: 3px; padding: 0 3px; }
 .vmd-rte-toolbar { display: flex; gap: 2px; padding: 4px; background: var(--vmd-panel); border: 1px solid var(--vmd-border); border-radius: 6px 6px 0 0; }
 .vmd-rte .ProseMirror { outline: none; min-height: 40px; padding: 4px; border: 1px solid var(--vmd-border); border-top: 0; border-radius: 0 0 6px 6px; }
