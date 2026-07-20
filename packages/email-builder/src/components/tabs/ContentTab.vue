@@ -7,6 +7,8 @@
     :clone="cloneBlock"
     item-key="type"
     class="vmd-content-grid"
+    @start="ui.isDragging = true"
+    @end="ui.isDragging = false"
   >
     <template #item="{ element }">
       <div class="vmd-content-item" v-html="itemHtml(element)"></div>
@@ -17,10 +19,13 @@
 <script setup lang="ts">
 import draggable from 'vuedraggable'
 import { createBlock } from '../../schema'
+import { useBuilderPinia } from '../../store/keys'
+import { useUiStore } from '../../store/ui'
 import { DND_OPTIONS } from '../dnd'
 import { ICONS } from '../icons'
 import { PALETTE_BLOCKS } from '../palette-items'
 
+const ui = useUiStore(useBuilderPinia())
 const blockItems = [...PALETTE_BLOCKS]
 
 function cloneBlock(item: (typeof PALETTE_BLOCKS)[number]) {

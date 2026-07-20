@@ -24,6 +24,8 @@
           class="vmd-column-blocks"
           v-bind="DND_OPTIONS"
           @update:model-value="store.replaceColumnBlocks(column.id, $event)"
+          @start="ui.isDragging = true"
+          @end="ui.isDragging = false"
         >
           <template #item="{ element }">
             <BlockView :block="element" />
@@ -41,10 +43,12 @@ import draggable from 'vuedraggable'
 import type { Row } from '../schema'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
+import { useUiStore } from '../store/ui'
 import BlockView from './BlockView.vue'
 import { DND_OPTIONS } from './dnd'
 
 const props = defineProps<{ row: Row }>()
 const store = useDocumentStore(useBuilderPinia())
+const ui = useUiStore(useBuilderPinia())
 const isSelected = computed(() => store.selection?.kind === 'row' && store.selection.id === props.row.id)
 </script>

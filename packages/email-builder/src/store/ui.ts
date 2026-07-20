@@ -8,10 +8,20 @@ export const useUiStore = defineStore('vmd-ui', () => {
   const galleryOpen = ref(false)
   const canvasDevice = ref<'desktop' | 'mobile'>('desktop')
   const sidebarTab = ref<'content' | 'blocks' | 'body' | 'images'>('content')
+  const isDragging = ref(false)
 
   function toggleTheme() {
     theme.value = theme.value === 'light' ? 'dark' : 'light'
   }
 
-  return { theme, previewOpen, previewDevice, galleryOpen, canvasDevice, sidebarTab, toggleTheme }
+  return {
+    theme,
+    previewOpen,
+    previewDevice,
+    galleryOpen,
+    canvasDevice,
+    sidebarTab,
+    isDragging,
+    toggleTheme,
+  }
 })

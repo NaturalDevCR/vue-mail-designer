@@ -73,6 +73,10 @@
   border: 1px solid var(--vmd-accent); cursor: grabbing !important;
 }
 .vmd-drag-handle { cursor: grab; }
+.vmd-root.vmd-is-dragging { user-select: none; -webkit-user-select: none; cursor: grabbing; }
+.vmd-root.vmd-is-dragging .vmd-column-blocks { min-height: 36px; }
+.vmd-root.vmd-is-dragging .vmd-column { outline: 1px dashed var(--vmd-border); outline-offset: -1px; }
+.vmd-block, .vmd-row { transition: transform 0.15s ease; }
 .vmd-row-actions, .vmd-block-actions { display: none; }
 .vmd-row:hover > .vmd-row-actions, .vmd-row.vmd-selected > .vmd-row-actions { display: flex; }
 .vmd-block:hover > .vmd-block-actions, .vmd-block.vmd-selected > .vmd-block-actions { display: flex; }

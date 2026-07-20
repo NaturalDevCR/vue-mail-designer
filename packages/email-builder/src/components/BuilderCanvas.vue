@@ -15,6 +15,8 @@
         class="vmd-canvas-rows"
         v-bind="DND_OPTIONS"
         @update:model-value="store.replaceRows($event)"
+        @start="ui.isDragging = true"
+        @end="ui.isDragging = false"
       >
         <template #item="{ element }">
           <RowView :row="element" />
