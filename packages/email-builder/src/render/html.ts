@@ -43,18 +43,33 @@ function cellTable(innerTd: string): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${innerTd}</table>`
 }
 
+/** Envuelve `html` en un div con clases de ocultamiento por dispositivo, si aplica. */
+function wrapHidden(html: string, hideDesktop?: boolean, hideMobile?: boolean): string {
+  if (!hideDesktop && !hideMobile) return html
+  const classes = [hideDesktop && 'vmd-hide-desktop', hideMobile && 'vmd-hide-mobile'].filter(Boolean).join(' ')
+  const inline = hideDesktop ? ' style="display:none;max-height:0;overflow:hidden;mso-hide:all;"' : ''
+  return `<div class="${classes}"${inline}>${html}</div>`
+}
+
 export function renderBlock(block: Block, ctx: RenderCtx): string {
+  const inner = renderBlockInner(block, ctx)
+  return wrapHidden(inner, block.hideDesktop, block.hideMobile)
+}
+
+function renderBlockInner(block: Block, ctx: RenderCtx): string {
   switch (block.type) {
     case 'heading': {
       const s = block.style
+      const fam = block.fontFamily ?? ctx.fontFamily
       return cellTable(
-        `<tr><td style="padding:${paddingCss(s.padding)};font-family:${ctx.fontFamily};font-size:${s.fontSize}px;line-height:1.3;font-weight:bold;color:${s.color};text-align:${s.align};">${escapeHtml(block.text)}</td></tr>`,
+        `<tr><td style="padding:${paddingCss(s.padding)};font-family:${fam};font-size:${s.fontSize}px;line-height:1.3;font-weight:bold;color:${s.color};text-align:${s.align};">${escapeHtml(block.text)}</td></tr>`,
       )
     }
     case 'text': {
       const s = block.style
+      const fam = block.fontFamily ?? ctx.fontFamily
       return cellTable(
-        `<tr><td style="padding:${paddingCss(s.padding)};font-family:${ctx.fontFamily};font-size:${s.fontSize}px;line-height:${s.lineHeight};color:${s.color};">${styleLinks(convertMergeTags(block.html), ctx)}</td></tr>`,
+        `<tr><td style="padding:${paddingCss(s.padding)};font-family:${fam};font-size:${s.fontSize}px;line-height:${s.lineHeight};color:${s.color};">${styleLinks(convertMergeTags(block.html), ctx)}</td></tr>`,
       )
     }
     case 'image': {
@@ -154,14 +169,24 @@ function renderRow(row: Row, contentWidth: number, ctx: RenderCtx): string {
   const radius = rs.borderRadius > 0 ? `border-radius:${rs.borderRadius}px;` : ''
   const innerWidth = contentWidth - rs.padding.left - rs.padding.right // el padding de fila resta ancho disponible para las columnas
 
+  const bgImg = rs.backgroundImage
+  const bgAttr = bgImg ? ` background="${escapeHtml(bgImg.url)}"` : ''
+  const bgStyle = bgImg
+    ? `background-image:url(${bgImg.url});background-size:${bgImg.size};background-position:${bgImg.position};background-repeat:${bgImg.repeat};`
+    : ''
+
   const cols = row.columns
     .map((col) => {
       const pxWidth = Math.round((innerWidth * col.widthPct) / 100)
       const colBg = col.style.backgroundColor === 'transparent' ? '' : `background-color:${col.style.backgroundColor};`
+      const colBorder = col.style.border
+        ? `border:${col.style.border.width}px ${col.style.border.style} ${col.style.border.color};`
+        : ''
+      const colRadius = col.style.borderRadius ? `border-radius:${col.style.borderRadius}px;` : ''
       return (
         `<!--[if mso]><td width="${pxWidth}" valign="top"><![endif]-->` +
         `<div class="vmd-col" style="display:inline-block;width:100%;max-width:${pxWidth}px;vertical-align:top;font-size:14px;">` +
-        `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding:${paddingCss(col.style.padding)};${colBg}">` +
+        `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding:${paddingCss(col.style.padding)};${colBg}${colBorder}${colRadius}">` +
         renderColumnBlocks(col.blocks, ctx) +
         `</td></tr></table></div>` +
         `<!--[if mso]></td><![endif]-->`
@@ -169,14 +194,16 @@ function renderRow(row: Row, contentWidth: number, ctx: RenderCtx): string {
     })
     .join('')
 
-  return (
+  const table = (
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>` +
-    `<td style="${bg}${radius}padding:${paddingCss(rs.padding)};font-size:0;">` +
+    `<td${bgAttr} style="${bg}${radius}${bgStyle}padding:${paddingCss(rs.padding)};font-size:0;">` +
     `<!--[if mso]><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><![endif]-->` +
     cols +
     `<!--[if mso]></tr></table><![endif]-->` +
     `</td></tr></table>`
   )
+
+  return wrapHidden(table, row.hideDesktop, row.hideMobile)
 }
 
 export function renderHtml(doc: EmailDocument): string {
@@ -198,9 +225,12 @@ export function renderHtml(doc: EmailDocument): string {
 <style>
   body { margin: 0; padding: 0; }
   img { border: 0; }
+  .vmd-hide-desktop { display:none; mso-hide:all; }
   @media (max-width: 480px) {
     .vmd-col { width: 100% !important; max-width: 100% !important; display: block !important; }
     .vmd-container { width: 100% !important; }
+    .vmd-hide-desktop { display:block !important; max-height:none !important; }
+    .vmd-hide-mobile { display:none !important; }
   }
 </style>
 </head>
