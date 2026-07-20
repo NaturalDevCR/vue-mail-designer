@@ -3,7 +3,7 @@
     class="vmd-row"
     :class="{ 'vmd-selected': isSelected }"
     :style="{ background: row.style.backgroundColor, borderRadius: row.style.borderRadius + 'px' }"
-    @click.stop="store.select({ kind: 'row', id: row.id })"
+    @click.stop="selectRow"
   >
     <div class="vmd-row-actions">
       <button type="button" class="vmd-mini-btn vmd-drag-handle" title="Mover">✥</button>
@@ -51,4 +51,9 @@ const props = defineProps<{ row: Row }>()
 const store = useDocumentStore(useBuilderPinia())
 const ui = useUiStore(useBuilderPinia())
 const isSelected = computed(() => store.selection?.kind === 'row' && store.selection.id === props.row.id)
+
+function selectRow() {
+  store.select({ kind: 'row', id: props.row.id })
+  ui.panelMode = 'props'
+}
 </script>

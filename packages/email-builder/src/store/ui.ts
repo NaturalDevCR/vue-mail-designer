@@ -9,6 +9,7 @@ export const useUiStore = defineStore('vmd-ui', () => {
   const canvasDevice = ref<'desktop' | 'mobile'>('desktop')
   const sidebarTab = ref<'content' | 'blocks' | 'body' | 'images'>('content')
   const isDragging = ref(false)
+  const panelMode = ref<'tab' | 'props'>('tab')
 
   function toggleTheme() {
     theme.value = theme.value === 'light' ? 'dark' : 'light'
@@ -22,6 +23,7 @@ export const useUiStore = defineStore('vmd-ui', () => {
     canvasDevice,
     sidebarTab,
     isDragging,
+    panelMode,
     toggleTheme,
   }
 })
