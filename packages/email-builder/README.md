@@ -63,15 +63,26 @@ function onHtml(html: string) {
 - `getDesign(): EmailDocument`
 - `loadDesign(doc: EmailDocument): void`
 
+## Bloques
+
+Título, Texto (editor enriquecido), Imagen, Botón, Divisor, Espacio, Redes, Menú, HTML, Video, **Tabla**, **Galería** y **Timer** (cuenta regresiva: imagen dinámica del integrador, o caja estática con los días restantes).
+
+## Propiedades ricas
+
+- **Ocultar por dispositivo** por bloque y por fila (`hideDesktop` / `hideMobile`) — el HTML exportado usa clases + media query.
+- **Imagen de fondo** por fila (`url`, `repeat`, `size`, `position`).
+- **Fuente propia** por bloque de título/texto (además de la fuente del documento).
+- Borde y radio por columna (soportados en el modelo y el HTML; sin control dedicado en el inspector todavía).
+
 ## Compatibilidad de email
 
 El HTML usa tablas con estilos inline, ghost tables para Outlook y una media query para apilar columnas en móvil. Evita flex/grid/position.
 
-## Limitaciones (v1)
+## Limitaciones
 
 - No importa HTML existente (solo JSON).
-- Estilos iguales en desktop y móvil (salvo el apilado de columnas).
+- Fondos de fila en Outlook: soporte parcial (sin VML full-bleed todavía).
 - Los merge tags se emiten como `{{value}}`; el motor de tu plataforma los reemplaza.
 - No se pueden reordenar columnas dentro de una fila (sí filas y bloques).
 - `theme` solo acepta `'light' | 'dark'` (sin `'auto'`).
-- Algunos campos de estilo no están expuestos en el inspector todavía (fontSize del menú, padding de social/video).
+- Borde/radio de columna sin control dedicado en el inspector; el timer no anima sin un servicio de imagen del integrador.

@@ -12,6 +12,9 @@ export const BLOCK_TYPES: BlockType[] = [
   'menu',
   'html',
   'video',
+  'table',
+  'gallery',
+  'timer',
 ]
 
 function pad(top: number, right: number, bottom: number, left: number): Padding {
@@ -111,6 +114,27 @@ export function createBlock(type: BlockType): Block {
     case 'video':
       return {
         id, type, thumbnailUrl: '', videoUrl: '', alt: 'Ver video', widthPct: 100,
+        style: { padding: pad(8, 24, 8, 24) },
+      }
+    case 'table':
+      return {
+        id, type,
+        rows: [['Encabezado 1', 'Encabezado 2'], ['Celda', 'Celda'], ['Celda', 'Celda']],
+        headerRow: true,
+        style: { borderColor: '#e5e7eb', borderWidth: 1, cellPadding: 8, headerBackground: '#f4f4f5', fontSize: 14, color: '#374151', padding: pad(8, 24, 8, 24) },
+      }
+    case 'gallery':
+      return {
+        id, type,
+        images: [{ src: '', alt: '' }, { src: '', alt: '' }],
+        columns: 2, gap: 8,
+        style: { padding: pad(8, 24, 8, 24) },
+      }
+    case 'timer':
+      return {
+        id, type,
+        endDate: new Date(Date.now() + 7 * 864e5).toISOString(),
+        imageUrl: '', alt: 'Cuenta regresiva', widthPct: 100,
         style: { padding: pad(8, 24, 8, 24) },
       }
   }

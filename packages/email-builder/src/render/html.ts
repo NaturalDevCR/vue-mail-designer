@@ -1,4 +1,4 @@
-import type { Block, EmailDocument, Padding, Row, SocialNetworkKind } from '../schema'
+import type { Block, EmailDocument, GalleryBlock, Padding, Row, SocialNetworkKind, TableBlock, TimerBlock } from '../schema'
 
 export type RenderCtx = { fontFamily: string; linkColor: string; linkUnderline: boolean }
 
@@ -43,18 +43,33 @@ function cellTable(innerTd: string): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${innerTd}</table>`
 }
 
+/** Envuelve `html` en un div con clases de ocultamiento por dispositivo, si aplica. */
+function wrapHidden(html: string, hideDesktop?: boolean, hideMobile?: boolean): string {
+  if (!hideDesktop && !hideMobile) return html
+  const classes = [hideDesktop && 'vmd-hide-desktop', hideMobile && 'vmd-hide-mobile'].filter(Boolean).join(' ')
+  const inline = hideDesktop ? ' style="display:none;max-height:0;overflow:hidden;mso-hide:all;"' : ''
+  return `<div class="${classes}"${inline}>${html}</div>`
+}
+
 export function renderBlock(block: Block, ctx: RenderCtx): string {
+  const inner = renderBlockInner(block, ctx)
+  return wrapHidden(inner, block.hideDesktop, block.hideMobile)
+}
+
+function renderBlockInner(block: Block, ctx: RenderCtx): string {
   switch (block.type) {
     case 'heading': {
       const s = block.style
+      const fam = block.fontFamily ?? ctx.fontFamily
       return cellTable(
-        `<tr><td style="padding:${paddingCss(s.padding)};font-family:${ctx.fontFamily};font-size:${s.fontSize}px;line-height:1.3;font-weight:bold;color:${s.color};text-align:${s.align};">${escapeHtml(block.text)}</td></tr>`,
+        `<tr><td style="padding:${paddingCss(s.padding)};font-family:${fam};font-size:${s.fontSize}px;line-height:1.3;font-weight:bold;color:${s.color};text-align:${s.align};">${escapeHtml(block.text)}</td></tr>`,
       )
     }
     case 'text': {
       const s = block.style
+      const fam = block.fontFamily ?? ctx.fontFamily
       return cellTable(
-        `<tr><td style="padding:${paddingCss(s.padding)};font-family:${ctx.fontFamily};font-size:${s.fontSize}px;line-height:${s.lineHeight};color:${s.color};">${styleLinks(convertMergeTags(block.html), ctx)}</td></tr>`,
+        `<tr><td style="padding:${paddingCss(s.padding)};font-family:${fam};font-size:${s.fontSize}px;line-height:${s.lineHeight};color:${s.color};">${styleLinks(convertMergeTags(block.html), ctx)}</td></tr>`,
       )
     }
     case 'image': {
@@ -136,7 +151,69 @@ export function renderBlock(block: Block, ctx: RenderCtx): string {
         `</a></td></tr></table></td></tr>`,
       )
     }
+    case 'table':
+      return renderTable(block)
+    case 'gallery':
+      return renderGallery(block)
+    case 'timer':
+      return renderTimer(block)
   }
+}
+
+function renderTable(block: TableBlock): string {
+  const s = block.style
+  const rows = block.rows.map((cells, r) => {
+    const tag = block.headerRow && r === 0 ? 'th' : 'td'
+    const bg = block.headerRow && r === 0 ? `background-color:${s.headerBackground};` : ''
+    const tds = cells.map((c) =>
+      `<${tag} style="border:${s.borderWidth}px solid ${s.borderColor};padding:${s.cellPadding}px;font-size:${s.fontSize}px;color:${s.color};${bg}text-align:left;">${escapeHtml(c)}</${tag}>`,
+    ).join('')
+    return `<tr>${tds}</tr>`
+  }).join('')
+  return cellTable(
+    `<tr><td style="padding:${paddingCss(s.padding)};">` +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">${rows}</table>` +
+    `</td></tr>`,
+  )
+}
+
+function renderGallery(block: GalleryBlock): string {
+  const s = block.style
+  const cols = block.columns
+  const cellW = Math.floor(100 / cols)
+  const withSrc = block.images.filter((i) => i.src)
+  const cells = withSrc.map((im) => {
+    const img = `<img src="${escapeHtml(im.src)}" alt="${escapeHtml(im.alt)}" width="100%" style="display:block;width:100%;max-width:100%;height:auto;border:0;">`
+    const inner = im.href ? `<a href="${escapeHtml(im.href)}" target="_blank">${img}</a>` : img
+    return `<td class="vmd-gallery-cell" width="${cellW}%" style="padding:${block.gap / 2}px;" valign="top">${inner}</td>`
+  })
+  // agrupar en filas de `cols`
+  const trs: string[] = []
+  for (let i = 0; i < cells.length; i += cols) {
+    trs.push(`<tr>${cells.slice(i, i + cols).join('')}</tr>`)
+  }
+  return cellTable(
+    `<tr><td style="padding:${paddingCss(s.padding)};">` +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${trs.join('')}</table>` +
+    `</td></tr>`,
+  )
+}
+
+function renderTimer(block: TimerBlock): string {
+  const s = block.style
+  if (block.imageUrl) {
+    return cellTable(
+      `<tr><td align="center" style="padding:${paddingCss(s.padding)};">` +
+      `<img src="${escapeHtml(block.imageUrl)}" alt="${escapeHtml(block.alt)}" width="${block.widthPct}%" style="display:block;max-width:100%;height:auto;border:0;margin:0 auto;">` +
+      `</td></tr>`,
+    )
+  }
+  const days = Math.max(0, Math.ceil((new Date(block.endDate).getTime() - Date.now()) / 864e5))
+  return cellTable(
+    `<tr><td align="center" class="vmd-timer-static" style="padding:${paddingCss(s.padding)};font-family:Arial,sans-serif;font-size:28px;font-weight:bold;color:#111827;">` +
+    `${days} ${days === 1 ? 'día' : 'días'}` +
+    `</td></tr>`,
+  )
 }
 
 function renderColumnBlocks(blocks: Block[], ctx: RenderCtx): string {
@@ -149,14 +226,24 @@ function renderRow(row: Row, contentWidth: number, ctx: RenderCtx): string {
   const radius = rs.borderRadius > 0 ? `border-radius:${rs.borderRadius}px;` : ''
   const innerWidth = contentWidth - rs.padding.left - rs.padding.right // el padding de fila resta ancho disponible para las columnas
 
+  const bgImg = rs.backgroundImage
+  const bgAttr = bgImg ? ` background="${escapeHtml(bgImg.url)}"` : ''
+  const bgStyle = bgImg
+    ? `background-image:url(${escapeHtml(bgImg.url)});background-size:${bgImg.size};background-position:${escapeHtml(bgImg.position)};background-repeat:${bgImg.repeat};`
+    : ''
+
   const cols = row.columns
     .map((col) => {
       const pxWidth = Math.round((innerWidth * col.widthPct) / 100)
       const colBg = col.style.backgroundColor === 'transparent' ? '' : `background-color:${col.style.backgroundColor};`
+      const colBorder = col.style.border
+        ? `border:${col.style.border.width}px ${col.style.border.style} ${col.style.border.color};`
+        : ''
+      const colRadius = col.style.borderRadius ? `border-radius:${col.style.borderRadius}px;` : ''
       return (
         `<!--[if mso]><td width="${pxWidth}" valign="top"><![endif]-->` +
         `<div class="vmd-col" style="display:inline-block;width:100%;max-width:${pxWidth}px;vertical-align:top;font-size:14px;">` +
-        `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding:${paddingCss(col.style.padding)};${colBg}">` +
+        `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding:${paddingCss(col.style.padding)};${colBg}${colBorder}${colRadius}">` +
         renderColumnBlocks(col.blocks, ctx) +
         `</td></tr></table></div>` +
         `<!--[if mso]></td><![endif]-->`
@@ -164,14 +251,16 @@ function renderRow(row: Row, contentWidth: number, ctx: RenderCtx): string {
     })
     .join('')
 
-  return (
+  const table = (
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>` +
-    `<td style="${bg}${radius}padding:${paddingCss(rs.padding)};font-size:0;">` +
+    `<td${bgAttr} style="${bg}${radius}${bgStyle}padding:${paddingCss(rs.padding)};font-size:0;">` +
     `<!--[if mso]><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><![endif]-->` +
     cols +
     `<!--[if mso]></tr></table><![endif]-->` +
     `</td></tr></table>`
   )
+
+  return wrapHidden(table, row.hideDesktop, row.hideMobile)
 }
 
 export function renderHtml(doc: EmailDocument): string {
@@ -193,9 +282,13 @@ export function renderHtml(doc: EmailDocument): string {
 <style>
   body { margin: 0; padding: 0; }
   img { border: 0; }
+  .vmd-hide-desktop { display:none; mso-hide:all; }
   @media (max-width: 480px) {
     .vmd-col { width: 100% !important; max-width: 100% !important; display: block !important; }
     .vmd-container { width: 100% !important; }
+    .vmd-hide-desktop { display:block !important; max-height:none !important; }
+    .vmd-hide-mobile { display:none !important; }
+    .vmd-gallery-cell { display: block !important; width: 100% !important; }
   }
 </style>
 </head>

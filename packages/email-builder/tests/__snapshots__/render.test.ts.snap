@@ -11,9 +11,13 @@ exports[`renderHtml — frame y layout > snapshot estable de un documento de ref
 <style>
   body { margin: 0; padding: 0; }
   img { border: 0; }
+  .vmd-hide-desktop { display:none; mso-hide:all; }
   @media (max-width: 480px) {
     .vmd-col { width: 100% !important; max-width: 100% !important; display: block !important; }
     .vmd-container { width: 100% !important; }
+    .vmd-hide-desktop { display:block !important; max-height:none !important; }
+    .vmd-hide-mobile { display:none !important; }
+    .vmd-gallery-cell { display: block !important; width: 100% !important; }
   }
 </style>
 </head>

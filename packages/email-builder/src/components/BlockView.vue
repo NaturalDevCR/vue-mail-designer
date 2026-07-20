@@ -4,6 +4,7 @@
     :class="{ 'vmd-selected': isSelected }"
     @click.stop="selectBlock"
   >
+    <span v-if="showHiddenBadge" class="vmd-hidden-badge">Oculto aquí</span>
     <div class="vmd-block-actions">
       <button type="button" class="vmd-mini-btn vmd-drag-handle" title="Mover">✥</button>
       <button type="button" class="vmd-mini-btn" title="Duplicar" @click.stop="store.duplicateBlock(block.id)">⧉</button>
@@ -19,7 +20,7 @@
         textAlign: block.style.align,
         fontWeight: 'bold',
         padding: padCss(block.style.padding),
-        fontFamily: fontFamily,
+        fontFamily: block.fontFamily || fontFamily,
       }"
     >{{ block.text }}</div>
 
@@ -31,7 +32,7 @@
         fontSize: block.style.fontSize + 'px',
         lineHeight: String(block.style.lineHeight),
         padding: padCss(block.style.padding),
-        fontFamily: fontFamily,
+        fontFamily: block.fontFamily || fontFamily,
       }"
     >
       <RichTextEditor
@@ -109,6 +110,49 @@
       </div>
       <div v-else class="vmd-b-image-placeholder">▶ Configura el video en el inspector</div>
     </div>
+
+    <!-- table -->
+    <div v-else-if="block.type === 'table'" :style="{ padding: padCss(block.style.padding) }">
+      <table
+        class="vmd-b-table"
+        :style="{ borderCollapse: 'collapse', width: '100%', fontSize: block.style.fontSize + 'px', color: block.style.color, fontFamily: fontFamily }"
+      >
+        <tbody>
+          <tr v-for="(row, r) in block.rows" :key="r">
+            <component
+              :is="block.headerRow && r === 0 ? 'th' : 'td'"
+              v-for="(cell, c) in row"
+              :key="c"
+              :style="{
+                border: block.style.borderWidth + 'px solid ' + block.style.borderColor,
+                padding: block.style.cellPadding + 'px',
+                background: block.headerRow && r === 0 ? block.style.headerBackground : 'transparent',
+                textAlign: 'left',
+              }"
+            >{{ cell }}</component>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- gallery -->
+    <div v-else-if="block.type === 'gallery'" :style="{ padding: padCss(block.style.padding) }">
+      <div
+        class="vmd-b-gallery"
+        :style="{ display: 'grid', gridTemplateColumns: 'repeat(' + block.columns + ', 1fr)', gap: block.gap + 'px' }"
+      >
+        <template v-for="(img, i) in block.images" :key="i">
+          <img v-if="img.src" :src="img.src" :alt="img.alt" style="width: 100%; display: block" />
+          <div v-else class="vmd-b-image-placeholder vmd-b-gallery-placeholder">🖼</div>
+        </template>
+      </div>
+    </div>
+
+    <!-- timer -->
+    <div v-else-if="block.type === 'timer'" :style="{ padding: padCss(block.style.padding), textAlign: 'center' }">
+      <img v-if="block.imageUrl" :src="block.imageUrl" :alt="block.alt" :style="{ width: block.widthPct + '%', display: 'inline-block' }" />
+      <div v-else class="vmd-b-image-placeholder">{{ timerDaysText }}</div>
+    </div>
   </div>
 </template>
 
@@ -127,6 +171,18 @@ const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
 const isSelected = computed(() => store.selection?.kind === 'block' && store.selection.id === props.block.id)
 const fontFamily = computed(() => store.doc.settings.fontFamily)
+
+const showHiddenBadge = computed(() => {
+  const b = props.block
+  return (ui.canvasDevice === 'mobile' && !!b.hideMobile) || (ui.canvasDevice === 'desktop' && !!b.hideDesktop)
+})
+
+const timerDaysText = computed(() => {
+  const b = props.block
+  if (b.type !== 'timer') return ''
+  const days = Math.max(0, Math.ceil((new Date(b.endDate).getTime() - Date.now()) / 864e5))
+  return `${days} ${days === 1 ? 'día' : 'días'}`
+})
 
 function padCss(p: Padding): string {
   return `${p.top}px ${p.right}px ${p.bottom}px ${p.left}px`

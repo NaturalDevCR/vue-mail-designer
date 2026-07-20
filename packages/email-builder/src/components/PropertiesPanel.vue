@@ -14,6 +14,7 @@
       <template v-if="block.type === 'heading'">
         <TextField label="Texto" :model-value="block.text" @update:model-value="upd({ text: $event })" />
         <SelectField label="Nivel" :model-value="String(block.level)" :options="[{label:'H1',value:'1'},{label:'H2',value:'2'},{label:'H3',value:'3'}]" @update:model-value="upd({ level: Number($event) })" />
+        <SelectField label="Fuente" :model-value="block.fontFamily ?? ''" :options="FONT_OPTIONS" @update:model-value="updFont" />
         <ColorField label="Color" :model-value="block.style.color" @update:model-value="upd({ style: { color: $event } })" />
         <NumberField label="Tamaño" :model-value="block.style.fontSize" :min="10" :max="72" @update:model-value="upd({ style: { fontSize: $event } })" />
         <AlignField label="Alineación" :model-value="block.style.align" @update:model-value="upd({ style: { align: $event } })" />
@@ -21,6 +22,7 @@
       </template>
 
       <template v-else-if="block.type === 'text'">
+        <SelectField label="Fuente" :model-value="block.fontFamily ?? ''" :options="FONT_OPTIONS" @update:model-value="updFont" />
         <ColorField label="Color" :model-value="block.style.color" @update:model-value="upd({ style: { color: $event } })" />
         <NumberField label="Tamaño" :model-value="block.style.fontSize" :min="10" :max="40" @update:model-value="upd({ style: { fontSize: $event } })" />
         <NumberField label="Interlineado" :model-value="block.style.lineHeight" :min="1" :max="3" @update:model-value="upd({ style: { lineHeight: $event } })" />
@@ -100,6 +102,61 @@
         <TextField label="Texto alternativo" :model-value="block.alt" @update:model-value="upd({ alt: $event })" />
         <NumberField label="Ancho %" :model-value="block.widthPct" :min="10" :max="100" @update:model-value="upd({ widthPct: $event })" />
       </template>
+
+      <template v-else-if="block.type === 'table'">
+        <CheckboxField label="Fila de encabezado" :model-value="block.headerRow" @update:model-value="upd({ headerRow: $event })" />
+        <div class="vmd-table-toolbar">
+          <button type="button" class="vmd-btn" @click="addTableRow">+ Fila</button>
+          <button type="button" class="vmd-btn" @click="removeLastTableRow">− Fila</button>
+          <button type="button" class="vmd-btn" @click="addTableColumn">+ Columna</button>
+          <button type="button" class="vmd-btn" @click="removeLastTableColumn">− Columna</button>
+        </div>
+        <div class="vmd-table-grid">
+          <div v-for="(tRow, r) in block.rows" :key="r" class="vmd-table-grid-row">
+            <textarea
+              v-for="(cell, c) in tRow"
+              :key="c"
+              class="vmd-field-input vmd-table-cell-input"
+              rows="2"
+              :data-cell="`${r}-${c}`"
+              :value="cell"
+              @input="setTableCell(r, c, ($event.target as HTMLTextAreaElement).value)"
+            />
+          </div>
+        </div>
+        <ColorField label="Color de borde" :model-value="block.style.borderColor" @update:model-value="upd({ style: { borderColor: $event } })" />
+        <NumberField label="Grosor de borde" :model-value="block.style.borderWidth" :min="0" :max="8" @update:model-value="upd({ style: { borderWidth: $event } })" />
+        <ColorField label="Fondo encabezado" :model-value="block.style.headerBackground" @update:model-value="upd({ style: { headerBackground: $event } })" />
+        <ColorField label="Color de texto" :model-value="block.style.color" @update:model-value="upd({ style: { color: $event } })" />
+        <NumberField label="Tamaño fuente" :model-value="block.style.fontSize" :min="10" :max="32" @update:model-value="upd({ style: { fontSize: $event } })" />
+        <NumberField label="Padding de celda" :model-value="block.style.cellPadding" :min="0" :max="32" @update:model-value="upd({ style: { cellPadding: $event } })" />
+        <PaddingField label="Padding" :model-value="block.style.padding" @update:model-value="upd({ style: { padding: $event } })" />
+      </template>
+
+      <template v-else-if="block.type === 'gallery'">
+        <div v-for="(img, i) in block.images" :key="i" class="vmd-social-row">
+          <TextField label="URL" :model-value="img.src" @update:model-value="setGalleryImage(i, { src: $event })" />
+          <TextField label="Alt" :model-value="img.alt" @update:model-value="setGalleryImage(i, { alt: $event })" />
+          <TextField label="Enlace (opcional)" :model-value="img.href ?? ''" @update:model-value="setGalleryImage(i, { href: $event })" />
+          <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" @click="removeGalleryImage(i)">🗑</button>
+        </div>
+        <button type="button" class="vmd-btn" @click="addGalleryImage">+ Agregar imagen</button>
+        <SelectField label="Columnas" :model-value="String(block.columns)" :options="[{label:'2',value:'2'},{label:'3',value:'3'},{label:'4',value:'4'}]" @update:model-value="upd({ columns: Number($event) })" />
+        <NumberField label="Espaciado" :model-value="block.gap" :min="0" :max="32" @update:model-value="upd({ gap: $event })" />
+        <PaddingField label="Padding" :model-value="block.style.padding" @update:model-value="upd({ style: { padding: $event } })" />
+      </template>
+
+      <template v-else-if="block.type === 'timer'">
+        <TextField label="Fecha límite (ISO)" :model-value="block.endDate" @update:model-value="upd({ endDate: $event })" />
+        <TextField label="URL de imagen" :model-value="block.imageUrl" @update:model-value="upd({ imageUrl: $event })" />
+        <TextField label="Texto alternativo" :model-value="block.alt" @update:model-value="upd({ alt: $event })" />
+        <NumberField label="Ancho %" :model-value="block.widthPct" :min="10" :max="100" @update:model-value="upd({ widthPct: $event })" />
+        <PaddingField label="Padding" :model-value="block.style.padding" @update:model-value="upd({ style: { padding: $event } })" />
+      </template>
+
+      <div class="vmd-props-section-title">Visibilidad</div>
+      <CheckboxField label="Ocultar en escritorio" :model-value="!!block.hideDesktop" @update:model-value="upd({ hideDesktop: $event })" />
+      <CheckboxField label="Ocultar en móvil" :model-value="!!block.hideMobile" @update:model-value="upd({ hideMobile: $event })" />
     </template>
 
     <!-- Fila seleccionada -->
@@ -107,6 +164,16 @@
       <ColorField label="Fondo" :model-value="row.style.backgroundColor" @update:model-value="store.updateRowStyle(row.id, { backgroundColor: $event })" />
       <NumberField label="Radio borde" :model-value="row.style.borderRadius" :min="0" :max="32" @update:model-value="store.updateRowStyle(row.id, { borderRadius: $event })" />
       <PaddingField label="Padding" :model-value="row.style.padding" @update:model-value="store.updateRowStyle(row.id, { padding: $event })" />
+
+      <div class="vmd-props-section-title">Imagen de fondo</div>
+      <TextField label="URL" :model-value="row.style.backgroundImage?.url ?? ''" @update:model-value="setRowBgImage({ url: $event })" />
+      <SelectField label="Repetición" :model-value="row.style.backgroundImage?.repeat ?? 'no-repeat'" :options="BG_REPEAT_OPTIONS" @update:model-value="setRowBgImage({ repeat: $event as RowBackgroundImage['repeat'] })" />
+      <SelectField label="Tamaño" :model-value="row.style.backgroundImage?.size ?? 'auto'" :options="BG_SIZE_OPTIONS" @update:model-value="setRowBgImage({ size: $event as RowBackgroundImage['size'] })" />
+      <TextField label="Posición" :model-value="row.style.backgroundImage?.position ?? 'center'" @update:model-value="setRowBgImage({ position: $event })" />
+
+      <div class="vmd-props-section-title">Visibilidad</div>
+      <CheckboxField label="Ocultar en escritorio" :model-value="!!row.hideDesktop" @update:model-value="store.updateRow(row.id, { hideDesktop: $event })" />
+      <CheckboxField label="Ocultar en móvil" :model-value="!!row.hideMobile" @update:model-value="store.updateRow(row.id, { hideMobile: $event })" />
     </template>
   </div>
 </template>
@@ -114,15 +181,18 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useBuilderOptions } from '../options'
-import type { SocialNetworkKind } from '../schema'
+import type { Row, SocialNetworkKind } from '../schema'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
 import AlignField from './fields/AlignField.vue'
+import CheckboxField from './fields/CheckboxField.vue'
 import ColorField from './fields/ColorField.vue'
 import NumberField from './fields/NumberField.vue'
 import PaddingField from './fields/PaddingField.vue'
 import SelectField from './fields/SelectField.vue'
 import TextField from './fields/TextField.vue'
+
+type RowBackgroundImage = NonNullable<Row['style']['backgroundImage']>
 
 const store = useDocumentStore(useBuilderPinia())
 const options = useBuilderOptions()
@@ -141,8 +211,34 @@ const TYPE_LABELS: Record<string, string> = {
   menu: 'Menú',
   html: 'HTML',
   video: 'Video',
+  table: 'Tabla',
+  gallery: 'Galería',
+  timer: 'Timer',
   row: 'Fila',
 }
+
+const FONT_OPTIONS = [
+  { label: 'Heredar', value: '' },
+  { label: 'Arial', value: 'Arial' },
+  { label: 'Georgia', value: 'Georgia' },
+  { label: 'Times New Roman', value: 'Times New Roman' },
+  { label: 'Verdana', value: 'Verdana' },
+  { label: 'Tahoma', value: 'Tahoma' },
+  { label: 'Courier New', value: 'Courier New' },
+]
+
+const BG_REPEAT_OPTIONS = [
+  { label: 'Sin repetir', value: 'no-repeat' },
+  { label: 'Repetir', value: 'repeat' },
+  { label: 'Repetir horizontal', value: 'repeat-x' },
+  { label: 'Repetir vertical', value: 'repeat-y' },
+]
+
+const BG_SIZE_OPTIONS = [
+  { label: 'Auto', value: 'auto' },
+  { label: 'Cubrir', value: 'cover' },
+  { label: 'Contener', value: 'contain' },
+]
 
 const title = computed(() => {
   if (block.value) return TYPE_LABELS[block.value.type] ?? block.value.type
@@ -210,5 +306,55 @@ function addMenuItem() {
 function removeMenuItem(i: number) {
   if (block.value?.type !== 'menu') return
   upd({ items: block.value.items.filter((_, j) => j !== i) })
+}
+
+function updFont(value: string) {
+  upd({ fontFamily: value === '' ? undefined : value })
+}
+
+function setTableCell(r: number, c: number, value: string) {
+  if (block.value?.type !== 'table') return
+  const rows = block.value.rows.map((tRow, ri) => (ri === r ? tRow.map((cell, ci) => (ci === c ? value : cell)) : tRow))
+  upd({ rows })
+}
+function addTableRow() {
+  if (block.value?.type !== 'table') return
+  const cols = block.value.rows[0]?.length ?? 1
+  upd({ rows: [...block.value.rows, Array(cols).fill('')] })
+}
+function removeLastTableRow() {
+  if (block.value?.type !== 'table') return
+  if (block.value.rows.length <= 1) return
+  upd({ rows: block.value.rows.slice(0, -1) })
+}
+function addTableColumn() {
+  if (block.value?.type !== 'table') return
+  upd({ rows: block.value.rows.map((tRow) => [...tRow, '']) })
+}
+function removeLastTableColumn() {
+  if (block.value?.type !== 'table') return
+  if ((block.value.rows[0]?.length ?? 0) <= 1) return
+  upd({ rows: block.value.rows.map((tRow) => tRow.slice(0, -1)) })
+}
+
+function setGalleryImage(i: number, patch: Partial<{ src: string; alt: string; href: string }>) {
+  if (block.value?.type !== 'gallery') return
+  upd({ images: block.value.images.map((img, j) => (j === i ? { ...img, ...patch } : img)) })
+}
+function addGalleryImage() {
+  if (block.value?.type !== 'gallery') return
+  upd({ images: [...block.value.images, { src: '', alt: '' }] })
+}
+function removeGalleryImage(i: number) {
+  if (block.value?.type !== 'gallery') return
+  upd({ images: block.value.images.filter((_, j) => j !== i) })
+}
+
+function setRowBgImage(patch: Partial<RowBackgroundImage>) {
+  if (!row.value) return
+  const current: RowBackgroundImage = row.value.style.backgroundImage ?? {
+    url: '', repeat: 'no-repeat', size: 'auto', position: 'center',
+  }
+  store.updateRowStyle(row.value.id, { backgroundImage: { ...current, ...patch } })
 }
 </script>

@@ -16,24 +16,30 @@ export const zHeadingBlock = z.object({
   type: z.literal('heading'),
   text: z.string(),
   level: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  fontFamily: z.string().optional(),
   style: z.object({
     color: z.string(),
     fontSize: z.number(),
     align: zAlign,
     padding: zPadding,
   }),
+  hideDesktop: z.boolean().optional(),
+  hideMobile: z.boolean().optional(),
 })
 
 export const zTextBlock = z.object({
   id: z.string(),
   type: z.literal('text'),
   html: z.string(),
+  fontFamily: z.string().optional(),
   style: z.object({
     color: z.string(),
     fontSize: z.number(),
     lineHeight: z.number(),
     padding: zPadding,
   }),
+  hideDesktop: z.boolean().optional(),
+  hideMobile: z.boolean().optional(),
 })
 
 export const zImageBlock = z.object({
@@ -45,6 +51,8 @@ export const zImageBlock = z.object({
   widthPct: z.number().min(10).max(100),
   align: zAlign,
   style: z.object({ padding: zPadding }),
+  hideDesktop: z.boolean().optional(),
+  hideMobile: z.boolean().optional(),
 })
 
 export const zButtonBlock = z.object({
@@ -62,6 +70,8 @@ export const zButtonBlock = z.object({
     innerPaddingY: z.number(),
     padding: zPadding,
   }),
+  hideDesktop: z.boolean().optional(),
+  hideMobile: z.boolean().optional(),
 })
 
 export const zDividerBlock = z.object({
@@ -73,12 +83,16 @@ export const zDividerBlock = z.object({
     widthPct: z.number().min(10).max(100),
     padding: zPadding,
   }),
+  hideDesktop: z.boolean().optional(),
+  hideMobile: z.boolean().optional(),
 })
 
 export const zSpacerBlock = z.object({
   id: z.string(),
   type: z.literal('spacer'),
   height: z.number().min(4).max(200),
+  hideDesktop: z.boolean().optional(),
+  hideMobile: z.boolean().optional(),
 })
 
 export const zSocialNetworkKind = z.enum([
@@ -101,6 +115,8 @@ export const zSocialBlock = z.object({
   spacing: z.number(),
   align: zAlign,
   style: z.object({ padding: zPadding }),
+  hideDesktop: z.boolean().optional(),
+  hideMobile: z.boolean().optional(),
 })
 
 export const zMenuBlock = z.object({
@@ -114,12 +130,16 @@ export const zMenuBlock = z.object({
     fontSize: z.number(),
     padding: zPadding,
   }),
+  hideDesktop: z.boolean().optional(),
+  hideMobile: z.boolean().optional(),
 })
 
 export const zHtmlBlock = z.object({
   id: z.string(),
   type: z.literal('html'),
   code: z.string(),
+  hideDesktop: z.boolean().optional(),
+  hideMobile: z.boolean().optional(),
 })
 
 export const zVideoBlock = z.object({
@@ -130,6 +150,49 @@ export const zVideoBlock = z.object({
   alt: z.string(),
   widthPct: z.number().min(10).max(100),
   style: z.object({ padding: zPadding }),
+  hideDesktop: z.boolean().optional(),
+  hideMobile: z.boolean().optional(),
+})
+
+export const zTableBlock = z.object({
+  id: z.string(),
+  type: z.literal('table'),
+  rows: z.array(z.array(z.string())),
+  headerRow: z.boolean(),
+  style: z.object({
+    borderColor: z.string(),
+    borderWidth: z.number(),
+    cellPadding: z.number(),
+    headerBackground: z.string(),
+    fontSize: z.number(),
+    color: z.string(),
+    padding: zPadding,
+  }),
+  hideDesktop: z.boolean().optional(),
+  hideMobile: z.boolean().optional(),
+})
+
+export const zGalleryBlock = z.object({
+  id: z.string(),
+  type: z.literal('gallery'),
+  images: z.array(z.object({ src: z.string(), alt: z.string(), href: z.string().optional() })),
+  columns: z.union([z.literal(2), z.literal(3), z.literal(4)]),
+  gap: z.number(),
+  style: z.object({ padding: zPadding }),
+  hideDesktop: z.boolean().optional(),
+  hideMobile: z.boolean().optional(),
+})
+
+export const zTimerBlock = z.object({
+  id: z.string(),
+  type: z.literal('timer'),
+  endDate: z.string(),
+  imageUrl: z.string(),
+  alt: z.string(),
+  widthPct: z.number().min(10).max(100),
+  style: z.object({ padding: zPadding }),
+  hideDesktop: z.boolean().optional(),
+  hideMobile: z.boolean().optional(),
 })
 
 export const zBlock = z.discriminatedUnion('type', [
@@ -143,6 +206,9 @@ export const zBlock = z.discriminatedUnion('type', [
   zMenuBlock,
   zHtmlBlock,
   zVideoBlock,
+  zTableBlock,
+  zGalleryBlock,
+  zTimerBlock,
 ])
 
 export const zColumn = z.object({
@@ -151,6 +217,12 @@ export const zColumn = z.object({
   style: z.object({
     backgroundColor: z.string(),
     padding: zPadding,
+    border: z.object({
+      width: z.number(),
+      style: z.enum(['solid', 'dashed', 'dotted']),
+      color: z.string(),
+    }).optional(),
+    borderRadius: z.number().optional(),
   }),
   blocks: z.array(zBlock),
 })
@@ -161,8 +233,16 @@ export const zRow = z.object({
     backgroundColor: z.string(),
     padding: zPadding,
     borderRadius: z.number(),
+    backgroundImage: z.object({
+      url: z.string(),
+      repeat: z.enum(['no-repeat', 'repeat', 'repeat-x', 'repeat-y']),
+      size: z.enum(['auto', 'cover', 'contain']),
+      position: z.string(),
+    }).optional(),
   }),
   columns: z.array(zColumn),
+  hideDesktop: z.boolean().optional(),
+  hideMobile: z.boolean().optional(),
 })
 
 export const zEmailSettings = z.object({
@@ -191,6 +271,9 @@ export type SocialBlock = z.infer<typeof zSocialBlock>
 export type MenuBlock = z.infer<typeof zMenuBlock>
 export type HtmlBlock = z.infer<typeof zHtmlBlock>
 export type VideoBlock = z.infer<typeof zVideoBlock>
+export type TableBlock = z.infer<typeof zTableBlock>
+export type GalleryBlock = z.infer<typeof zGalleryBlock>
+export type TimerBlock = z.infer<typeof zTimerBlock>
 export type Block = z.infer<typeof zBlock>
 export type BlockType = Block['type']
 export type Column = z.infer<typeof zColumn>

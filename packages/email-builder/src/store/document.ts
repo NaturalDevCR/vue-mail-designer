@@ -142,6 +142,13 @@ export const useDocumentStore = defineStore('vmd-document', () => {
     deepMerge(row.style as unknown as Record<string, unknown>, patch)
   }
 
+  function updateRow(id: string, patch: Record<string, unknown>) {
+    const row = findRow(id)
+    if (!row) return
+    commit(`row:${id}`)
+    deepMerge(row as unknown as Record<string, unknown>, patch)
+  }
+
   function updateColumn(columnId: string, patch: Record<string, unknown>) {
     const found = findColumn(columnId)
     if (!found) return
@@ -232,7 +239,7 @@ export const useDocumentStore = defineStore('vmd-document', () => {
     commit, findRow, findColumn, findBlock,
     addRow, removeRow, duplicateRow, replaceRows,
     addBlockToColumn, removeBlock, duplicateBlock, replaceColumnBlocks,
-    updateBlock, updateRowStyle, updateColumn, updateSettings,
+    updateBlock, updateRowStyle, updateRow, updateColumn, updateSettings,
     select, loadDesign,
     canUndo, canRedo, undo, redo, resetHistory, sealHistory, exportJson, importJson,
   }
