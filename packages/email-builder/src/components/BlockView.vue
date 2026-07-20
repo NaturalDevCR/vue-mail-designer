@@ -20,7 +20,7 @@
         textAlign: block.style.align,
         fontWeight: 'bold',
         padding: padCss(block.style.padding),
-        fontFamily: fontFamily,
+        fontFamily: block.fontFamily || fontFamily,
       }"
     >{{ block.text }}</div>
 
@@ -32,7 +32,7 @@
         fontSize: block.style.fontSize + 'px',
         lineHeight: String(block.style.lineHeight),
         padding: padCss(block.style.padding),
-        fontFamily: fontFamily,
+        fontFamily: block.fontFamily || fontFamily,
       }"
     >
       <RichTextEditor
