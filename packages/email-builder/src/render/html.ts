@@ -136,6 +136,11 @@ export function renderBlock(block: Block, ctx: RenderCtx): string {
         `</a></td></tr></table></td></tr>`,
       )
     }
+    case 'table':
+    case 'gallery':
+    case 'timer':
+      // TODO(fase-b): render HTML de exportación pendiente para estos bloques nuevos.
+      return cellTable(`<tr><td style="padding:8px 24px;"></td></tr>`)
   }
 }
 
