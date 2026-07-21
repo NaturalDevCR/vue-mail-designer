@@ -17,9 +17,11 @@
         <button type="button" data-action="export-html" @click="exportHtmlFile">Exportar HTML</button>
         <button type="button" data-action="export-json" @click="exportJsonFile">Exportar JSON</button>
         <button type="button" data-action="import-json" @click="fileInput?.click()">Importar JSON…</button>
+        <button type="button" data-action="import-unlayer" @click="openUnlayerImport">Importar de Unlayer…</button>
       </div>
     </div>
     <input ref="fileInput" type="file" accept="application/json,.json" style="display: none" @change="onFile" />
+    <UnlayerImportDialog v-if="ui.unlayerImportOpen" />
   </header>
 </template>
 
@@ -29,6 +31,7 @@ import { renderHtml } from '../render/html'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
 import { useUiStore } from '../store/ui'
+import UnlayerImportDialog from './UnlayerImportDialog.vue'
 
 const pinia = useBuilderPinia()
 const store = useDocumentStore(pinia)
@@ -53,6 +56,10 @@ function exportHtmlFile() {
 }
 function exportJsonFile() {
   downloadFile('email-design.json', store.exportJson(), 'application/json')
+  menuOpen.value = false
+}
+function openUnlayerImport() {
+  ui.unlayerImportOpen = true
   menuOpen.value = false
 }
 async function onFile(e: Event) {
