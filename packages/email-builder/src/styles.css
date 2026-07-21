@@ -205,3 +205,14 @@
 .vmd-image-result:hover { border-color: var(--vmd-accent); }
 .vmd-image-error { color: var(--vmd-danger); font-size: 13px; margin-top: 10px; }
 .vmd-image-credit { margin-top: 12px; font-size: 11px; color: var(--vmd-muted); text-align: center; }
+
+.vmd-import-box { width: 90vw; max-width: 640px; max-height: 88vh; display: flex; flex-direction: column; }
+.vmd-import-body { padding: 16px; overflow: auto; display: flex; flex-direction: column; gap: 8px; }
+.vmd-import-json {
+  width: 100%; box-sizing: border-box; min-height: 160px; resize: vertical;
+  padding: 8px 10px; border: 1px solid var(--vmd-border); border-radius: 8px;
+  background: var(--vmd-bg); color: var(--vmd-fg); font-family: monospace; font-size: 12px;
+}
+.vmd-import-url { margin-bottom: 4px; }
+.vmd-import-warnings { margin: 8px 0; padding-left: 18px; font-size: 12px; color: var(--vmd-muted); }
+.vmd-import-error { color: var(--vmd-danger); font-size: 13px; margin: 4px 0; }

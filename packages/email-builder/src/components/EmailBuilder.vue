@@ -17,6 +17,7 @@
 import { createPinia } from 'pinia'
 import { provide, reactive, watch } from 'vue'
 import type { ImageResult } from '../imageSearch'
+import type { UnlayerFetch } from '../import/unlayerUrl'
 import { BUILDER_OPTIONS_KEY, type MergeTagDef } from '../options'
 import { renderHtml } from '../render/html'
 import type { EmailDocument } from '../schema'
@@ -38,6 +39,7 @@ const props = defineProps<{
   templates?: EmailTemplate[]
   uploadImage?: (file: File) => Promise<string>
   imageSearch?: (query: string) => Promise<ImageResult[]>
+  unlayerFetch?: UnlayerFetch
   theme?: 'light' | 'dark'
 }>()
 
@@ -67,6 +69,9 @@ provide(
     },
     get imageSearch() {
       return props.imageSearch
+    },
+    get unlayerFetch() {
+      return props.unlayerFetch
     },
   }),
 )

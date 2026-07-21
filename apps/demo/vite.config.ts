@@ -11,4 +11,13 @@ export default defineConfig({
       ),
     },
   },
+  server: {
+    proxy: {
+      '/unlayer-api': {
+        target: 'https://studio.unlayer.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/unlayer-api/, '/api/v1/graphql'),
+      },
+    },
+  },
 })
