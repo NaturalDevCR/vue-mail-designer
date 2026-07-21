@@ -15,16 +15,18 @@
 
 <script setup lang="ts">
 import { createPinia } from 'pinia'
-import { computed, provide, reactive, watch } from 'vue'
+import { computed, onMounted, provide, reactive, watch } from 'vue'
+import { DEFAULT_FONTS, type FontDef } from '../fonts'
 import type { ImageResult } from '../imageSearch'
 import { en } from '../i18n/en'
 import { es } from '../i18n/es'
 import type { LocaleDict } from '../i18n/keys'
 import { provideI18n } from '../i18n/useI18n'
 import type { UnlayerFetch } from '../import/unlayerUrl'
-import { BUILDER_OPTIONS_KEY, type Appearance, type MergeTagDef, type ToolConfig } from '../options'
+import { BUILDER_OPTIONS_KEY, type Appearance, type CustomBlockDef, type MergeTagItem, type SpecialLink, type ToolConfig } from '../options'
 import type { BlockType } from '../schema'
 import { renderHtml } from '../render/html'
+import { exportDocumentImage } from '../export/image'
 import type { EmailDocument } from '../schema'
 import { useDocumentStore } from '../store/document'
 import { BUILDER_PINIA_KEY } from '../store/keys'
@@ -40,8 +42,9 @@ import '../styles.css'
 
 const props = defineProps<{
   design?: EmailDocument
-  mergeTags?: MergeTagDef[]
+  mergeTags?: MergeTagItem[]
   templates?: EmailTemplate[]
+  specialLinks?: SpecialLink[]
   uploadImage?: (file: File) => Promise<string>
   imageSearch?: (query: string) => Promise<ImageResult[]>
   unlayerFetch?: UnlayerFetch
@@ -49,6 +52,8 @@ const props = defineProps<{
   locale?: 'es' | 'en' | LocaleDict
   appearance?: Appearance
   tools?: Partial<Record<BlockType, ToolConfig>>
+  fonts?: FontDef[]
+  customBlocks?: CustomBlockDef[]
 }>()
 
 const APPEARANCE_VARS: Record<keyof Appearance, string> = {
@@ -113,8 +118,32 @@ provide(
     get tools() {
       return props.tools
     },
+    get fonts() {
+      return props.fonts ?? DEFAULT_FONTS
+    },
+    get specialLinks() {
+      return props.specialLinks
+    },
+    get customBlocks() {
+      return props.customBlocks
+    },
   }),
 )
+
+// inyecta los <link> de Google Fonts en el documento host para WYSIWYG en el canvas
+onMounted(() => {
+  const fonts = props.fonts ?? DEFAULT_FONTS
+  for (const font of fonts) {
+    if (!font.url) continue
+    const id = 'vmd-font-' + btoa(font.url).replace(/[^a-z0-9]/gi, '').slice(0, 24)
+    if (document.getElementById(id)) continue
+    const link = document.createElement('link')
+    link.id = id
+    link.rel = 'stylesheet'
+    link.href = font.url
+    document.head.appendChild(link)
+  }
+})
 
 if (props.theme) ui.theme = props.theme
 watch(
@@ -152,7 +181,7 @@ watch(
 )
 
 function exportHtml(): string {
-  const html = renderHtml(store.doc)
+  const html = renderHtml(store.doc, props.fonts ?? DEFAULT_FONTS, props.customBlocks)
   emit('export-html', html)
   return html
 }
@@ -165,6 +194,10 @@ function getDesign(): EmailDocument {
 function loadDesign(doc: EmailDocument): void {
   store.loadDesign(doc)
 }
+function exportImage(): Promise<string> {
+  const html = renderHtml(store.doc, props.fonts ?? DEFAULT_FONTS, props.customBlocks)
+  return exportDocumentImage(html, store.doc.settings.contentWidth)
+}
 
-defineExpose({ exportHtml, exportJson, getDesign, loadDesign })
+defineExpose({ exportHtml, exportJson, getDesign, loadDesign, exportImage })
 </script>

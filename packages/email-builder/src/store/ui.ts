@@ -6,6 +6,7 @@ export const useUiStore = defineStore('vmd-ui', () => {
   const previewOpen = ref(false)
   const previewWidth = ref(1000)
   const galleryOpen = ref(false)
+  const versionsOpen = ref(false)
   const unlayerImportOpen = ref(false)
   const canvasDevice = ref<'desktop' | 'mobile'>('desktop')
   const sidebarTab = ref<'content' | 'blocks' | 'body' | 'images'>('content')
@@ -26,6 +27,7 @@ export const useUiStore = defineStore('vmd-ui', () => {
     sidebarTab,
     isDragging,
     panelMode,
+    versionsOpen,
     toggleTheme,
   }
 })

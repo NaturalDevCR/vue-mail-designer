@@ -1,6 +1,8 @@
 import type { Block, EmailDocument, GalleryBlock, Padding, Row, SocialNetworkKind, TableBlock, TimerBlock } from '../schema'
+import { DEFAULT_FONTS, usedFontUrls, type FontDef } from '../fonts'
+import type { CustomBlockDef } from '../options'
 
-export type RenderCtx = { fontFamily: string; linkColor: string; linkUnderline: boolean }
+export type RenderCtx = { fontFamily: string; linkColor: string; linkUnderline: boolean; customBlocks?: CustomBlockDef[] }
 
 export const SOCIAL_BRANDS: Record<SocialNetworkKind, { label: string; color: string }> = {
   facebook: { label: 'f', color: '#1877f2' },
@@ -157,6 +159,11 @@ function renderBlockInner(block: Block, ctx: RenderCtx): string {
       return renderGallery(block)
     case 'timer':
       return renderTimer(block)
+    case 'custom': {
+      const def = ctx.customBlocks?.find((d) => d.type === block.customType)
+      if (!def) return `<!-- bloque personalizado "${escapeHtml(block.customType)}" sin registrar -->`
+      return cellTable(`<tr><td>${def.render(block.data)}</td></tr>`)
+    }
   }
 }
 
@@ -263,9 +270,13 @@ function renderRow(row: Row, contentWidth: number, ctx: RenderCtx): string {
   return wrapHidden(table, row.hideDesktop, row.hideMobile)
 }
 
-export function renderHtml(doc: EmailDocument): string {
+export function renderHtml(doc: EmailDocument, fonts: FontDef[] = DEFAULT_FONTS, customBlocks?: CustomBlockDef[]): string {
+  const fontUrls = usedFontUrls(doc, fonts)
+  const fontLinks = fontUrls.length
+    ? fontUrls.map((url) => `<link href="${escapeHtml(url)}" rel="stylesheet">`).join('\n') + '\n'
+    : ''
   const { settings } = doc
-  const ctx: RenderCtx = { fontFamily: settings.fontFamily, linkColor: settings.linkColor, linkUnderline: settings.linkUnderline }
+  const ctx: RenderCtx = { fontFamily: settings.fontFamily, linkColor: settings.linkColor, linkUnderline: settings.linkUnderline, customBlocks }
   const preheader = settings.preheader
     ? `<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">${escapeHtml(settings.preheader)}</div>`
     : ''
@@ -285,7 +296,7 @@ export function renderHtml(doc: EmailDocument): string {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->
-<style>
+${fontLinks}<style>
   body { margin: 0; padding: 0; }
   img { border: 0; }
   .vmd-hide-desktop { display:none; mso-hide:all; }

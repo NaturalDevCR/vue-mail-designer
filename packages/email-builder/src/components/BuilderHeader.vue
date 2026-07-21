@@ -18,10 +18,13 @@
         <button type="button" data-action="export-json" @click="exportJsonFile">{{ t('header.exportJson') }}</button>
         <button type="button" data-action="import-json" @click="fileInput?.click()">{{ t('header.importJson') }}</button>
         <button type="button" data-action="import-unlayer" @click="openUnlayerImport">{{ t('header.importUnlayer') }}</button>
+        <button type="button" data-action="export-image" @click="exportImageFile">{{ t('header.exportImage') }}</button>
+        <button type="button" data-action="versions" @click="openVersions">{{ t('header.versions') }}</button>
       </div>
     </div>
     <input ref="fileInput" type="file" accept="application/json,.json" style="display: none" @change="onFile" />
     <UnlayerImportDialog v-if="ui.unlayerImportOpen" />
+    <VersionsDialog v-if="ui.versionsOpen" />
   </header>
 </template>
 
@@ -29,14 +32,18 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from '../i18n/useI18n'
 import { renderHtml } from '../render/html'
+import { useBuilderOptions } from '../options'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
 import { useUiStore } from '../store/ui'
 import UnlayerImportDialog from './UnlayerImportDialog.vue'
+import VersionsDialog from './VersionsDialog.vue'
+import { exportDocumentImage } from '../export/image'
 
 const pinia = useBuilderPinia()
 const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
+const options = useBuilderOptions()
 const { t } = useI18n()
 const menuOpen = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -53,11 +60,28 @@ function downloadFile(name: string, content: string, mime: string) {
 }
 
 function exportHtmlFile() {
-  downloadFile('email.html', renderHtml(store.doc), 'text/html')
+  downloadFile('email.html', renderHtml(store.doc, options.fonts, options.customBlocks), 'text/html')
   menuOpen.value = false
 }
 function exportJsonFile() {
   downloadFile('email-design.json', store.exportJson(), 'application/json')
+  menuOpen.value = false
+}
+async function exportImageFile() {
+  menuOpen.value = false
+  try {
+    const html = renderHtml(store.doc, options.fonts, options.customBlocks)
+    const dataUrl = await exportDocumentImage(html, store.doc.settings.contentWidth)
+    const a = document.createElement('a')
+    a.href = dataUrl
+    a.download = 'email.png'
+    a.click()
+  } catch {
+    window.alert(t('export.imageError'))
+  }
+}
+function openVersions() {
+  ui.versionsOpen = true
   menuOpen.value = false
 }
 function openUnlayerImport() {

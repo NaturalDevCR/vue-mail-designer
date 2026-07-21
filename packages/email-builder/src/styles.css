@@ -221,3 +221,11 @@
 .vmd-import-warnings { margin: 8px 0; padding-left: 18px; font-size: 12px; color: var(--vmd-muted); }
 .vmd-import-error { color: var(--vmd-danger); font-size: 13px; margin: 4px 0; }
 .vmd-content-item--disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+.vmd-versions-box { width: 90vw; max-width: 480px; }
+.vmd-versions-body { padding: 12px; }
+.vmd-versions-save { display: flex; gap: 8px; margin-bottom: 12px; }
+.vmd-versions-list { list-style: none; margin: 0; padding: 0; }
+.vmd-versions-item { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid var(--vmd-border); }
+.vmd-versions-name { flex: 1; font-weight: 600; }
+.vmd-versions-date { font-size: 12px; color: var(--vmd-muted); }
+.vmd-versions-empty { padding: 12px 0; color: var(--vmd-muted); font-size: 13px; }
