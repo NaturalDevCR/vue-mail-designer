@@ -154,6 +154,18 @@
         <PaddingField label="Padding" :model-value="block.style.padding" @update:model-value="upd({ style: { padding: $event } })" />
       </template>
 
+      <template v-else-if="block.type === 'custom'">
+        <template v-for="field in customFields" :key="field.key">
+          <ColorField v-if="field.type === 'color'" :label="field.label" :model-value="String(block.data[field.key] ?? '#000000')" @update:model-value="updData(field.key, $event)" />
+          <NumberField v-else-if="field.type === 'number'" :label="field.label" :model-value="Number(block.data[field.key] ?? 0)" @update:model-value="updData(field.key, $event)" />
+          <label v-else-if="field.type === 'textarea'" class="vmd-field">
+            <span class="vmd-field-label">{{ field.label }}</span>
+            <textarea class="vmd-field-input vmd-field-code" rows="4" :value="String(block.data[field.key] ?? '')" @input="updData(field.key, ($event.target as HTMLTextAreaElement).value)" />
+          </label>
+          <TextField v-else :label="field.label" :model-value="String(block.data[field.key] ?? '')" @update:model-value="updData(field.key, $event)" />
+        </template>
+      </template>
+
       <div class="vmd-props-section-title">Visibilidad</div>
       <CheckboxField label="Ocultar en escritorio" :model-value="!!block.hideDesktop" @update:model-value="upd({ hideDesktop: $event })" />
       <CheckboxField label="Ocultar en móvil" :model-value="!!block.hideMobile" @update:model-value="upd({ hideMobile: $event })" />
@@ -237,7 +249,13 @@ const BG_SIZE_OPTIONS = [
 ]
 
 const title = computed(() => {
-  if (block.value) return TYPE_LABELS[block.value.type] ?? block.value.type
+  const b = block.value
+  if (b) {
+    if (b.type === 'custom') {
+      return options.customBlocks?.find((d) => d.type === b.customType)?.label ?? b.customType
+    }
+    return TYPE_LABELS[b.type] ?? b.type
+  }
   if (row.value) return TYPE_LABELS.row
   return ''
 })
@@ -262,6 +280,18 @@ const NETWORK_OPTIONS = [
 
 function upd(patch: Record<string, unknown>) {
   if (block.value) store.updateBlock(block.value.id, patch)
+}
+
+const customFields = computed(() => {
+  const b = block.value
+  if (b?.type !== 'custom') return []
+  return options.customBlocks?.find((d) => d.type === b.customType)?.fields ?? []
+})
+
+function updData(key: string, value: unknown) {
+  const b = block.value
+  if (b?.type !== 'custom') return
+  upd({ data: { ...b.data, [key]: value } })
 }
 
 async function onUpload(e: Event) {

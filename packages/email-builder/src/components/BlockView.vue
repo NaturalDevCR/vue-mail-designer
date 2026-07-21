@@ -153,6 +153,12 @@
       <img v-if="block.imageUrl" :src="block.imageUrl" :alt="block.alt" :style="{ width: block.widthPct + '%', display: 'inline-block' }" />
       <div v-else class="vmd-b-image-placeholder">{{ timerDaysText }}</div>
     </div>
+
+    <!-- custom -->
+    <div v-else-if="block.type === 'custom'">
+      <div v-if="customHtml !== null" v-html="customHtml" />
+      <div v-else class="vmd-b-image-placeholder">Bloque personalizado «{{ block.customType }}»</div>
+    </div>
   </div>
 </template>
 
@@ -163,12 +169,21 @@ import type { Block, Padding } from '../schema'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
 import { useUiStore } from '../store/ui'
+import { useBuilderOptions } from '../options'
 import RichTextEditor from './RichTextEditor.vue'
 
 const props = defineProps<{ block: Block }>()
 const pinia = useBuilderPinia()
 const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
+const options = useBuilderOptions()
+
+const customHtml = computed<string | null>(() => {
+  const b = props.block
+  if (b.type !== 'custom') return null
+  const def = options.customBlocks?.find((d) => d.type === b.customType)
+  return def ? def.render(b.data) : null
+})
 const isSelected = computed(() => store.selection?.kind === 'block' && store.selection.id === props.block.id)
 const fontFamily = computed(() => store.doc.settings.fontFamily)
 

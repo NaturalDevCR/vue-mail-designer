@@ -23,7 +23,7 @@ import { es } from '../i18n/es'
 import type { LocaleDict } from '../i18n/keys'
 import { provideI18n } from '../i18n/useI18n'
 import type { UnlayerFetch } from '../import/unlayerUrl'
-import { BUILDER_OPTIONS_KEY, type Appearance, type MergeTagItem, type SpecialLink, type ToolConfig } from '../options'
+import { BUILDER_OPTIONS_KEY, type Appearance, type CustomBlockDef, type MergeTagItem, type SpecialLink, type ToolConfig } from '../options'
 import type { BlockType } from '../schema'
 import { renderHtml } from '../render/html'
 import type { EmailDocument } from '../schema'
@@ -52,6 +52,7 @@ const props = defineProps<{
   appearance?: Appearance
   tools?: Partial<Record<BlockType, ToolConfig>>
   fonts?: FontDef[]
+  customBlocks?: CustomBlockDef[]
 }>()
 
 const APPEARANCE_VARS: Record<keyof Appearance, string> = {
@@ -122,6 +123,9 @@ provide(
     get specialLinks() {
       return props.specialLinks
     },
+    get customBlocks() {
+      return props.customBlocks
+    },
   }),
 )
 
@@ -176,7 +180,7 @@ watch(
 )
 
 function exportHtml(): string {
-  const html = renderHtml(store.doc, props.fonts ?? DEFAULT_FONTS)
+  const html = renderHtml(store.doc, props.fonts ?? DEFAULT_FONTS, props.customBlocks)
   emit('export-html', html)
   return html
 }

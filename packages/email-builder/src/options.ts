@@ -27,6 +27,19 @@ export function flattenMergeTags(items: MergeTagItem[]): MergeTagDef[] {
   return items.flatMap((i) => (isMergeTagGroup(i) ? i.tags : [i]))
 }
 
+/** Campo editable de un bloque personalizado (aparece en el inspector). */
+export type CustomField = { key: string; label: string; type: 'text' | 'number' | 'color' | 'textarea' }
+
+/** Definición de un bloque personalizado registrado por el integrador. */
+export type CustomBlockDef = {
+  type: string
+  label: string
+  icon?: string
+  defaultData: Record<string, unknown>
+  fields: CustomField[]
+  render: (data: Record<string, unknown>) => string
+}
+
 /** Config por herramienta (bloque de la paleta). */
 export type ToolConfig = { enabled?: boolean; position?: number; usageLimit?: number }
 
@@ -49,6 +62,7 @@ export type BuilderOptions = {
   tools?: Partial<Record<BlockType, ToolConfig>>
   fonts?: FontDef[]
   specialLinks?: SpecialLink[]
+  customBlocks?: CustomBlockDef[]
 }
 
 export const BUILDER_OPTIONS_KEY: InjectionKey<BuilderOptions> = Symbol('vmd-options')

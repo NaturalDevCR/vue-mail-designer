@@ -6,7 +6,7 @@
     v-bind="DND_OPTIONS"
     :clone="cloneBlock"
     :move="onMove"
-    item-key="type"
+    item-key="key"
     class="vmd-content-grid"
     @start="ui.isDragging = true"
     @end="onDragEnd"
@@ -25,8 +25,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import draggable from 'vuedraggable'
-import { createBlock } from '../../schema'
-import type { BlockType } from '../../schema'
+import { createBlock, createCustomBlock } from '../../schema'
+import type { Block, BlockType } from '../../schema'
 import { useDocumentStore } from '../../store/document'
 import { useBuilderPinia } from '../../store/keys'
 import { useUiStore } from '../../store/ui'
@@ -41,19 +41,29 @@ const ui = useUiStore(useBuilderPinia())
 const options = useBuilderOptions()
 const { t } = useI18n()
 
-// lista visible: filtra deshabilitados y ordena por `position`
-const blockItems = computed(() => {
+type PaletteItem = { key: string; type: BlockType; labelKey?: string; label?: string; icon?: string; customType?: string }
+
+// lista visible: nativos (filtrados/ordenados por `tools`) + bloques personalizados
+const blockItems = computed<PaletteItem[]>(() => {
   const tools = options.tools ?? {}
-  const withIndex = PALETTE_BLOCKS.map((b, i) => ({ ...b, i }))
+  const natives: PaletteItem[] = PALETTE_BLOCKS.map((b, i) => ({ ...b, i, key: b.type }))
     .filter((b) => tools[b.type]?.enabled !== false)
-  return withIndex.sort((a, b) => {
-    const pa = tools[a.type]?.position
-    const pb = tools[b.type]?.position
-    if (pa != null && pb != null) return pa - pb
-    if (pa != null) return -1
-    if (pb != null) return 1
-    return a.i - b.i
-  })
+    .sort((a, b) => {
+      const pa = tools[a.type]?.position
+      const pb = tools[b.type]?.position
+      if (pa != null && pb != null) return pa - pb
+      if (pa != null) return -1
+      if (pb != null) return 1
+      return a.i - b.i
+    })
+  const customs: PaletteItem[] = (options.customBlocks ?? []).map((d) => ({
+    key: 'custom:' + d.type,
+    type: 'custom' as BlockType,
+    label: d.label,
+    icon: d.icon,
+    customType: d.type,
+  }))
+  return [...natives, ...customs]
 })
 
 // conteo de uso por tipo en el documento actual
@@ -70,7 +80,11 @@ function isDisabled(type: BlockType): boolean {
   return limit != null && (counts.value[type] ?? 0) >= limit
 }
 
-function cloneBlock(item: (typeof PALETTE_BLOCKS)[number]) {
+function cloneBlock(item: PaletteItem): Block {
+  if (item.customType) {
+    const def = options.customBlocks?.find((d) => d.type === item.customType)
+    if (def) return createCustomBlock(def.type, def.defaultData)
+  }
   return createBlock(item.type)
 }
 
@@ -84,8 +98,10 @@ function onDragEnd() {
   store.sealHistory()
 }
 
-// ícono estático propio + label traducido
-function itemHtml(element: (typeof PALETTE_BLOCKS)[number]) {
-  return `${ICONS[element.type] ?? ''}<span>${t(element.labelKey)}</span>`
+// ícono + label; los custom traen su propio label/icon, los nativos usan i18n
+function itemHtml(element: PaletteItem) {
+  const icon = element.customType ? (element.icon ?? ICONS.html) : (ICONS[element.type] ?? '')
+  const label = element.labelKey ? t(element.labelKey) : (element.label ?? '')
+  return `${icon}<span>${label}</span>`
 }
 </script>

@@ -1,5 +1,5 @@
 import { createId } from './ids'
-import type { Block, BlockType, Column, EmailDocument, Padding, Row } from './document'
+import type { Block, BlockType, Column, CustomBlock, EmailDocument, Padding, Row } from './document'
 
 export const BLOCK_TYPES: BlockType[] = [
   'heading',
@@ -138,5 +138,17 @@ export function createBlock(type: BlockType): Block {
         imageUrl: '', alt: 'Cuenta regresiva', widthPct: 100,
         style: { padding: pad(8, 24, 8, 24) },
       }
+    case 'custom':
+      // los bloques custom se crean con createCustomBlock(customType, defaultData)
+      throw new Error('Usa createCustomBlock para bloques personalizados.')
+  }
+}
+
+export function createCustomBlock(customType: string, defaultData: Record<string, unknown>): CustomBlock {
+  return {
+    id: createId('blk'),
+    type: 'custom',
+    customType,
+    data: JSON.parse(JSON.stringify(defaultData)) as Record<string, unknown>,
   }
 }

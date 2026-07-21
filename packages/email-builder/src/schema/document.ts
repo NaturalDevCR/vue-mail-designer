@@ -203,6 +203,15 @@ export const zTimerBlock = z.object({
   hideMobile: z.boolean().optional(),
 })
 
+export const zCustomBlock = z.object({
+  id: z.string(),
+  type: z.literal('custom'),
+  customType: z.string(),
+  data: z.record(z.unknown()),
+  hideDesktop: z.boolean().optional(),
+  hideMobile: z.boolean().optional(),
+})
+
 export const zBlock = z.discriminatedUnion('type', [
   zHeadingBlock,
   zTextBlock,
@@ -217,6 +226,7 @@ export const zBlock = z.discriminatedUnion('type', [
   zTableBlock,
   zGalleryBlock,
   zTimerBlock,
+  zCustomBlock,
 ])
 
 export const zColumn = z.object({
@@ -278,6 +288,7 @@ export type VideoBlock = z.infer<typeof zVideoBlock>
 export type TableBlock = z.infer<typeof zTableBlock>
 export type GalleryBlock = z.infer<typeof zGalleryBlock>
 export type TimerBlock = z.infer<typeof zTimerBlock>
+export type CustomBlock = z.infer<typeof zCustomBlock>
 export type Block = z.infer<typeof zBlock>
 export type BlockType = Block['type']
 export type Column = z.infer<typeof zColumn>

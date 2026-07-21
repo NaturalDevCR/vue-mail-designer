@@ -49,7 +49,7 @@ const pinia = useBuilderPinia()
 const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
 const options = useBuilderOptions()
-const html = computed(() => renderHtml(store.doc, options.fonts))
+const html = computed(() => renderHtml(store.doc, options.fonts, options.customBlocks))
 const copied = ref(false)
 const presets = [
   { name: 'desktop', title: 'Escritorio', icon: '🖥', width: 1000 },

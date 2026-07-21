@@ -55,7 +55,7 @@ function downloadFile(name: string, content: string, mime: string) {
 }
 
 function exportHtmlFile() {
-  downloadFile('email.html', renderHtml(store.doc, options.fonts), 'text/html')
+  downloadFile('email.html', renderHtml(store.doc, options.fonts, options.customBlocks), 'text/html')
   menuOpen.value = false
 }
 function exportJsonFile() {
