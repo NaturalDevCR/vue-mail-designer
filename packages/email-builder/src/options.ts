@@ -3,9 +3,23 @@ import { inject } from 'vue'
 import type { ImageResult } from './imageSearch'
 import type { UnlayerFetch } from './import/unlayerUrl'
 import type { LocaleDict } from './i18n/keys'
+import type { BlockType } from './schema'
 import type { EmailTemplate } from './templates'
 
 export type MergeTagDef = { name: string; value: string }
+
+/** Config por herramienta (bloque de la paleta). */
+export type ToolConfig = { enabled?: boolean; position?: number; usageLimit?: number }
+
+/** Colores del builder; cada campo presente sobreescribe su variable CSS. */
+export type Appearance = {
+  accent?: string
+  panel?: string
+  border?: string
+  background?: string
+  foreground?: string
+  muted?: string
+}
 
 export type BuilderOptions = {
   mergeTags: MergeTagDef[]
@@ -14,6 +28,7 @@ export type BuilderOptions = {
   imageSearch?: (query: string) => Promise<ImageResult[]>
   unlayerFetch?: UnlayerFetch
   locale?: 'es' | 'en' | LocaleDict
+  tools?: Partial<Record<BlockType, ToolConfig>>
 }
 
 export const BUILDER_OPTIONS_KEY: InjectionKey<BuilderOptions> = Symbol('vmd-options')

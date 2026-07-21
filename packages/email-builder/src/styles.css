@@ -220,3 +220,4 @@
 .vmd-import-url { margin-bottom: 4px; }
 .vmd-import-warnings { margin: 8px 0; padding-left: 18px; font-size: 12px; color: var(--vmd-muted); }
 .vmd-import-error { color: var(--vmd-danger); font-size: 13px; margin: 4px 0; }
+.vmd-content-item--disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }

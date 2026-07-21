@@ -61,4 +61,5 @@ export const es: LocaleDict = {
   'rte.clear': 'Limpiar formato',
   'rte.variable': 'Variable…',
   'rte.linkPrompt': 'URL del enlace',
+  'palette.limitReached': 'Límite alcanzado',
 }
