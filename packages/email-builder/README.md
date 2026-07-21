@@ -48,7 +48,16 @@ function onHtml(html: string) {
 | `templates` | `EmailTemplate[]` | Plantillas extra además de las incluidas. |
 | `uploadImage` | `(file: File) => Promise<string>` | Handler de subida; devuelve la URL final. |
 | `imageSearch` | `(query: string) => Promise<ImageResult[]>` | Handler de búsqueda para la pestaña Imágenes; por defecto usa `openverseSearch`. |
+| `unlayerFetch` | `(slug: string) => Promise<unknown>` | Handler para cargar una plantilla de Unlayer por URL/slug; devuelve el JSON de diseño. Por defecto pega a su API (falla por CORS sin proxy). |
 | `theme` | `'light' \| 'dark'` | Tema de la UI del builder. |
+
+## Importar de Unlayer
+
+Desde el menú **EXPORTAR → Importar de Unlayer…** puedes pegar el JSON de diseño de Unlayer o la URL de una plantilla de su studio (ej. `https://studio.unlayer.com/create/...`). El diseño se convierte a nuestro formato y se muestra una lista de advertencias con lo que no se pudo mapear (estilos responsive específicos, condiciones de visualización, fuentes de Google, etc.).
+
+- **Programático:** `unlayerToDocument(json)` devuelve `{ document, warnings }`; `unlayerSlugFromUrl(url)` extrae el slug.
+- **Por URL:** el navegador no puede pegar directamente a la API de Unlayer por CORS. Pasa un `unlayerFetch` que use tu backend/proxy (la app de demo usa un proxy de Vite en `/unlayer-api`).
+- **Assets:** las imágenes de las plantillas de Unlayer viven en su CDN y les pertenecen; reemplázalas por tus propios assets. El conversor lo advierte automáticamente.
 
 ## Eventos
 
