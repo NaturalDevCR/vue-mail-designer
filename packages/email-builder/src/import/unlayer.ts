@@ -41,13 +41,19 @@ export function parsePx(s: string | number | undefined, fallback = 0): number {
   return fallback
 }
 
+const HTML_ENTITY_MAP: Record<string, string> = {
+  '&nbsp;': ' ',
+  '&amp;': '&',
+  '&lt;': '<',
+  '&gt;': '>',
+  '&quot;': '"',
+  '&#39;': "'",
+}
+
 export function stripTags(html: string): string {
-  return html
-    .replace(/<[^>]*>/g, '')
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/gi, '&')
-    .replace(/\s+/g, ' ')
-    .trim()
+  const noTags = html.replace(/<[^>]*>/g, '')
+  const decoded = noTags.replace(/&nbsp;|&amp;|&lt;|&gt;|&quot;|&#39;/gi, (m) => HTML_ENTITY_MAP[m.toLowerCase()] ?? m)
+  return decoded.replace(/\s+/g, ' ').trim()
 }
 
 function parsePercent(v: unknown, fallback: number): number {
@@ -135,9 +141,13 @@ export function unlayerToDocument(json: unknown): { document: EmailDocument; war
 }
 
 function toRow(raw: Record<string, unknown>, warnings: Set<string>): Row {
-  const rawCells = Array.isArray(raw.cells) && raw.cells.length > 0 ? (raw.cells as number[]) : [1]
-  const sum = rawCells.reduce((acc, c) => acc + (typeof c === 'number' ? c : 0), 0) || 1
-  const widths = rawCells.map((c) => ((typeof c === 'number' ? c : 0) / sum) * 100)
+  const rawCells = Array.isArray(raw.cells) && raw.cells.length > 0 ? (raw.cells as unknown[]) : [1]
+  const numericCells = rawCells.map((c) => (typeof c === 'number' && Number.isFinite(c) ? c : 0))
+  const sum = numericCells.reduce((acc, c) => acc + c, 0)
+  const n = numericCells.length
+  const widths = sum > 0
+    ? numericCells.map((c) => clamp((c / sum) * 100, 5, 100))
+    : numericCells.map(() => clamp(100 / n, 5, 100))
 
   const row = createRow(widths)
   const values = (raw.values && typeof raw.values === 'object' ? raw.values : {}) as Record<string, unknown>
@@ -268,7 +278,7 @@ function toBlock(content: Record<string, unknown>, warnings: Set<string>): Block
       b.style = {
         color: typeof border?.borderTopColor === 'string' ? border.borderTopColor : b.style.color,
         thickness: parsePx(border?.borderTopWidth as string | number | undefined, b.style.thickness),
-        widthPct: parsePx(values.width as string | number | undefined, b.style.widthPct),
+        widthPct: clamp(parsePx(values.width as string | number | undefined, b.style.widthPct), 10, 100),
         padding: parseShorthandPadding(values.containerPadding as string | undefined),
       }
       return b

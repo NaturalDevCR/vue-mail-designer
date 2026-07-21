@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseShorthandPadding, unlayerToDocument } from '../src/import/unlayer'
+import { parseShorthandPadding, stripTags, unlayerToDocument } from '../src/import/unlayer'
 import { zEmailDocument } from '../src/schema'
 
 describe('parseShorthandPadding', () => {
@@ -75,5 +75,49 @@ describe('unlayerToDocument', () => {
 
   it('JSON irreconocible lanza error legible', () => {
     expect(() => unlayerToDocument({ foo: 1 })).toThrow(/Unlayer/)
+  })
+})
+
+describe('conversor robusto', () => {
+  it('cells [0, 100] no lanza y clampea la columna de peso 0 a widthPct 5', () => {
+    const d = { rows: [{ cells: [0, 100], values: {}, columns: [
+      { values: {}, contents: [] },
+      { values: {}, contents: [] },
+    ] }], values: {} }
+    const { document } = unlayerToDocument(d)
+    expect(zEmailDocument.safeParse(document).success).toBe(true)
+    expect(document.rows[0].columns[0].widthPct).toBe(5)
+  })
+
+  it('21 celdas iguales no lanza y produce un doc válido', () => {
+    const cells = Array.from({ length: 21 }, () => 1)
+    const d = { rows: [{ cells, values: {}, columns: cells.map(() => ({ values: {}, contents: [] })) }], values: {} }
+    const { document } = unlayerToDocument(d)
+    expect(zEmailDocument.safeParse(document).success).toBe(true)
+    expect(document.rows[0].columns).toHaveLength(21)
+  })
+
+  it('cells como strings ["50","50"] no lanza y cae a anchos iguales', () => {
+    const d = { rows: [{ cells: ['50', '50'], values: {}, columns: [
+      { values: {}, contents: [] },
+      { values: {}, contents: [] },
+    ] }], values: {} }
+    const { document } = unlayerToDocument(d)
+    expect(zEmailDocument.safeParse(document).success).toBe(true)
+    expect(document.rows[0].columns.map((c) => c.widthPct)).toEqual([50, 50])
+  })
+
+  it('divisor con width 0% no lanza y clampea widthPct a 10', () => {
+    const d = { rows: [{ cells: [1], values: {}, columns: [{ values: {}, contents: [
+      { type: 'divider', values: { width: '0%', border: { borderTopColor: '#000', borderTopWidth: '1px' }, containerPadding: '0px' } },
+    ] }] }], values: {} }
+    const { document } = unlayerToDocument(d)
+    expect(zEmailDocument.safeParse(document).success).toBe(true)
+    const block = document.rows[0].columns[0].blocks[0]
+    expect(block.type === 'divider' && block.style.widthPct).toBe(10)
+  })
+
+  it('stripTags decodifica entidades en una sola pasada sin residuo', () => {
+    expect(stripTags('Hola&nbsp;&amp;nbsp;mundo')).toBe('Hola &nbsp;mundo')
   })
 })
