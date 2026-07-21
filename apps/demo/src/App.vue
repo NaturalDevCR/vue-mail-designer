@@ -3,6 +3,7 @@
     v-model:design="design"
     :merge-tags="mergeTags"
     :upload-image="uploadImage"
+    :unlayer-fetch="unlayerFetch"
     style="height: 100vh"
     @export-html="onExportHtml"
   />
@@ -38,6 +39,27 @@ async function uploadImage(file: File): Promise<string> {
 
 function onExportHtml(html: string) {
   console.log('HTML exportado:', html.length, 'caracteres')
+}
+
+// demo: pasa por el proxy /unlayer-api para esquivar CORS del studio de Unlayer
+async function unlayerFetch(slug: string): Promise<unknown> {
+  const res = await fetch('/unlayer-api', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      operationName: 'StockTemplateLoad',
+      query:
+        'query StockTemplateLoad($slug: String!){ StockTemplate(slug:$slug){ StockTemplatePages{ design } } }',
+      variables: { slug },
+    }),
+  })
+
+  if (!res.ok) throw new Error('No se pudo cargar la plantilla de Unlayer.')
+
+  const json = await res.json()
+  const design = json?.data?.StockTemplate?.StockTemplatePages?.[0]?.design
+  if (design === undefined) throw new Error('No se pudo cargar la plantilla de Unlayer.')
+  return design
 }
 </script>
 

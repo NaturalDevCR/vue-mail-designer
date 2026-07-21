@@ -8,3 +8,4 @@ export { type BuilderOptions, type MergeTagDef, BUILDER_OPTIONS_KEY, useBuilderO
 export { BUILTIN_TEMPLATES, type EmailTemplate } from './templates'
 export { openverseSearch, type ImageResult } from './imageSearch'
 export { unlayerToDocument, parseShorthandPadding } from './import/unlayer'
+export { unlayerSlugFromUrl, defaultUnlayerFetch, type UnlayerFetch } from './import/unlayerUrl'
