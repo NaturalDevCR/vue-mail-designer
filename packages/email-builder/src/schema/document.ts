@@ -11,6 +11,14 @@ const zPadding = z.object({
 })
 export type Padding = z.infer<typeof zPadding>
 
+export const zBackgroundImage = z.object({
+  url: z.string(),
+  repeat: z.enum(['no-repeat', 'repeat', 'repeat-x', 'repeat-y']),
+  size: z.enum(['auto', 'cover', 'contain']),
+  position: z.string(),
+})
+export type BackgroundImage = z.infer<typeof zBackgroundImage>
+
 export const zHeadingBlock = z.object({
   id: z.string(),
   type: z.literal('heading'),
@@ -233,12 +241,7 @@ export const zRow = z.object({
     backgroundColor: z.string(),
     padding: zPadding,
     borderRadius: z.number(),
-    backgroundImage: z.object({
-      url: z.string(),
-      repeat: z.enum(['no-repeat', 'repeat', 'repeat-x', 'repeat-y']),
-      size: z.enum(['auto', 'cover', 'contain']),
-      position: z.string(),
-    }).optional(),
+    backgroundImage: zBackgroundImage.optional(),
   }),
   columns: z.array(zColumn),
   hideDesktop: z.boolean().optional(),
@@ -253,6 +256,7 @@ export const zEmailSettings = z.object({
   contentAlignment: z.enum(['left', 'center']).default('center'),
   linkColor: z.string().default('#3b82f6'),
   linkUnderline: z.boolean().default(true),
+  backgroundImage: zBackgroundImage.optional(),
 })
 
 export const zEmailDocument = z.object({

@@ -1,9 +1,6 @@
 <template>
   <section class="vmd-canvas" @click.self="store.select(null)">
-    <div
-      class="vmd-canvas-page"
-      :style="{ width: pageWidth + 'px', background: store.doc.settings.backgroundColor }"
-    >
+    <div class="vmd-canvas-page" :style="pageStyle">
       <div v-if="store.doc.rows.length === 0" class="vmd-canvas-empty">
         <p>{{ t('canvas.emptyHint') }}</p>
         <button type="button" class="vmd-btn vmd-btn--primary" @click="store.addRow([100])">{{ t('canvas.addRow') }}</button>
@@ -42,6 +39,21 @@ const ui = useUiStore(pinia)
 const { t } = useI18n()
 
 const pageWidth = computed(() => (ui.canvasDevice === 'mobile' ? 375 : store.doc.settings.contentWidth))
+
+const pageStyle = computed(() => {
+  const s = store.doc.settings
+  const style: Record<string, string> = {
+    width: pageWidth.value + 'px',
+    backgroundColor: s.backgroundColor,
+  }
+  if (s.backgroundImage) {
+    style.backgroundImage = `url(${s.backgroundImage.url})`
+    style.backgroundSize = s.backgroundImage.size
+    style.backgroundPosition = s.backgroundImage.position
+    style.backgroundRepeat = s.backgroundImage.repeat
+  }
+  return style
+})
 
 function onDragEnd() {
   ui.isDragging = false

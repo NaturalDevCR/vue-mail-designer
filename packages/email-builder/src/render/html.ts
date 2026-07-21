@@ -272,6 +272,12 @@ export function renderHtml(doc: EmailDocument): string {
 
   const rows = doc.rows.map((r) => renderRow(r, settings.contentWidth, ctx)).join('')
 
+  const bodyBgImg = settings.backgroundImage
+  const bodyBgAttr = bodyBgImg ? ` background="${escapeHtml(bodyBgImg.url)}"` : ''
+  const bodyBgStyle = bodyBgImg
+    ? `background-image:url(${escapeHtml(bodyBgImg.url)});background-size:${bodyBgImg.size};background-position:${escapeHtml(bodyBgImg.position)};background-repeat:${bodyBgImg.repeat};`
+    : ''
+
   return `<!doctype html>
 <html lang="es" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
@@ -294,7 +300,7 @@ export function renderHtml(doc: EmailDocument): string {
 </head>
 <body style="margin:0;padding:0;background-color:${settings.backgroundColor};">
 ${preheader}
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${settings.backgroundColor};">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"${bodyBgAttr} style="background-color:${settings.backgroundColor};${bodyBgStyle}">
 <tr><td align="${settings.contentAlignment}" style="padding:16px 8px;">
 <table role="presentation" width="${settings.contentWidth}" cellpadding="0" cellspacing="0" border="0" class="vmd-container" style="width:${settings.contentWidth}px;max-width:100%;">
 <tr><td>
