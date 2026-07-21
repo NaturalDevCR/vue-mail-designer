@@ -139,6 +139,23 @@ describe('conversor robusto', () => {
     const { warnings } = unlayerToDocument(d)
     expect(warnings.some((w) => w.includes('colapsados'))).toBe(true)
   })
+
+  it('padding numérico no lanza y cae a cero', () => {
+    expect(parseShorthandPadding(0 as unknown as string)).toEqual({ top: 0, right: 0, bottom: 0, left: 0 })
+    const d = { rows: [{ cells: [1], values: { padding: 10 }, columns: [{ values: { padding: 5 }, contents: [
+      { type: 'text', values: { text: '<p>x</p>', containerPadding: 8 } },
+    ] }] }], values: {} }
+    const { document } = unlayerToDocument(d)
+    expect(zEmailDocument.safeParse(document).success).toBe(true)
+  })
+
+  it('nota legal solo con imágenes del CDN, no con un href a unlayer.com', () => {
+    const d = { rows: [{ cells: [1], values: {}, columns: [{ values: {}, contents: [
+      { type: 'button', values: { text: '<span>ir</span>', href: { values: { href: 'https://unlayer.com' } } } },
+    ] }] }], values: {} }
+    const { warnings } = unlayerToDocument(d)
+    expect(warnings.some((w) => w.toLowerCase().includes('imágenes'))).toBe(false)
+  })
 })
 
 it('social mapea íconos por nombre a nuestras redes', () => {

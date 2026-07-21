@@ -51,8 +51,8 @@ function checkCommonWarnings(values: Record<string, unknown>, warnings: Set<stri
   }
 }
 
-export function parseShorthandPadding(s: string | undefined): Padding {
-  if (!s || !s.trim()) return { top: 0, right: 0, bottom: 0, left: 0 }
+export function parseShorthandPadding(s: unknown): Padding {
+  if (typeof s !== 'string' || !s.trim()) return { top: 0, right: 0, bottom: 0, left: 0 }
   const parts = s.trim().split(/\s+/).map((p) => parsePx(p, 0))
   const [a, b, c, d] = parts
   switch (parts.length) {
@@ -167,7 +167,7 @@ export function unlayerToDocument(json: unknown): { document: EmailDocument; war
   doc.rows = rawRows.map((raw) => toRow(raw as Record<string, unknown>, warnings))
 
   const haystack = `${JSON.stringify(rawRows)} ${JSON.stringify(bodyValues)}`
-  if (haystack.includes('unlayer.com')) {
+  if (haystack.includes('cdn.templates.unlayer.com')) {
     warnings.add(LEGAL_NOTE)
   }
 
