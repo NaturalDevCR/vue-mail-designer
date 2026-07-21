@@ -43,23 +43,27 @@ function onExportHtml(html: string) {
 
 // demo: pasa por el proxy /unlayer-api para esquivar CORS del studio de Unlayer
 async function unlayerFetch(slug: string): Promise<unknown> {
-  const res = await fetch('/unlayer-api', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      operationName: 'StockTemplateLoad',
-      query:
-        'query StockTemplateLoad($slug: String!){ StockTemplate(slug:$slug){ StockTemplatePages{ design } } }',
-      variables: { slug },
-    }),
-  })
+  try {
+    const res = await fetch('/unlayer-api', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        operationName: 'StockTemplateLoad',
+        query:
+          'query StockTemplateLoad($slug: String!){ StockTemplate(slug:$slug){ StockTemplatePages{ design } } }',
+        variables: { slug },
+      }),
+    })
 
-  if (!res.ok) throw new Error('No se pudo cargar la plantilla de Unlayer.')
+    if (!res.ok) throw new Error('No se pudo cargar la plantilla de Unlayer.')
 
-  const json = await res.json()
-  const design = json?.data?.StockTemplate?.StockTemplatePages?.[0]?.design
-  if (design === undefined) throw new Error('No se pudo cargar la plantilla de Unlayer.')
-  return design
+    const json = await res.json()
+    const design = json?.data?.StockTemplate?.StockTemplatePages?.[0]?.design
+    if (design == null) throw new Error('No se pudo cargar la plantilla de Unlayer.')
+    return design
+  } catch {
+    throw new Error('No se pudo cargar la plantilla de Unlayer.')
+  }
 }
 </script>
 

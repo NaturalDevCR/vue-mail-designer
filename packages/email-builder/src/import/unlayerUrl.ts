@@ -6,6 +6,7 @@ const BARE_SLUG_RE = /^[a-z0-9-]+$/
  * (`^[a-z0-9-]+$`). Devuelve `null` si no reconoce el formato.
  */
 export function unlayerSlugFromUrl(input: string): string | null {
+  if (typeof input !== 'string') return null
   const trimmed = input.trim()
   if (!trimmed) return null
 
@@ -35,20 +36,24 @@ const STOCK_TEMPLATE_QUERY =
  * pasa tu propio `unlayerFetch`.
  */
 export const defaultUnlayerFetch: UnlayerFetch = async (slug: string): Promise<unknown> => {
-  const res = await fetch('https://studio.unlayer.com/api/v1/graphql', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      operationName: 'StockTemplateLoad',
-      query: STOCK_TEMPLATE_QUERY,
-      variables: { slug },
-    }),
-  })
+  try {
+    const res = await fetch('https://studio.unlayer.com/api/v1/graphql', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        operationName: 'StockTemplateLoad',
+        query: STOCK_TEMPLATE_QUERY,
+        variables: { slug },
+      }),
+    })
 
-  if (!res.ok) throw new Error('No se pudo cargar la plantilla de Unlayer.')
+    if (!res.ok) throw new Error('No se pudo cargar la plantilla de Unlayer.')
 
-  const json = await res.json()
-  const design = json?.data?.StockTemplate?.StockTemplatePages?.[0]?.design
-  if (design === undefined) throw new Error('No se pudo cargar la plantilla de Unlayer.')
-  return design
+    const json = await res.json()
+    const design = json?.data?.StockTemplate?.StockTemplatePages?.[0]?.design
+    if (design == null) throw new Error('No se pudo cargar la plantilla de Unlayer.')
+    return design
+  } catch {
+    throw new Error('No se pudo cargar la plantilla de Unlayer.')
+  }
 }

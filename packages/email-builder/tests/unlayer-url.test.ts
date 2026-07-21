@@ -12,4 +12,9 @@ describe('unlayerSlugFromUrl', () => {
     expect(unlayerSlugFromUrl('no es una url')).toBeNull()
     expect(unlayerSlugFromUrl('https://otro.com/x')).toBeNull()
   })
+  it('tolera input no-string y vacío', () => {
+    expect(unlayerSlugFromUrl(null as any)).toBeNull()
+    expect(unlayerSlugFromUrl(123 as any)).toBeNull()
+    expect(unlayerSlugFromUrl('')).toBeNull()
+  })
 })
