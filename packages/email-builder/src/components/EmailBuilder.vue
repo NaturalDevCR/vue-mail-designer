@@ -89,7 +89,7 @@ const localeDict = computed<LocaleDict>(() => {
   if (locale === 'es' || locale === undefined) return { ...es }
   return { ...es, ...locale }
 })
-provideI18n(localeDict.value)
+provideI18n(() => localeDict.value)
 
 // opciones reactivas para los hijos (getters mantienen la reactividad de props)
 provide(

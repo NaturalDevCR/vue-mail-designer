@@ -5,6 +5,7 @@ export function buildNewsletter(): EmailDocument {
   const doc = createDocument()
 
   const header = createRow([100])
+  header.style.backgroundColor = '#ffffff'
   const logo = createBlock('heading')
   if (logo.type === 'heading') {
     logo.text = 'Mi Empresa'

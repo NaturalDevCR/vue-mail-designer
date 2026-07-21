@@ -24,3 +24,12 @@ describe('i18n', () => {
     expect(texts.some((t) => t.includes('Heading'))).toBe(true)
   })
 })
+
+describe('i18n reactividad', () => {
+  it('cambiar la prop locale en caliente actualiza el chrome', async () => {
+    const w = mount(EmailBuilder, { props: { locale: 'es' } })
+    expect(w.find('[data-action="templates"]').text()).toContain('Plantillas')
+    await w.setProps({ locale: 'en' })
+    expect(w.find('[data-action="templates"]').text()).toContain('Templates')
+  })
+})
