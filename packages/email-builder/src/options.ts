@@ -1,6 +1,7 @@
 import type { InjectionKey } from 'vue'
 import { inject } from 'vue'
 import type { ImageResult } from './imageSearch'
+import type { FontDef } from './fonts'
 import type { UnlayerFetch } from './import/unlayerUrl'
 import type { BlockType } from './schema'
 import type { EmailTemplate } from './templates'
@@ -27,6 +28,7 @@ export type BuilderOptions = {
   imageSearch?: (query: string) => Promise<ImageResult[]>
   unlayerFetch?: UnlayerFetch
   tools?: Partial<Record<BlockType, ToolConfig>>
+  fonts?: FontDef[]
 }
 
 export const BUILDER_OPTIONS_KEY: InjectionKey<BuilderOptions> = Symbol('vmd-options')

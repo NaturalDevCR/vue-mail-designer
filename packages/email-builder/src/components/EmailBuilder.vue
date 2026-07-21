@@ -15,7 +15,8 @@
 
 <script setup lang="ts">
 import { createPinia } from 'pinia'
-import { computed, provide, reactive, watch } from 'vue'
+import { computed, onMounted, provide, reactive, watch } from 'vue'
+import { DEFAULT_FONTS, type FontDef } from '../fonts'
 import type { ImageResult } from '../imageSearch'
 import { en } from '../i18n/en'
 import { es } from '../i18n/es'
@@ -49,6 +50,7 @@ const props = defineProps<{
   locale?: 'es' | 'en' | LocaleDict
   appearance?: Appearance
   tools?: Partial<Record<BlockType, ToolConfig>>
+  fonts?: FontDef[]
 }>()
 
 const APPEARANCE_VARS: Record<keyof Appearance, string> = {
@@ -113,8 +115,26 @@ provide(
     get tools() {
       return props.tools
     },
+    get fonts() {
+      return props.fonts ?? DEFAULT_FONTS
+    },
   }),
 )
+
+// inyecta los <link> de Google Fonts en el documento host para WYSIWYG en el canvas
+onMounted(() => {
+  const fonts = props.fonts ?? DEFAULT_FONTS
+  for (const font of fonts) {
+    if (!font.url) continue
+    const id = 'vmd-font-' + btoa(font.url).replace(/[^a-z0-9]/gi, '').slice(0, 24)
+    if (document.getElementById(id)) continue
+    const link = document.createElement('link')
+    link.id = id
+    link.rel = 'stylesheet'
+    link.href = font.url
+    document.head.appendChild(link)
+  }
+})
 
 if (props.theme) ui.theme = props.theme
 watch(
@@ -152,7 +172,7 @@ watch(
 )
 
 function exportHtml(): string {
-  const html = renderHtml(store.doc)
+  const html = renderHtml(store.doc, props.fonts ?? DEFAULT_FONTS)
   emit('export-html', html)
   return html
 }

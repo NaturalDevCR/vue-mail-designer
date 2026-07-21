@@ -180,6 +180,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { DEFAULT_FONTS } from '../fonts'
 import { useBuilderOptions } from '../options'
 import type { Row, SocialNetworkKind } from '../schema'
 import { useDocumentStore } from '../store/document'
@@ -217,15 +218,10 @@ const TYPE_LABELS: Record<string, string> = {
   row: 'Fila',
 }
 
-const FONT_OPTIONS = [
-  { label: 'Heredar', value: '' },
-  { label: 'Arial', value: 'Arial' },
-  { label: 'Georgia', value: 'Georgia' },
-  { label: 'Times New Roman', value: 'Times New Roman' },
-  { label: 'Verdana', value: 'Verdana' },
-  { label: 'Tahoma', value: 'Tahoma' },
-  { label: 'Courier New', value: 'Courier New' },
-]
+const FONT_OPTIONS = computed(() => {
+  const fonts = options.fonts ?? DEFAULT_FONTS
+  return [{ label: 'Heredar', value: '' }, ...fonts.map((f) => ({ label: f.label, value: f.value }))]
+})
 
 const BG_REPEAT_OPTIONS = [
   { label: 'Sin repetir', value: 'no-repeat' },

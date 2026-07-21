@@ -29,6 +29,7 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from '../i18n/useI18n'
 import { renderHtml } from '../render/html'
+import { useBuilderOptions } from '../options'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
 import { useUiStore } from '../store/ui'
@@ -37,6 +38,7 @@ import UnlayerImportDialog from './UnlayerImportDialog.vue'
 const pinia = useBuilderPinia()
 const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
+const options = useBuilderOptions()
 const { t } = useI18n()
 const menuOpen = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -53,7 +55,7 @@ function downloadFile(name: string, content: string, mime: string) {
 }
 
 function exportHtmlFile() {
-  downloadFile('email.html', renderHtml(store.doc), 'text/html')
+  downloadFile('email.html', renderHtml(store.doc, options.fonts), 'text/html')
   menuOpen.value = false
 }
 function exportJsonFile() {

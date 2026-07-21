@@ -2,7 +2,7 @@
   <div>
     <NumberField label="Ancho contenido" :model-value="store.doc.settings.contentWidth" :min="320" :max="900" @update:model-value="store.updateSettings({ contentWidth: $event })" />
     <ColorField label="Color de fondo" :model-value="store.doc.settings.backgroundColor" @update:model-value="store.updateSettings({ backgroundColor: $event })" />
-    <TextField label="Fuente" :model-value="store.doc.settings.fontFamily" @update:model-value="store.updateSettings({ fontFamily: $event })" />
+    <SelectField label="Fuente" :model-value="store.doc.settings.fontFamily" :options="fontOptions" @update:model-value="store.updateSettings({ fontFamily: $event })" />
     <TextField label="Preheader" :model-value="store.doc.settings.preheader" @update:model-value="store.updateSettings({ preheader: $event })" />
 
     <TextField label="Imagen de fondo (URL)" :model-value="bgUrl" @update:model-value="setBgUrl" />
@@ -49,6 +49,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { DEFAULT_FONTS } from '../../fonts'
+import { useBuilderOptions } from '../../options'
 import type { BackgroundImage } from '../../schema'
 import { useDocumentStore } from '../../store/document'
 import { useBuilderPinia } from '../../store/keys'
@@ -58,6 +60,15 @@ import SelectField from '../fields/SelectField.vue'
 import TextField from '../fields/TextField.vue'
 
 const store = useDocumentStore(useBuilderPinia())
+const options = useBuilderOptions()
+
+const fontOptions = computed(() => {
+  const fonts = options.fonts ?? DEFAULT_FONTS
+  const opts = fonts.map((f) => ({ label: f.label, value: f.value }))
+  const current = store.doc.settings.fontFamily
+  if (current && !opts.some((o) => o.value === current)) opts.unshift({ label: 'Actual', value: current })
+  return opts
+})
 
 const SIZE_OPTIONS = [
   { label: 'Cubrir', value: 'cover' },

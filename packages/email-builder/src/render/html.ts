@@ -1,4 +1,5 @@
 import type { Block, EmailDocument, GalleryBlock, Padding, Row, SocialNetworkKind, TableBlock, TimerBlock } from '../schema'
+import { DEFAULT_FONTS, usedFontUrls, type FontDef } from '../fonts'
 
 export type RenderCtx = { fontFamily: string; linkColor: string; linkUnderline: boolean }
 
@@ -263,7 +264,11 @@ function renderRow(row: Row, contentWidth: number, ctx: RenderCtx): string {
   return wrapHidden(table, row.hideDesktop, row.hideMobile)
 }
 
-export function renderHtml(doc: EmailDocument): string {
+export function renderHtml(doc: EmailDocument, fonts: FontDef[] = DEFAULT_FONTS): string {
+  const fontUrls = usedFontUrls(doc, fonts)
+  const fontLinks = fontUrls.length
+    ? fontUrls.map((url) => `<link href="${escapeHtml(url)}" rel="stylesheet">`).join('\n') + '\n'
+    : ''
   const { settings } = doc
   const ctx: RenderCtx = { fontFamily: settings.fontFamily, linkColor: settings.linkColor, linkUnderline: settings.linkUnderline }
   const preheader = settings.preheader
@@ -285,7 +290,7 @@ export function renderHtml(doc: EmailDocument): string {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->
-<style>
+${fontLinks}<style>
   body { margin: 0; padding: 0; }
   img { border: 0; }
   .vmd-hide-desktop { display:none; mso-hide:all; }

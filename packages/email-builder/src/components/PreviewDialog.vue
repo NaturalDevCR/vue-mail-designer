@@ -40,6 +40,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { renderHtml } from '../render/html'
+import { useBuilderOptions } from '../options'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
 import { useUiStore } from '../store/ui'
@@ -47,7 +48,8 @@ import { useUiStore } from '../store/ui'
 const pinia = useBuilderPinia()
 const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
-const html = computed(() => renderHtml(store.doc))
+const options = useBuilderOptions()
+const html = computed(() => renderHtml(store.doc, options.fonts))
 const copied = ref(false)
 const presets = [
   { name: 'desktop', title: 'Escritorio', icon: '🖥', width: 1000 },
