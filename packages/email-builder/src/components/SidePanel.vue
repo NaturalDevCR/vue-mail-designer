@@ -1,13 +1,17 @@
 <template>
   <aside class="vmd-sidepanel">
     <div class="vmd-sidepanel-content">
-      <PropertiesPanel v-if="store.selection && ui.panelMode === 'props'" />
-      <template v-else>
-        <ContentTab v-if="ui.sidebarTab === 'content'" />
-        <BlocksTab v-else-if="ui.sidebarTab === 'blocks'" />
-        <BodyTab v-else-if="ui.sidebarTab === 'body'" />
-        <ImagesTab v-else-if="ui.sidebarTab === 'images'" />
-      </template>
+      <Transition name="vmd-tab" mode="out-in">
+        <div :key="viewKey" class="vmd-tab-view">
+          <PropertiesPanel v-if="store.selection && ui.panelMode === 'props'" />
+          <template v-else>
+            <ContentTab v-if="ui.sidebarTab === 'content'" />
+            <BlocksTab v-else-if="ui.sidebarTab === 'blocks'" />
+            <BodyTab v-else-if="ui.sidebarTab === 'body'" />
+            <ImagesTab v-else-if="ui.sidebarTab === 'images'" />
+          </template>
+        </div>
+      </Transition>
     </div>
     <nav class="vmd-rail">
       <button
@@ -26,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { watch } from 'vue'
+import { computed, watch } from 'vue'
 import { useI18n } from '../i18n/useI18n'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
@@ -42,6 +46,12 @@ const pinia = useBuilderPinia()
 const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
 const { t } = useI18n()
+
+// clave de vista: cambia al alternar tab o al entrar/salir del modo propiedades.
+// No cambia al seleccionar distintos elementos (evita animar cada edición).
+const viewKey = computed(() =>
+  store.selection && ui.panelMode === 'props' ? 'props' : ui.sidebarTab,
+)
 
 const TABS: { key: 'content' | 'blocks' | 'body' | 'images'; labelKey: string; icon: string }[] = [
   { key: 'content', labelKey: 'rail.content', icon: 'tabContent' },

@@ -73,4 +73,9 @@ export const en: LocaleDict = {
   'versions.delete': 'Delete',
   'versions.empty': 'No versions yet.',
   'common.close': 'Close',
+  'props.move': 'Move',
+  'props.rowSettings': 'Row settings',
+  'props.duplicate': 'Duplicate',
+  'props.delete': 'Delete',
+  'props.row': 'Row',
 }
