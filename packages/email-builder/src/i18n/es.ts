@@ -73,4 +73,9 @@ export const es: LocaleDict = {
   'versions.delete': 'Eliminar',
   'versions.empty': 'Aún no hay versiones.',
   'common.close': 'Cerrar',
+  'props.move': 'Mover',
+  'props.rowSettings': 'Configurar fila',
+  'props.duplicate': 'Duplicar',
+  'props.delete': 'Eliminar',
+  'props.row': 'Fila',
 }

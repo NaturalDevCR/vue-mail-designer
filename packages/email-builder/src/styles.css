@@ -42,10 +42,16 @@
 .vmd-canvas-page { margin: 0 auto; max-width: 100%; min-height: 200px; box-shadow: 0 1px 4px rgba(0,0,0,.12); transition: width 0.25s ease; }
 .vmd-canvas-empty { padding: 48px 16px; text-align: center; color: var(--vmd-muted); }
 .vmd-canvas-rows { min-height: 40px; }
-.vmd-row { position: relative; border: 1px dashed transparent; }
-.vmd-row:hover { border-color: var(--vmd-border); }
-.vmd-row.vmd-selected { border: 1px solid var(--vmd-accent); }
-.vmd-row-actions { position: absolute; top: -12px; right: 8px; z-index: 5; gap: 4px; }
+.vmd-row { position: relative; border: 1px dashed transparent; transition: box-shadow 0.15s ease, border-color 0.15s ease; }
+.vmd-row:hover { border-color: var(--vmd-accent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vmd-accent) 35%, transparent); }
+.vmd-row.vmd-selected { border: 1px solid var(--vmd-accent); box-shadow: inset 0 0 0 1px var(--vmd-accent); }
+.vmd-row-actions { position: absolute; top: -12px; right: 8px; z-index: 6; gap: 4px; }
+.vmd-row-badge {
+  position: absolute; top: -11px; left: 8px; z-index: 6; display: none;
+  padding: 1px 8px; border-radius: 4px; font-size: 11px; line-height: 18px;
+  background: var(--vmd-accent); color: #fff; pointer-events: none;
+}
+.vmd-row:hover > .vmd-row-badge, .vmd-row.vmd-selected > .vmd-row-badge { display: block; }
 .vmd-mini-btn {
   width: 24px; height: 24px; border: 1px solid var(--vmd-border); border-radius: 4px;
   background: var(--vmd-panel); color: var(--vmd-fg); cursor: pointer; font-size: 12px;
@@ -135,7 +141,10 @@
 .vmd-toolbar-group { display: flex; gap: 6px; }
 
 .vmd-sidepanel { display: flex; flex-shrink: 0; background: var(--vmd-panel); border-left: 1px solid var(--vmd-border); }
-.vmd-sidepanel-content { width: 320px; overflow-y: auto; padding: 14px; }
+.vmd-sidepanel-content { width: 320px; overflow-y: auto; overflow-x: hidden; padding: 14px; }
+.vmd-tab-enter-active, .vmd-tab-leave-active { transition: opacity 0.18s ease, transform 0.18s ease; }
+.vmd-tab-enter-from { opacity: 0; transform: translateX(10px); }
+.vmd-tab-leave-to { opacity: 0; transform: translateX(-10px); }
 .vmd-rail { display: flex; flex-direction: column; border-left: 1px solid var(--vmd-border); background: var(--vmd-bg); }
 .vmd-rail button {
   display: flex; flex-direction: column; align-items: center; gap: 4px;

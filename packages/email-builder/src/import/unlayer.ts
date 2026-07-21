@@ -103,6 +103,25 @@ function parsePercent(v: unknown, fallback: number): number {
   return fallback
 }
 
+type BgImage = { url: string; repeat: 'no-repeat' | 'repeat' | 'repeat-x' | 'repeat-y'; size: 'auto' | 'cover' | 'contain'; position: string }
+
+function parseBackgroundImage(raw: unknown): BgImage | null {
+  if (!raw || typeof raw !== 'object') return null
+  const bg = raw as Record<string, unknown>
+  if (typeof bg.url !== 'string' || !bg.url) return null
+  const repeat = bg.repeat as string | undefined
+  const size = bg.size as string | undefined
+  return {
+    url: bg.url,
+    repeat: (['no-repeat', 'repeat', 'repeat-x', 'repeat-y'] as const).includes(repeat as never)
+      ? (repeat as BgImage['repeat'])
+      : 'no-repeat',
+    // Unlayer usa size 'custom'/'cover'/'contain'/'auto'; lo que no reconocemos → cover
+    size: (['auto', 'cover', 'contain'] as const).includes(size as never) ? (size as BgImage['size']) : 'cover',
+    position: typeof bg.position === 'string' ? bg.position : 'center',
+  }
+}
+
 function getFontFamily(v: unknown): string | undefined {
   if (v && typeof v === 'object' && typeof (v as Record<string, unknown>).value === 'string') {
     return (v as Record<string, unknown>).value as string
@@ -157,6 +176,8 @@ export function unlayerToDocument(json: unknown): { document: EmailDocument; war
   if (fontFamily) doc.settings.fontFamily = fontFamily
   if (typeof bodyValues.preheaderText === 'string') doc.settings.preheader = bodyValues.preheaderText
   doc.settings.contentAlignment = bodyValues.contentAlign === 'left' ? 'left' : 'center'
+  const bodyBg = parseBackgroundImage(bodyValues.backgroundImage)
+  if (bodyBg) doc.settings.backgroundImage = bodyBg
 
   const linkStyle = bodyValues.linkStyle as Record<string, unknown> | undefined
   if (linkStyle) {
@@ -197,19 +218,8 @@ function toRow(raw: Record<string, unknown>, warnings: Set<string>): Row {
   if (typeof values.hideDesktop === 'boolean') row.hideDesktop = values.hideDesktop
   if (typeof values.hideMobile === 'boolean') row.hideMobile = values.hideMobile
 
-  const bgImage = values.backgroundImage as Record<string, unknown> | undefined
-  if (bgImage && typeof bgImage.url === 'string' && bgImage.url) {
-    const repeat = bgImage.repeat as string | undefined
-    const size = bgImage.size as string | undefined
-    row.style.backgroundImage = {
-      url: bgImage.url,
-      repeat: (['no-repeat', 'repeat', 'repeat-x', 'repeat-y'] as const).includes(repeat as never)
-        ? (repeat as 'no-repeat' | 'repeat' | 'repeat-x' | 'repeat-y')
-        : 'no-repeat',
-      size: (['auto', 'cover', 'contain'] as const).includes(size as never) ? (size as 'auto' | 'cover' | 'contain') : 'cover',
-      position: typeof bgImage.position === 'string' ? bgImage.position : 'center',
-    }
-  }
+  const rowBg = parseBackgroundImage(values.backgroundImage)
+  if (rowBg) row.style.backgroundImage = rowBg
 
   const rawColumns = Array.isArray(raw.columns) ? (raw.columns as unknown[]) : []
   row.columns = row.columns.map((col, i) => {

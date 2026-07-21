@@ -184,3 +184,17 @@ it('advierte sobre _override, displayCondition y fuentes de Google', () => {
   expect(warnings.some((w) => w.toLowerCase().includes('visualización'))).toBe(true)
   expect(warnings.some((w) => w.toLowerCase().includes('fuentes'))).toBe(true)
 })
+
+it('mapea la imagen de fondo del cuerpo y de la fila', () => {
+  const d = {
+    body: {
+      values: { backgroundImage: { url: 'https://cdn.x/body.jpg', size: 'custom', repeat: 'no-repeat', position: 'top-center' } },
+      rows: [{ cells: [1], values: { backgroundImage: { url: 'https://cdn.templates.unlayer.com/assets/bg.png', size: 'cover', repeat: 'no-repeat', position: 'center' } }, columns: [{ values: {}, contents: [] }] }],
+    },
+  }
+  const { document } = unlayerToDocument(d)
+  expect(document.settings.backgroundImage?.url).toBe('https://cdn.x/body.jpg')
+  // size 'custom' de Unlayer → cover (valor soportado)
+  expect(document.settings.backgroundImage?.size).toBe('cover')
+  expect(document.rows[0].style.backgroundImage?.url).toBe('https://cdn.templates.unlayer.com/assets/bg.png')
+})
