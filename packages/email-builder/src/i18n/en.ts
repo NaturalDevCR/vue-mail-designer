@@ -62,4 +62,5 @@ export const en: LocaleDict = {
   'rte.variable': 'Variable…',
   'rte.linkPrompt': 'Link URL',
   'palette.limitReached': 'Limit reached',
+  'rte.specialLink': 'Special link…',
 }

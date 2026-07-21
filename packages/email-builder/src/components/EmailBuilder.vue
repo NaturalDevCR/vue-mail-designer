@@ -23,7 +23,7 @@ import { es } from '../i18n/es'
 import type { LocaleDict } from '../i18n/keys'
 import { provideI18n } from '../i18n/useI18n'
 import type { UnlayerFetch } from '../import/unlayerUrl'
-import { BUILDER_OPTIONS_KEY, type Appearance, type MergeTagDef, type ToolConfig } from '../options'
+import { BUILDER_OPTIONS_KEY, type Appearance, type MergeTagItem, type SpecialLink, type ToolConfig } from '../options'
 import type { BlockType } from '../schema'
 import { renderHtml } from '../render/html'
 import type { EmailDocument } from '../schema'
@@ -41,8 +41,9 @@ import '../styles.css'
 
 const props = defineProps<{
   design?: EmailDocument
-  mergeTags?: MergeTagDef[]
+  mergeTags?: MergeTagItem[]
   templates?: EmailTemplate[]
+  specialLinks?: SpecialLink[]
   uploadImage?: (file: File) => Promise<string>
   imageSearch?: (query: string) => Promise<ImageResult[]>
   unlayerFetch?: UnlayerFetch
@@ -117,6 +118,9 @@ provide(
     },
     get fonts() {
       return props.fonts ?? DEFAULT_FONTS
+    },
+    get specialLinks() {
+      return props.specialLinks
     },
   }),
 )

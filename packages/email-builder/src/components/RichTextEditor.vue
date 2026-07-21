@@ -24,9 +24,18 @@
       <span class="vmd-rte-sep" />
       <button type="button" class="vmd-mini-btn" :title="t('rte.link')" @click="setLink">🔗</button>
       <button type="button" class="vmd-mini-btn" :title="t('rte.clear')" @click="clearFormat">⌫</button>
-      <select v-if="options.mergeTags.length" class="vmd-rte-tags" @change="onTagPick">
+      <select v-if="flatTags.length" class="vmd-rte-tags" @change="onTagPick">
         <option value="">{{ t('rte.variable') }}</option>
-        <option v-for="tag in options.mergeTags" :key="tag.value" :value="tag.value">{{ tag.name }}</option>
+        <template v-for="(item, i) in options.mergeTags" :key="i">
+          <optgroup v-if="isMergeTagGroup(item)" :label="item.name">
+            <option v-for="tag in item.tags" :key="tag.value" :value="tag.value">{{ tag.name }}</option>
+          </optgroup>
+          <option v-else :value="item.value">{{ item.name }}</option>
+        </template>
+      </select>
+      <select v-if="specialLinks.length" class="vmd-rte-tags" @change="onSpecialLink">
+        <option value="">{{ t('rte.specialLink') }}</option>
+        <option v-for="(l, i) in specialLinks" :key="i" :value="i">{{ l.name }}</option>
       </select>
     </div>
     <EditorContent :editor="editor" />
@@ -43,7 +52,7 @@ import { computed, watch } from 'vue'
 import { MergeTag, insertMergeTag } from '../editor/mergeTag'
 import { InlineStyle } from '../editor/inlineStyle'
 import { useI18n } from '../i18n/useI18n'
-import { useBuilderOptions } from '../options'
+import { DEFAULT_SPECIAL_LINKS, flattenMergeTags, isMergeTagGroup, useBuilderOptions } from '../options'
 
 const FONT_SIZES = [12, 14, 16, 18, 20, 24, 28, 32, 40]
 
@@ -51,6 +60,8 @@ const props = defineProps<{ modelValue: string }>()
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 const options = useBuilderOptions()
 const { t } = useI18n()
+const flatTags = computed(() => flattenMergeTags(options.mergeTags))
+const specialLinks = computed(() => options.specialLinks ?? DEFAULT_SPECIAL_LINKS)
 
 const editor = useEditor({
   extensions: [
@@ -102,8 +113,15 @@ function setLink() {
 
 function onTagPick(e: Event) {
   const select = e.target as HTMLSelectElement
-  const tag = options.mergeTags.find((tg) => tg.value === select.value)
+  const tag = flatTags.value.find((tg) => tg.value === select.value)
   if (tag && editor.value) insertMergeTag(editor.value, tag)
+  select.value = ''
+}
+
+function onSpecialLink(e: Event) {
+  const select = e.target as HTMLSelectElement
+  const link = specialLinks.value[Number(select.value)]
+  if (link && editor.value) editor.value.chain().focus().setLink({ href: link.href }).run()
   select.value = ''
 }
 </script>

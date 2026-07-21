@@ -7,6 +7,25 @@ import type { BlockType } from './schema'
 import type { EmailTemplate } from './templates'
 
 export type MergeTagDef = { name: string; value: string }
+export type MergeTagGroup = { name: string; tags: MergeTagDef[] }
+export type MergeTagItem = MergeTagDef | MergeTagGroup
+
+/** Enlace especial insertable en el editor (ej. cancelar suscripción). */
+export type SpecialLink = { name: string; href: string }
+
+export const DEFAULT_SPECIAL_LINKS: SpecialLink[] = [
+  { name: 'Cancelar suscripción', href: '{{unsubscribe_url}}' },
+  { name: 'Ver en el navegador', href: '{{view_in_browser_url}}' },
+]
+
+export function isMergeTagGroup(item: MergeTagItem): item is MergeTagGroup {
+  return 'tags' in item && Array.isArray((item as MergeTagGroup).tags)
+}
+
+/** Aplana grupos y tags sueltos a una lista plana de MergeTagDef. */
+export function flattenMergeTags(items: MergeTagItem[]): MergeTagDef[] {
+  return items.flatMap((i) => (isMergeTagGroup(i) ? i.tags : [i]))
+}
 
 /** Config por herramienta (bloque de la paleta). */
 export type ToolConfig = { enabled?: boolean; position?: number; usageLimit?: number }
@@ -22,13 +41,14 @@ export type Appearance = {
 }
 
 export type BuilderOptions = {
-  mergeTags: MergeTagDef[]
+  mergeTags: MergeTagItem[]
   uploadImage?: (file: File) => Promise<string>
   templates?: EmailTemplate[]
   imageSearch?: (query: string) => Promise<ImageResult[]>
   unlayerFetch?: UnlayerFetch
   tools?: Partial<Record<BlockType, ToolConfig>>
   fonts?: FontDef[]
+  specialLinks?: SpecialLink[]
 }
 
 export const BUILDER_OPTIONS_KEY: InjectionKey<BuilderOptions> = Symbol('vmd-options')
