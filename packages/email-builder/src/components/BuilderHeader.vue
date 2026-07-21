@@ -2,22 +2,22 @@
   <header class="vmd-header">
     <div class="vmd-header-brand">Vue Mail Designer</div>
     <button type="button" class="vmd-header-btn" data-action="templates" @click="ui.galleryOpen = true">
-      Plantillas
+      {{ t('header.templates') }}
     </button>
     <span class="vmd-header-spacer" />
-    <span class="vmd-header-status">● Guardado</span>
-    <button type="button" class="vmd-header-btn" :title="ui.theme === 'dark' ? 'Tema claro' : 'Tema oscuro'" @click="ui.toggleTheme()">
+    <span class="vmd-header-status">● {{ t('header.saved') }}</span>
+    <button type="button" class="vmd-header-btn" :title="ui.theme === 'dark' ? t('header.themeLight') : t('header.themeDark')" @click="ui.toggleTheme()">
       {{ ui.theme === 'dark' ? '☀' : '☾' }}
     </button>
     <div ref="exportRoot" class="vmd-export">
       <button type="button" class="vmd-btn-export" data-action="export" @click="menuOpen = !menuOpen">
-        EXPORTAR ▾
+        {{ t('header.export') }} ▾
       </button>
       <div v-if="menuOpen" class="vmd-export-menu">
-        <button type="button" data-action="export-html" @click="exportHtmlFile">Exportar HTML</button>
-        <button type="button" data-action="export-json" @click="exportJsonFile">Exportar JSON</button>
-        <button type="button" data-action="import-json" @click="fileInput?.click()">Importar JSON…</button>
-        <button type="button" data-action="import-unlayer" @click="openUnlayerImport">Importar de Unlayer…</button>
+        <button type="button" data-action="export-html" @click="exportHtmlFile">{{ t('header.exportHtml') }}</button>
+        <button type="button" data-action="export-json" @click="exportJsonFile">{{ t('header.exportJson') }}</button>
+        <button type="button" data-action="import-json" @click="fileInput?.click()">{{ t('header.importJson') }}</button>
+        <button type="button" data-action="import-unlayer" @click="openUnlayerImport">{{ t('header.importUnlayer') }}</button>
       </div>
     </div>
     <input ref="fileInput" type="file" accept="application/json,.json" style="display: none" @change="onFile" />
@@ -27,6 +27,7 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
+import { useI18n } from '../i18n/useI18n'
 import { renderHtml } from '../render/html'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
@@ -36,6 +37,7 @@ import UnlayerImportDialog from './UnlayerImportDialog.vue'
 const pinia = useBuilderPinia()
 const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
+const { t } = useI18n()
 const menuOpen = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
 const exportRoot = ref<HTMLElement | null>(null)

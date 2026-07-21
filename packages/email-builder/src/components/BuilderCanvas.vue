@@ -5,8 +5,8 @@
       :style="{ width: pageWidth + 'px', background: store.doc.settings.backgroundColor }"
     >
       <div v-if="store.doc.rows.length === 0" class="vmd-canvas-empty">
-        <p>Arrastra una fila desde el tab Bloques o</p>
-        <button type="button" class="vmd-btn vmd-btn--primary" @click="store.addRow([100])">Agregar fila</button>
+        <p>{{ t('canvas.emptyHint') }}</p>
+        <button type="button" class="vmd-btn vmd-btn--primary" @click="store.addRow([100])">{{ t('canvas.addRow') }}</button>
       </div>
       <draggable
         :model-value="store.doc.rows"
@@ -32,12 +32,14 @@ import draggable from 'vuedraggable'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
 import { useUiStore } from '../store/ui'
+import { useI18n } from '../i18n/useI18n'
 import { DND_OPTIONS } from './dnd'
 import RowView from './RowView.vue'
 
 const pinia = useBuilderPinia()
 const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
+const { t } = useI18n()
 
 const pageWidth = computed(() => (ui.canvasDevice === 'mobile' ? 375 : store.doc.settings.contentWidth))
 

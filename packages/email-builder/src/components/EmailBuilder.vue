@@ -15,8 +15,12 @@
 
 <script setup lang="ts">
 import { createPinia } from 'pinia'
-import { provide, reactive, watch } from 'vue'
+import { computed, provide, reactive, watch } from 'vue'
 import type { ImageResult } from '../imageSearch'
+import { en } from '../i18n/en'
+import { es } from '../i18n/es'
+import type { LocaleDict } from '../i18n/keys'
+import { provideI18n } from '../i18n/useI18n'
 import type { UnlayerFetch } from '../import/unlayerUrl'
 import { BUILDER_OPTIONS_KEY, type MergeTagDef } from '../options'
 import { renderHtml } from '../render/html'
@@ -41,6 +45,7 @@ const props = defineProps<{
   imageSearch?: (query: string) => Promise<ImageResult[]>
   unlayerFetch?: UnlayerFetch
   theme?: 'light' | 'dark'
+  locale?: 'es' | 'en' | LocaleDict
 }>()
 
 const emit = defineEmits<{
@@ -53,6 +58,15 @@ const pinia = createPinia()
 provide(BUILDER_PINIA_KEY, pinia)
 const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
+
+// diccionario i18n resuelto a partir de la prop `locale`
+const localeDict = computed<LocaleDict>(() => {
+  const locale = props.locale
+  if (locale === 'en') return { ...es, ...en }
+  if (locale === 'es' || locale === undefined) return { ...es }
+  return { ...es, ...locale }
+})
+provideI18n(localeDict.value)
 
 // opciones reactivas para los hijos (getters mantienen la reactividad de props)
 provide(

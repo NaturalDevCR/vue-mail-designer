@@ -1,21 +1,22 @@
 <template>
   <div ref="barEl" class="vmd-canvasbar">
     <div class="vmd-toolbar-group">
-      <button type="button" class="vmd-btn" data-action="undo" :disabled="!store.canUndo" title="Deshacer (⌘Z)" @click="store.undo()">↶</button>
-      <button type="button" class="vmd-btn" data-action="redo" :disabled="!store.canRedo" title="Rehacer (⌘⇧Z)" @click="store.redo()">↷</button>
+      <button type="button" class="vmd-btn" data-action="undo" :disabled="!store.canUndo" :title="`${t('canvasbar.undo')} (⌘Z)`" @click="store.undo()">↶</button>
+      <button type="button" class="vmd-btn" data-action="redo" :disabled="!store.canRedo" :title="`${t('canvasbar.redo')} (⌘⇧Z)`" @click="store.redo()">↷</button>
     </div>
     <div class="vmd-canvasbar-center">
-      <button type="button" class="vmd-btn" :class="{ 'vmd-active': ui.canvasDevice === 'desktop' }" data-device="desktop" title="Escritorio" @click="ui.canvasDevice = 'desktop'">🖥</button>
-      <button type="button" class="vmd-btn" :class="{ 'vmd-active': ui.canvasDevice === 'mobile' }" data-device="mobile" title="Móvil" @click="ui.canvasDevice = 'mobile'">📱</button>
+      <button type="button" class="vmd-btn" :class="{ 'vmd-active': ui.canvasDevice === 'desktop' }" data-device="desktop" :title="t('canvasbar.desktop')" @click="ui.canvasDevice = 'desktop'">🖥</button>
+      <button type="button" class="vmd-btn" :class="{ 'vmd-active': ui.canvasDevice === 'mobile' }" data-device="mobile" :title="t('canvasbar.mobile')" @click="ui.canvasDevice = 'mobile'">📱</button>
     </div>
     <div class="vmd-toolbar-group">
-      <button type="button" class="vmd-btn" data-action="preview" title="Vista previa" @click="ui.previewOpen = true">👁</button>
+      <button type="button" class="vmd-btn" data-action="preview" :title="t('canvasbar.preview')" @click="ui.previewOpen = true">👁</button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
+import { useI18n } from '../i18n/useI18n'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
 import { useUiStore } from '../store/ui'
@@ -23,6 +24,7 @@ import { useUiStore } from '../store/ui'
 const pinia = useBuilderPinia()
 const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
+const { t } = useI18n()
 const barEl = ref<HTMLElement | null>(null)
 let root: HTMLElement | null = null
 
