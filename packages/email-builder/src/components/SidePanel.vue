@@ -19,7 +19,7 @@
         @click="ui.sidebarTab = tab.key; ui.panelMode = 'tab'"
       >
         <span v-html="ICONS[tab.icon]"></span>
-        <span>{{ tab.label }}</span>
+        <span>{{ t(tab.labelKey) }}</span>
       </button>
     </nav>
   </aside>
@@ -27,6 +27,7 @@
 
 <script setup lang="ts">
 import { watch } from 'vue'
+import { useI18n } from '../i18n/useI18n'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
 import { useUiStore } from '../store/ui'
@@ -40,12 +41,13 @@ import ImagesTab from './tabs/ImagesTab.vue'
 const pinia = useBuilderPinia()
 const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
+const { t } = useI18n()
 
-const TABS: { key: 'content' | 'blocks' | 'body' | 'images'; label: string; icon: string }[] = [
-  { key: 'content', label: 'Contenido', icon: 'tabContent' },
-  { key: 'blocks', label: 'Bloques', icon: 'tabBlocks' },
-  { key: 'body', label: 'Cuerpo', icon: 'tabBody' },
-  { key: 'images', label: 'Imágenes', icon: 'tabImages' },
+const TABS: { key: 'content' | 'blocks' | 'body' | 'images'; labelKey: string; icon: string }[] = [
+  { key: 'content', labelKey: 'rail.content', icon: 'tabContent' },
+  { key: 'blocks', labelKey: 'rail.blocks', icon: 'tabBlocks' },
+  { key: 'body', labelKey: 'rail.body', icon: 'tabBody' },
+  { key: 'images', labelKey: 'rail.images', icon: 'tabImages' },
 ]
 
 watch(

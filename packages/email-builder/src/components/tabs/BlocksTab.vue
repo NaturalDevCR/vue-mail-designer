@@ -10,7 +10,7 @@
     @end="onDragEnd"
   >
     <template #item="{ element }">
-      <div class="vmd-layout-thumb" :title="element.label">
+      <div class="vmd-layout-thumb" :title="t(element.labelKey)">
         <div v-for="(w, i) in element.widths" :key="i" class="vmd-layout-cell" :style="{ flex: w }" />
       </div>
     </template>
@@ -23,11 +23,13 @@ import { createRow } from '../../schema'
 import { useDocumentStore } from '../../store/document'
 import { useBuilderPinia } from '../../store/keys'
 import { useUiStore } from '../../store/ui'
+import { useI18n } from '../../i18n/useI18n'
 import { DND_OPTIONS } from '../dnd'
 import { ROW_LAYOUTS } from '../palette-items'
 
 const store = useDocumentStore(useBuilderPinia())
 const ui = useUiStore(useBuilderPinia())
+const { t } = useI18n()
 const rowItems = [...ROW_LAYOUTS]
 
 function cloneRow(item: (typeof ROW_LAYOUTS)[number]) {

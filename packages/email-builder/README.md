@@ -50,6 +50,17 @@ function onHtml(html: string) {
 | `imageSearch` | `(query: string) => Promise<ImageResult[]>` | Handler de búsqueda para la pestaña Imágenes; por defecto usa `openverseSearch`. |
 | `unlayerFetch` | `(slug: string) => Promise<unknown>` | Handler para cargar una plantilla de Unlayer por URL/slug; devuelve el JSON de diseño. Por defecto pega a su API (falla por CORS sin proxy). |
 | `theme` | `'light' \| 'dark'` | Tema de la UI del builder. |
+| `locale` | `'es' \| 'en' \| LocaleDict` | Idioma de la UI. Objeto = diccionario de claves que se fusiona sobre el español (traduce solo lo que quieras). |
+| `appearance` | `Appearance` | Colores del builder: `accent`, `panel`, `border`, `background`, `foreground`, `muted`. Cada campo presente sobreescribe su variable CSS; no afecta el canvas del email. |
+| `tools` | `Partial<Record<BlockType, ToolConfig>>` | Config por bloque de la paleta: `{ enabled?, position?, usageLimit? }` para ocultar, reordenar o limitar instancias. |
+
+## Fondos
+
+El **color y la imagen de fondo del cuerpo** se editan en la pestaña **Cuerpo** (`settings.backgroundColor` / `settings.backgroundImage`). Las filas son transparentes por defecto para que el fondo del cuerpo se vea a través; cada fila y columna puede tener su propio color/imagen de fondo.
+
+## Editor de texto
+
+El editor enriquecido incluye negrita, cursiva, subrayado, tachado, listas (viñeta/numerada), alineación, **color de texto**, **tamaño de fuente**, enlaces, variables (merge tags) y limpiar formato.
 
 ## Importar de Unlayer
 

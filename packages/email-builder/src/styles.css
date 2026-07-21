@@ -105,7 +105,11 @@
   padding: 3px 6px; border-radius: 4px; white-space: nowrap;
 }
 .vmd-mt { background: color-mix(in srgb, var(--vmd-accent) 15%, transparent); border-radius: 3px; padding: 0 3px; }
-.vmd-rte-toolbar { display: flex; gap: 2px; padding: 4px; background: var(--vmd-panel); border: 1px solid var(--vmd-border); border-radius: 6px 6px 0 0; }
+.vmd-rte-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; padding: 4px; background: var(--vmd-panel); border: 1px solid var(--vmd-border); border-radius: 6px 6px 0 0; }
+.vmd-rte-sep { width: 1px; align-self: stretch; margin: 2px 3px; background: var(--vmd-border); }
+.vmd-rte-color { position: relative; overflow: hidden; font-weight: 700; }
+.vmd-rte-color input[type='color'] { position: absolute; left: 0; bottom: 0; width: 100%; height: 4px; padding: 0; border: 0; cursor: pointer; }
+.vmd-rte-size { font-size: 12px; border: 1px solid var(--vmd-border); border-radius: 4px; background: var(--vmd-panel); color: var(--vmd-fg); }
 .vmd-rte .ProseMirror { outline: none; min-height: 40px; padding: 4px; border: 1px solid var(--vmd-border); border-top: 0; border-radius: 0 0 6px 6px; }
 .vmd-active { border-color: var(--vmd-accent); color: var(--vmd-accent); }
 .vmd-rte-tags { font-size: 12px; border: 1px solid var(--vmd-border); border-radius: 4px; background: var(--vmd-panel); color: var(--vmd-fg); }
@@ -216,3 +220,4 @@
 .vmd-import-url { margin-bottom: 4px; }
 .vmd-import-warnings { margin: 8px 0; padding-left: 18px; font-size: 12px; color: var(--vmd-muted); }
 .vmd-import-error { color: var(--vmd-danger); font-size: 13px; margin: 4px 0; }
+.vmd-content-item--disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }

@@ -49,7 +49,8 @@ export function createColumn(widthPct: number): Column {
 export function createRow(widths: number[]): Row {
   return {
     id: createId('row'),
-    style: { backgroundColor: '#ffffff', padding: pad(8, 0, 8, 0), borderRadius: 0 },
+    // transparente por defecto: así el color/imagen de fondo del cuerpo se ve a través de la fila
+    style: { backgroundColor: 'transparent', padding: pad(8, 0, 8, 0), borderRadius: 0 },
     columns: widths.map((w) => createColumn(w)),
   }
 }

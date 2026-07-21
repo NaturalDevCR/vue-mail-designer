@@ -1,5 +1,5 @@
 <template>
-  <div class="vmd-root" :class="{ 'vmd-dark': ui.theme === 'dark', 'vmd-is-dragging': ui.isDragging }">
+  <div class="vmd-root" :class="{ 'vmd-dark': ui.theme === 'dark', 'vmd-is-dragging': ui.isDragging }" :style="appearanceStyle">
     <BuilderHeader />
     <PreviewDialog v-if="ui.previewOpen" />
     <div class="vmd-main">
@@ -15,10 +15,15 @@
 
 <script setup lang="ts">
 import { createPinia } from 'pinia'
-import { provide, reactive, watch } from 'vue'
+import { computed, provide, reactive, watch } from 'vue'
 import type { ImageResult } from '../imageSearch'
+import { en } from '../i18n/en'
+import { es } from '../i18n/es'
+import type { LocaleDict } from '../i18n/keys'
+import { provideI18n } from '../i18n/useI18n'
 import type { UnlayerFetch } from '../import/unlayerUrl'
-import { BUILDER_OPTIONS_KEY, type MergeTagDef } from '../options'
+import { BUILDER_OPTIONS_KEY, type Appearance, type MergeTagDef, type ToolConfig } from '../options'
+import type { BlockType } from '../schema'
 import { renderHtml } from '../render/html'
 import type { EmailDocument } from '../schema'
 import { useDocumentStore } from '../store/document'
@@ -41,7 +46,30 @@ const props = defineProps<{
   imageSearch?: (query: string) => Promise<ImageResult[]>
   unlayerFetch?: UnlayerFetch
   theme?: 'light' | 'dark'
+  locale?: 'es' | 'en' | LocaleDict
+  appearance?: Appearance
+  tools?: Partial<Record<BlockType, ToolConfig>>
 }>()
+
+const APPEARANCE_VARS: Record<keyof Appearance, string> = {
+  accent: '--vmd-accent',
+  panel: '--vmd-panel',
+  border: '--vmd-border',
+  background: '--vmd-bg',
+  foreground: '--vmd-fg',
+  muted: '--vmd-muted',
+}
+const appearanceStyle = computed<Record<string, string>>(() => {
+  const out: Record<string, string> = {}
+  const a = props.appearance
+  if (a) {
+    for (const key of Object.keys(APPEARANCE_VARS) as (keyof Appearance)[]) {
+      const value = a[key]
+      if (value) out[APPEARANCE_VARS[key]] = value
+    }
+  }
+  return out
+})
 
 const emit = defineEmits<{
   'update:design': [design: EmailDocument]
@@ -53,6 +81,15 @@ const pinia = createPinia()
 provide(BUILDER_PINIA_KEY, pinia)
 const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
+
+// diccionario i18n resuelto a partir de la prop `locale`
+const localeDict = computed<LocaleDict>(() => {
+  const locale = props.locale
+  if (locale === 'en') return { ...es, ...en }
+  if (locale === 'es' || locale === undefined) return { ...es }
+  return { ...es, ...locale }
+})
+provideI18n(() => localeDict.value)
 
 // opciones reactivas para los hijos (getters mantienen la reactividad de props)
 provide(
@@ -72,6 +109,9 @@ provide(
     },
     get unlayerFetch() {
       return props.unlayerFetch
+    },
+    get tools() {
+      return props.tools
     },
   }),
 )

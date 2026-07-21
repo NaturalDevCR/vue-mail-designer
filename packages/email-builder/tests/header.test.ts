@@ -3,6 +3,8 @@ import { createPinia } from 'pinia'
 import { describe, expect, it } from 'vitest'
 import { defineComponent, h, provide } from 'vue'
 import BuilderHeader from '../src/components/BuilderHeader.vue'
+import { es } from '../src/i18n/es'
+import { provideI18n } from '../src/i18n/useI18n'
 import { BUILDER_PINIA_KEY } from '../src/store/keys'
 import { useUiStore } from '../src/store/ui'
 
@@ -11,6 +13,7 @@ function mountHeader() {
   const Host = defineComponent({
     setup() {
       provide(BUILDER_PINIA_KEY, pinia)
+      provideI18n(es)
       return () => h(BuilderHeader)
     },
   })

@@ -63,3 +63,14 @@ describe('renderer fase B — props ricas', () => {
     expect(html).toContain('font-family:Georgia, serif')
   })
 })
+
+describe('fondo del cuerpo (settings.backgroundImage)', () => {
+  it('emite background image en el body y valida retrocompat sin el campo', () => {
+    const doc = createDocument()
+    doc.settings.backgroundImage = { url: 'https://cdn.x/bg.jpg', repeat: 'repeat', size: 'contain', position: 'top' }
+    const html = renderHtml(doc)
+    expect(html).toContain('background="https://cdn.x/bg.jpg"')
+    expect(html).toContain('background-image:url(https://cdn.x/bg.jpg)')
+    expect(html).toContain('background-size:contain')
+  })
+})
