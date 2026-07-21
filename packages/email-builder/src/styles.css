@@ -45,13 +45,11 @@
 .vmd-row { position: relative; border: 1px dashed transparent; transition: box-shadow 0.15s ease, border-color 0.15s ease; }
 .vmd-row:hover { border-color: var(--vmd-accent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vmd-accent) 35%, transparent); }
 .vmd-row.vmd-selected { border: 1px solid var(--vmd-accent); box-shadow: inset 0 0 0 1px var(--vmd-accent); }
-.vmd-row-actions { position: absolute; top: -12px; right: 8px; z-index: 6; gap: 4px; }
+.vmd-row-actions { position: absolute; top: -12px; left: 8px; z-index: 7; gap: 4px; align-items: center; }
 .vmd-row-badge {
-  position: absolute; top: -11px; left: 8px; z-index: 6; display: none;
-  padding: 1px 8px; border-radius: 4px; font-size: 11px; line-height: 18px;
+  padding: 1px 8px; border-radius: 4px; font-size: 11px; line-height: 22px;
   background: var(--vmd-accent); color: #fff; pointer-events: none;
 }
-.vmd-row:hover > .vmd-row-badge, .vmd-row.vmd-selected > .vmd-row-badge { display: block; }
 .vmd-mini-btn {
   width: 24px; height: 24px; border: 1px solid var(--vmd-border); border-radius: 4px;
   background: var(--vmd-panel); color: var(--vmd-fg); cursor: pointer; font-size: 12px;
@@ -111,12 +109,19 @@
   padding: 3px 6px; border-radius: 4px; white-space: nowrap;
 }
 .vmd-mt { background: color-mix(in srgb, var(--vmd-accent) 15%, transparent); border-radius: 3px; padding: 0 3px; }
-.vmd-rte-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; padding: 4px; background: var(--vmd-panel); border: 1px solid var(--vmd-border); border-radius: 6px 6px 0 0; }
+.vmd-rte { position: relative; }
+.vmd-rte-toolbar {
+  position: absolute; left: 0; bottom: calc(100% + 6px); z-index: 20;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 2px; padding: 5px;
+  min-width: max-content; max-width: 340px;
+  background: var(--vmd-panel); border: 1px solid var(--vmd-border); border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
 .vmd-rte-sep { width: 1px; align-self: stretch; margin: 2px 3px; background: var(--vmd-border); }
 .vmd-rte-color { position: relative; overflow: hidden; font-weight: 700; }
 .vmd-rte-color input[type='color'] { position: absolute; left: 0; bottom: 0; width: 100%; height: 4px; padding: 0; border: 0; cursor: pointer; }
 .vmd-rte-size { font-size: 12px; border: 1px solid var(--vmd-border); border-radius: 4px; background: var(--vmd-panel); color: var(--vmd-fg); }
-.vmd-rte .ProseMirror { outline: none; min-height: 40px; padding: 4px; border: 1px solid var(--vmd-border); border-top: 0; border-radius: 0 0 6px 6px; }
+.vmd-rte .ProseMirror { outline: none; min-height: 24px; }
 .vmd-active { border-color: var(--vmd-accent); color: var(--vmd-accent); }
 .vmd-rte-tags { font-size: 12px; border: 1px solid var(--vmd-border); border-radius: 4px; background: var(--vmd-panel); color: var(--vmd-fg); }
 .vmd-inspector-title { margin: 4px 0 12px; font-size: 13px; text-transform: uppercase; color: var(--vmd-muted); }
