@@ -59,6 +59,8 @@ function onHtml(html: string) {
 
 `mergeTags` acepta además grupos: `{ name, tags: MergeTagDef[] }` (se muestran como optgroups en el editor).
 
+> **Seguridad de bloques custom:** tu `render(data)` genera HTML crudo. Si `data` puede venir de un JSON importado, escapá los valores (la librería exporta `escapeHtml`) para evitar inyección.
+
 ## Métodos extra (via ref)
 
 - `exportImage(): Promise<string>` — PNG (data URL) del diseño. Limitación: imágenes de otro origen (CORS) pueden impedir la captura.

@@ -30,7 +30,7 @@
 ## 4. Export a imagen + versiones
 
 - **Export imagen**: función `exportImage(): Promise<string>` expuesta que renderiza el HTML del email en un contenedor oculto y usa una captura a canvas → PNG data URL. Para no agregar una dependencia pesada, se implementa con `foreignObject` de SVG + `canvas.drawImage` (técnica DOM→SVG→canvas, sin libs); si el navegador la bloquea (tainted canvas por imágenes cross-origin), se documenta la limitación. Botón "Exportar imagen" en el menú EXPORTAR.
-- **Versiones**: acciones del store `saveVersion(name)`, `versions` (lista `{ id, name, at, doc }`), `loadVersion(id)`, `deleteVersion(id)` (snapshots en memoria, no persistidos por la librería). UI: un diálogo "Versiones" (en el header) para guardar/cargar/borrar. La demo persiste `versions` en localStorage.
+- **Versiones**: acciones del store `saveVersion(name)`, `versions` (lista `{ id, name, at, doc }`), `loadVersion(id)`, `deleteVersion(id)`. UI: un diálogo "Versiones" (en el header) para guardar/cargar/borrar. **Decisión (2026-07-20):** las versiones viven **en memoria durante la sesión**; la persistencia queda del lado del integrador y no se implementa en la demo en esta fase (evita ampliar la superficie de API con getters/setters de versiones). Se puede exponer vía `defineExpose` en el futuro si un integrador lo necesita.
 
 ## Testing
 

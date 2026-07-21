@@ -232,7 +232,11 @@ const TYPE_LABELS: Record<string, string> = {
 
 const FONT_OPTIONS = computed(() => {
   const fonts = options.fonts ?? DEFAULT_FONTS
-  return [{ label: 'Heredar', value: '' }, ...fonts.map((f) => ({ label: f.label, value: f.value }))]
+  const opts = [{ label: 'Heredar', value: '' }, ...fonts.map((f) => ({ label: f.label, value: f.value }))]
+  // conserva visible una fuente ya guardada que no esté en la lista (p. ej. 'Arial' de docs viejos)
+  const current = block.value?.type === 'heading' || block.value?.type === 'text' ? block.value.fontFamily : undefined
+  if (current && !opts.some((o) => o.value === current)) opts.push({ label: 'Actual', value: current })
+  return opts
 })
 
 const BG_REPEAT_OPTIONS = [

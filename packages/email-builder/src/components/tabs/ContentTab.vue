@@ -102,6 +102,10 @@ function onDragEnd() {
 function itemHtml(element: PaletteItem) {
   const icon = element.customType ? (element.icon ?? ICONS.html) : (ICONS[element.type] ?? '')
   const label = element.labelKey ? t(element.labelKey) : (element.label ?? '')
-  return `${icon}<span>${label}</span>`
+  return `${icon}<span>${escapeHtml(label)}</span>`
+}
+
+function escapeHtml(s: string): string {
+  return s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
 }
 </script>
