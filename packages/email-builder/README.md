@@ -53,6 +53,16 @@ function onHtml(html: string) {
 | `locale` | `'es' \| 'en' \| LocaleDict` | Idioma de la UI. Objeto = diccionario de claves que se fusiona sobre el español (traduce solo lo que quieras). |
 | `appearance` | `Appearance` | Colores del builder: `accent`, `panel`, `border`, `background`, `foreground`, `muted`. Cada campo presente sobreescribe su variable CSS; no afecta el canvas del email. |
 | `tools` | `Partial<Record<BlockType, ToolConfig>>` | Config por bloque de la paleta: `{ enabled?, position?, usageLimit? }` para ocultar, reordenar o limitar instancias. |
+| `fonts` | `FontDef[]` | Lista de fuentes (`{ label, value, url? }`); las Google Fonts (`url`) se cargan en el canvas y en el HTML exportado. Por defecto una lista curada. |
+| `specialLinks` | `SpecialLink[]` | Enlaces especiales insertables desde el editor (`{ name, href }`, ej. cancelar suscripción). |
+| `customBlocks` | `CustomBlockDef[]` | Bloques propios del integrador (`{ type, label, icon?, defaultData, fields, render }`); aparecen en la paleta con inspector genérico y render en el export. |
+
+`mergeTags` acepta además grupos: `{ name, tags: MergeTagDef[] }` (se muestran como optgroups en el editor).
+
+## Métodos extra (via ref)
+
+- `exportImage(): Promise<string>` — PNG (data URL) del diseño. Limitación: imágenes de otro origen (CORS) pueden impedir la captura.
+- Versiones: desde **EXPORTAR → Versiones…** se guardan/cargan/borran versiones nombradas (en memoria durante la sesión).
 
 ## Fondos
 
