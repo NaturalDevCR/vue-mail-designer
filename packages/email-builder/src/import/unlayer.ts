@@ -242,12 +242,12 @@ function toColumn(col: Column, raw: Record<string, unknown>, warnings: Set<strin
       }
     }
 
-    const widths = (['borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth'] as const)
-      .map((k) => parsePx(border[k] as string | number | undefined, 0))
-    const colors = (['borderTopColor', 'borderRightColor', 'borderBottomColor', 'borderLeftColor'] as const)
-      .map((k) => (typeof border[k] === 'string' ? border[k] : undefined))
-    const widthsDiffer = widths.some((w) => w !== widths[0])
-    const colorsDiffer = colors.some((c) => c !== colors[0])
+    const topWidth = parsePx(border.borderTopWidth as string | number | undefined, 0)
+    const topColor = typeof border.borderTopColor === 'string' ? border.borderTopColor : undefined
+    const widthsDiffer = (['borderRightWidth', 'borderBottomWidth', 'borderLeftWidth'] as const)
+      .some((k) => k in border && parsePx(border[k] as string | number | undefined, 0) !== topWidth)
+    const colorsDiffer = (['borderRightColor', 'borderBottomColor', 'borderLeftColor'] as const)
+      .some((k) => k in border && border[k] !== topColor)
     if (widthsDiffer || colorsDiffer) warnings.add(BORDER_SIDES_NOTE)
   }
 

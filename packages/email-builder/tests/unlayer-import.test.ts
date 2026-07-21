@@ -120,6 +120,25 @@ describe('conversor robusto', () => {
   it('stripTags decodifica entidades en una sola pasada sin residuo', () => {
     expect(stripTags('Hola&nbsp;&amp;nbsp;mundo')).toBe('Hola &nbsp;mundo')
   })
+
+  it('borde de columna con solo el lado superior no dispara advertencia de lados distintos', () => {
+    const d = { rows: [{ cells: [1], values: {}, columns: [{
+      values: { border: { borderTopColor: '#ae2328', borderTopStyle: 'solid', borderTopWidth: '5px' } },
+      contents: [],
+    }] }], values: {} }
+    const { document, warnings } = unlayerToDocument(d)
+    expect(warnings.some((w) => w.includes('colapsados'))).toBe(false)
+    expect(document.rows[0].columns[0].style.border).toEqual({ width: 5, style: 'solid', color: '#ae2328' })
+  })
+
+  it('borde de columna con lados genuinamente distintos dispara advertencia', () => {
+    const d = { rows: [{ cells: [1], values: {}, columns: [{
+      values: { border: { borderTopColor: '#ae2328', borderTopWidth: '5px', borderRightWidth: '1px' } },
+      contents: [],
+    }] }], values: {} }
+    const { warnings } = unlayerToDocument(d)
+    expect(warnings.some((w) => w.includes('colapsados'))).toBe(true)
+  })
 })
 
 it('social mapea íconos por nombre a nuestras redes', () => {
