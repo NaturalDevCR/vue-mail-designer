@@ -9,12 +9,47 @@ import type {
   HeadingBlock,
   HtmlBlock,
   ImageBlock,
+  MenuBlock,
   Padding,
   Row,
+  SocialBlock,
+  SocialNetworkKind,
   TextBlock,
 } from '../schema'
 
 const LEGAL_NOTE = 'Algunas imágenes provienen del CDN de Unlayer y podrían dejar de estar disponibles; sustitúyelas por tus propias imágenes.'
+const MOBILE_OVERRIDE_NOTE = 'Estilos móviles específicos de Unlayer no se importaron.'
+const DISPLAY_CONDITION_NOTE = 'Condiciones de visualización no soportadas.'
+const GOOGLE_FONT_NOTE = 'Fuentes de Google referenciadas; cárgalas en tu plataforma.'
+const BORDER_SIDES_NOTE = 'Bordes de columna por-lado colapsados a uniforme.'
+
+const UNLAYER_SOCIAL_MAP: Record<string, SocialNetworkKind> = {
+  facebook: 'facebook',
+  instagram: 'instagram',
+  twitter: 'x',
+  x: 'x',
+  linkedin: 'linkedin',
+  youtube: 'youtube',
+  tiktok: 'tiktok',
+  whatsapp: 'whatsapp',
+}
+
+function toSocialKind(name: unknown): SocialNetworkKind {
+  if (typeof name === 'string') {
+    const kind = UNLAYER_SOCIAL_MAP[name.trim().toLowerCase()]
+    if (kind) return kind
+  }
+  return 'web'
+}
+
+function checkCommonWarnings(values: Record<string, unknown>, warnings: Set<string>): void {
+  if (values._override) warnings.add(MOBILE_OVERRIDE_NOTE)
+  if (values.displayCondition !== undefined && values.displayCondition !== null) warnings.add(DISPLAY_CONDITION_NOTE)
+  const fontFamily = values.fontFamily as Record<string, unknown> | undefined
+  if (fontFamily && typeof fontFamily === 'object' && typeof fontFamily.url === 'string' && fontFamily.url) {
+    warnings.add(GOOGLE_FONT_NOTE)
+  }
+}
 
 export function parseShorthandPadding(s: string | undefined): Padding {
   if (!s || !s.trim()) return { top: 0, right: 0, bottom: 0, left: 0 }
@@ -151,6 +186,7 @@ function toRow(raw: Record<string, unknown>, warnings: Set<string>): Row {
 
   const row = createRow(widths)
   const values = (raw.values && typeof raw.values === 'object' ? raw.values : {}) as Record<string, unknown>
+  checkCommonWarnings(values, warnings)
 
   if (typeof values.backgroundColor === 'string') row.style.backgroundColor = values.backgroundColor
   row.style.padding = parseShorthandPadding(values.padding as string | undefined)
@@ -186,6 +222,7 @@ function toRow(raw: Record<string, unknown>, warnings: Set<string>): Row {
 
 function toColumn(col: Column, raw: Record<string, unknown>, warnings: Set<string>): Column {
   const values = (raw.values && typeof raw.values === 'object' ? raw.values : {}) as Record<string, unknown>
+  checkCommonWarnings(values, warnings)
 
   if (typeof values.backgroundColor === 'string') col.style.backgroundColor = values.backgroundColor
   col.style.padding = parseShorthandPadding(values.padding as string | undefined)
@@ -204,6 +241,14 @@ function toColumn(col: Column, raw: Record<string, unknown>, warnings: Set<strin
         color: typeof border.borderTopColor === 'string' ? border.borderTopColor : '#000000',
       }
     }
+
+    const widths = (['borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth'] as const)
+      .map((k) => parsePx(border[k] as string | number | undefined, 0))
+    const colors = (['borderTopColor', 'borderRightColor', 'borderBottomColor', 'borderLeftColor'] as const)
+      .map((k) => (typeof border[k] === 'string' ? border[k] : undefined))
+    const widthsDiffer = widths.some((w) => w !== widths[0])
+    const colorsDiffer = colors.some((c) => c !== colors[0])
+    if (widthsDiffer || colorsDiffer) warnings.add(BORDER_SIDES_NOTE)
   }
 
   const contents = Array.isArray(raw.contents) ? (raw.contents as unknown[]) : []
@@ -221,6 +266,7 @@ function toAlign(v: unknown, fallback: Align): Align {
 function toBlock(content: Record<string, unknown>, warnings: Set<string>): Block | null {
   const type = typeof content.type === 'string' ? content.type : ''
   const values = (content.values && typeof content.values === 'object' ? content.values : {}) as Record<string, unknown>
+  checkCommonWarnings(values, warnings)
 
   switch (type) {
     case 'heading': {
@@ -298,6 +344,52 @@ function toBlock(content: Record<string, unknown>, warnings: Set<string>): Block
     case 'html': {
       const b = createBlock('html') as HtmlBlock
       if (typeof values.html === 'string') b.code = values.html
+      return b
+    }
+    case 'social': {
+      const icons = values.icons as Record<string, unknown> | undefined
+      const iconList = icons?.icons
+      if (!Array.isArray(iconList)) {
+        warnings.add('Bloque social sin íconos reconocibles, omitido.')
+        return null
+      }
+      const b = createBlock('social') as SocialBlock
+      b.networks = iconList
+        .map((icon) => {
+          const rec = (icon && typeof icon === 'object' ? icon : {}) as Record<string, unknown>
+          return { kind: toSocialKind(rec.name), url: typeof rec.url === 'string' ? rec.url : '' }
+        })
+      b.align = toAlign(values.align, 'center')
+      const spacing = values.spacing
+      if (typeof spacing === 'number' || typeof spacing === 'string') b.spacing = parsePx(spacing, b.spacing)
+      b.style = { padding: parseShorthandPadding(values.containerPadding as string | undefined) }
+      return b
+    }
+    case 'menu': {
+      const menu = values.menu as Record<string, unknown> | undefined
+      const rawItems = Array.isArray(values.items) ? values.items : Array.isArray(menu?.items) ? menu?.items : undefined
+      if (!Array.isArray(rawItems)) {
+        warnings.add('Bloque menú sin ítems reconocibles, omitido.')
+        return null
+      }
+      const b = createBlock('menu') as MenuBlock
+      b.items = rawItems.map((item) => {
+        const rec = (item && typeof item === 'object' ? item : {}) as Record<string, unknown>
+        const rawLabel = typeof rec.text === 'string' ? rec.text : typeof rec.label === 'string' ? rec.label : ''
+        const label = stripTags(rawLabel)
+        const link = rec.link as Record<string, unknown> | undefined
+        const linkValues = link?.values as Record<string, unknown> | undefined
+        const href = typeof linkValues?.href === 'string'
+          ? linkValues.href
+          : typeof rec.href === 'string'
+            ? rec.href
+            : ''
+        return { label, href }
+      })
+      b.align = toAlign(values.align, 'center')
+      if (typeof values.color === 'string') b.style.color = values.color
+      b.style.fontSize = parsePx(values.fontSize as string | number | undefined, b.style.fontSize)
+      b.style.padding = parseShorthandPadding(values.containerPadding as string | undefined)
       return b
     }
     default:

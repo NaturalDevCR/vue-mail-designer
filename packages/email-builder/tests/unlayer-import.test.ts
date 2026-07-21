@@ -121,3 +121,30 @@ describe('conversor robusto', () => {
     expect(stripTags('Hola&nbsp;&amp;nbsp;mundo')).toBe('Hola &nbsp;mundo')
   })
 })
+
+it('social mapea íconos por nombre a nuestras redes', () => {
+  const d = { rows: [{ cells: [1], values: {}, columns: [{ values: {}, contents: [
+    { type: 'social', values: { align: 'center', spacing: 12, icons: { icons: [
+      { url: 'https://facebook.com/x', name: 'Facebook' },
+      { url: 'https://twitter.com/x', name: 'Twitter' },
+      { url: 'https://unknown.com/x', name: 'Threads' },
+    ] } } },
+  ] }] }], values: {} }
+  const { document } = unlayerToDocument(d)
+  const b = document.rows[0].columns[0].blocks[0]
+  expect(b.type).toBe('social')
+  if (b.type === 'social') {
+    expect(b.networks.map((n) => n.kind)).toEqual(['facebook', 'x', 'web'])
+    expect(b.networks[0].url).toBe('https://facebook.com/x')
+  }
+})
+
+it('advierte sobre _override, displayCondition y fuentes de Google', () => {
+  const d = { rows: [{ cells: [1], values: { displayCondition: { type: 'x' } }, columns: [{ values: {}, contents: [
+    { type: 'text', values: { text: '<p>hi</p>', _override: { mobile: { containerPadding: '5px' } }, fontFamily: { value: 'Roboto', url: 'https://fonts.googleapis.com/x' } } },
+  ] }] }], values: {} }
+  const { warnings } = unlayerToDocument(d)
+  expect(warnings.some((w) => w.toLowerCase().includes('móviles'))).toBe(true)
+  expect(warnings.some((w) => w.toLowerCase().includes('visualización'))).toBe(true)
+  expect(warnings.some((w) => w.toLowerCase().includes('fuentes'))).toBe(true)
+})
