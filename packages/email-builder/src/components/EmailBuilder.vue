@@ -26,6 +26,7 @@ import type { UnlayerFetch } from '../import/unlayerUrl'
 import { BUILDER_OPTIONS_KEY, type Appearance, type CustomBlockDef, type MergeTagItem, type SpecialLink, type ToolConfig } from '../options'
 import type { BlockType } from '../schema'
 import { renderHtml } from '../render/html'
+import { exportDocumentImage } from '../export/image'
 import type { EmailDocument } from '../schema'
 import { useDocumentStore } from '../store/document'
 import { BUILDER_PINIA_KEY } from '../store/keys'
@@ -193,6 +194,10 @@ function getDesign(): EmailDocument {
 function loadDesign(doc: EmailDocument): void {
   store.loadDesign(doc)
 }
+function exportImage(): Promise<string> {
+  const html = renderHtml(store.doc, props.fonts ?? DEFAULT_FONTS, props.customBlocks)
+  return exportDocumentImage(html, store.doc.settings.contentWidth)
+}
 
-defineExpose({ exportHtml, exportJson, getDesign, loadDesign })
+defineExpose({ exportHtml, exportJson, getDesign, loadDesign, exportImage })
 </script>

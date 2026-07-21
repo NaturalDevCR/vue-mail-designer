@@ -178,6 +178,19 @@ export const useDocumentStore = defineStore('vmd-document', () => {
     selection.value = null
   }
 
+  // versiones nombradas (en memoria)
+  const versions = ref<{ id: string; name: string; at: number; doc: EmailDocument }[]>([])
+  function saveVersion(name: string) {
+    versions.value.push({ id: createId('ver'), name, at: Date.now(), doc: clone(doc.value) })
+  }
+  function loadVersion(id: string) {
+    const v = versions.value.find((x) => x.id === id)
+    if (v) loadDesign(v.doc)
+  }
+  function deleteVersion(id: string) {
+    versions.value = versions.value.filter((x) => x.id !== id)
+  }
+
   const canUndo = computed(() => past.value.length > 0)
   const canRedo = computed(() => future.value.length > 0)
 
@@ -242,6 +255,7 @@ export const useDocumentStore = defineStore('vmd-document', () => {
     updateBlock, updateRowStyle, updateRow, updateColumn, updateSettings,
     select, loadDesign,
     canUndo, canRedo, undo, redo, resetHistory, sealHistory, exportJson, importJson,
+    versions, saveVersion, loadVersion, deleteVersion,
   }
 })
 
