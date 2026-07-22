@@ -64,7 +64,7 @@ function renderBlockInner(block: Block, ctx: RenderCtx): string {
       const s = block.style
       const fam = block.fontFamily ?? ctx.fontFamily
       return cellTable(
-        `<tr><td style="padding:${paddingCss(s.padding)};font-family:${fam};font-size:${s.fontSize}px;line-height:1.3;font-weight:bold;color:${s.color};text-align:${s.align};">${escapeHtml(block.text)}</td></tr>`,
+        `<tr><td style="padding:${paddingCss(s.padding)};font-family:${fam};font-size:${s.fontSize}px;line-height:${s.lineHeight};font-weight:bold;color:${s.color};text-align:${s.align};">${escapeHtml(block.text)}</td></tr>`,
       )
     }
     case 'text': {
@@ -89,11 +89,17 @@ function renderBlockInner(block: Block, ctx: RenderCtx): string {
     }
     case 'button': {
       const s = block.style
+      const border = s.border ? `border:${s.border.width}px ${s.border.style} ${s.border.color};` : ''
+      // ancho fijo (%) → la tabla del botón ocupa ese % y el <a> se estira (display:block, centrado)
+      const hasWidth = typeof block.widthPct === 'number'
+      const btnTableWidth = hasWidth ? ` width="${block.widthPct}%"` : ''
+      const linkDisplay = hasWidth ? 'block' : 'inline-block'
+      const textAlign = hasWidth ? 'text-align:center;' : ''
       return cellTable(
         `<tr><td align="${block.align}" style="padding:${paddingCss(s.padding)};">` +
-        `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>` +
-        `<td style="border-radius:${s.borderRadius}px;background-color:${s.backgroundColor};">` +
-        `<a href="${escapeHtml(block.href)}" target="_blank" style="display:inline-block;padding:${s.innerPaddingY}px ${s.innerPaddingX}px;font-family:${ctx.fontFamily};font-size:${s.fontSize}px;font-weight:bold;color:${s.color};text-decoration:none;border-radius:${s.borderRadius}px;">${escapeHtml(block.label)}</a>` +
+        `<table role="presentation"${btnTableWidth} cellpadding="0" cellspacing="0" border="0"><tr>` +
+        `<td style="border-radius:${s.borderRadius}px;background-color:${s.backgroundColor};${border}${textAlign}">` +
+        `<a href="${escapeHtml(block.href)}" target="_blank" style="display:${linkDisplay};padding:${s.innerPaddingY}px ${s.innerPaddingX}px;font-family:${ctx.fontFamily};font-size:${s.fontSize}px;font-weight:bold;color:${s.color};text-decoration:none;border-radius:${s.borderRadius}px;">${escapeHtml(block.label)}</a>` +
         `</td></tr></table></td></tr>`,
       )
     }

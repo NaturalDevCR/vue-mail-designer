@@ -61,7 +61,7 @@ export function createBlock(type: BlockType): Block {
     case 'heading':
       return {
         id, type, text: 'Escribe un título', level: 1,
-        style: { color: '#111827', fontSize: 28, align: 'left', padding: pad(12, 24, 12, 24) },
+        style: { color: '#111827', fontSize: 28, align: 'left', lineHeight: 1.3, padding: pad(12, 24, 12, 24) },
       }
     case 'text':
       return {

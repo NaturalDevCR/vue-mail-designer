@@ -19,6 +19,7 @@
         fontSize: block.style.fontSize + 'px',
         textAlign: block.style.align,
         fontWeight: 'bold',
+        lineHeight: String(block.style.lineHeight),
         padding: padCss(block.style.padding),
         fontFamily: block.fontFamily || fontFamily,
       }"
@@ -60,6 +61,10 @@
           borderRadius: block.style.borderRadius + 'px',
           padding: block.style.innerPaddingY + 'px ' + block.style.innerPaddingX + 'px',
           fontFamily: fontFamily,
+          width: block.widthPct ? block.widthPct + '%' : undefined,
+          boxSizing: 'border-box',
+          textAlign: 'center',
+          border: block.style.border ? block.style.border.width + 'px ' + block.style.border.style + ' ' + block.style.border.color : undefined,
         }"
       >{{ block.label }}</span>
     </div>
