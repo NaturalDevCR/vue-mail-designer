@@ -397,8 +397,11 @@ function toBlock(content: Record<string, unknown>, warnings: Set<string>): Block
         return { label, href }
       })
       b.align = toAlign(values.align, 'center')
-      if (typeof values.color === 'string') b.style.color = values.color
+      // Unlayer usa textColor/linkColor para el color de los ítems del menú
+      const menuColor = [values.color, values.linkColor, values.textColor].find((c) => typeof c === 'string' && c)
+      if (typeof menuColor === 'string') b.style.color = menuColor
       b.style.fontSize = parsePx(values.fontSize as string | number | undefined, b.style.fontSize)
+      if (typeof values.separator === 'string' && values.separator) b.separator = values.separator
       b.style.padding = parseShorthandPadding(values.containerPadding as string | undefined)
       return b
     }
