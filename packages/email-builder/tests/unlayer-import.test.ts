@@ -185,6 +185,21 @@ it('advierte sobre _override, displayCondition y fuentes de Google', () => {
   expect(warnings.some((w) => w.toLowerCase().includes('fuentes'))).toBe(true)
 })
 
+it('mapea lineHeight de heading, ancho y borde de botón', () => {
+  const d = { rows: [{ cells: [1], values: {}, columns: [{ values: {}, contents: [
+    { type: 'heading', values: { text: '<strong>Big</strong>', headingType: 'h1', fontSize: '50px', lineHeight: '100%' } },
+    { type: 'button', values: { text: '<span>Order Now</span>', href: { values: { href: 'https://x.com' } },
+      buttonColors: { backgroundColor: '#30302f', color: '#ffffff' }, borderRadius: '4px',
+      size: { width: '70%', autoWidth: false },
+      border: { borderTopColor: '#ff9b12', borderTopStyle: 'solid', borderTopWidth: '1px', borderRightColor: '#ff9b12', borderRightStyle: 'solid', borderRightWidth: '1px', borderBottomColor: '#ff9b12', borderBottomStyle: 'solid', borderBottomWidth: '1px', borderLeftColor: '#ff9b12', borderLeftStyle: 'solid', borderLeftWidth: '1px' } } },
+  ] }] }], values: {} }
+  const { document } = unlayerToDocument(d)
+  const [heading, button] = document.rows[0].columns[0].blocks
+  expect(heading.type === 'heading' && heading.style.lineHeight).toBe(1)
+  expect(button.type === 'button' && button.widthPct).toBe(70)
+  expect(button.type === 'button' && button.style.border).toEqual({ width: 1, style: 'solid', color: '#ff9b12' })
+})
+
 it('mapea la imagen de fondo del cuerpo y de la fila', () => {
   const d = {
     body: {

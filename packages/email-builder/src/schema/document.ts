@@ -19,6 +19,13 @@ export const zBackgroundImage = z.object({
 })
 export type BackgroundImage = z.infer<typeof zBackgroundImage>
 
+export const zBorder = z.object({
+  width: z.number(),
+  style: z.enum(['solid', 'dashed', 'dotted']),
+  color: z.string(),
+})
+export type Border = z.infer<typeof zBorder>
+
 export const zHeadingBlock = z.object({
   id: z.string(),
   type: z.literal('heading'),
@@ -29,6 +36,7 @@ export const zHeadingBlock = z.object({
     color: z.string(),
     fontSize: z.number(),
     align: zAlign,
+    lineHeight: z.number().default(1.3),
     padding: zPadding,
   }),
   hideDesktop: z.boolean().optional(),
@@ -69,6 +77,7 @@ export const zButtonBlock = z.object({
   label: z.string(),
   href: z.string(),
   align: zAlign,
+  widthPct: z.number().min(10).max(100).optional(),
   style: z.object({
     backgroundColor: z.string(),
     color: z.string(),
@@ -76,6 +85,7 @@ export const zButtonBlock = z.object({
     borderRadius: z.number(),
     innerPaddingX: z.number(),
     innerPaddingY: z.number(),
+    border: zBorder.optional(),
     padding: zPadding,
   }),
   hideDesktop: z.boolean().optional(),
@@ -235,11 +245,7 @@ export const zColumn = z.object({
   style: z.object({
     backgroundColor: z.string(),
     padding: zPadding,
-    border: z.object({
-      width: z.number(),
-      style: z.enum(['solid', 'dashed', 'dotted']),
-      color: z.string(),
-    }).optional(),
+    border: zBorder.optional(),
     borderRadius: z.number().optional(),
   }),
   blocks: z.array(zBlock),

@@ -122,6 +122,28 @@ function parseBackgroundImage(raw: unknown): BgImage | null {
   }
 }
 
+type ParsedBorder = { width: number; style: 'solid' | 'dashed' | 'dotted'; color: string }
+
+/** Colapsa el borde por-lado de Unlayer a uno uniforme (desde el lado superior); advierte si los lados difieren. */
+function parseUnlayerBorder(raw: unknown, warnings: Set<string>): ParsedBorder | null {
+  if (!raw || typeof raw !== 'object') return null
+  const border = raw as Record<string, unknown>
+  const width = parsePx(border.borderTopWidth as string | number | undefined, 0)
+  if (width <= 0) return null
+  const style = border.borderTopStyle as string | undefined
+  const topColor = typeof border.borderTopColor === 'string' ? border.borderTopColor : undefined
+  const widthsDiffer = (['borderRightWidth', 'borderBottomWidth', 'borderLeftWidth'] as const)
+    .some((k) => k in border && parsePx(border[k] as string | number | undefined, 0) !== width)
+  const colorsDiffer = (['borderRightColor', 'borderBottomColor', 'borderLeftColor'] as const)
+    .some((k) => k in border && border[k] !== topColor)
+  if (widthsDiffer || colorsDiffer) warnings.add(BORDER_SIDES_NOTE)
+  return {
+    width,
+    style: (['solid', 'dashed', 'dotted'] as const).includes(style as never) ? (style as 'solid' | 'dashed' | 'dotted') : 'solid',
+    color: topColor ?? '#000000',
+  }
+}
+
 function getFontFamily(v: unknown): string | undefined {
   if (v && typeof v === 'object' && typeof (v as Record<string, unknown>).value === 'string') {
     return (v as Record<string, unknown>).value as string
@@ -240,26 +262,8 @@ function toColumn(col: Column, raw: Record<string, unknown>, warnings: Set<strin
   const borderRadius = parsePx(values.borderRadius as string | number | undefined, 0)
   col.style.borderRadius = borderRadius
 
-  const border = values.border as Record<string, unknown> | undefined
-  if (border) {
-    const width = parsePx(border.borderTopWidth as string | number | undefined, 0)
-    if (width > 0) {
-      const style = border.borderTopStyle as string | undefined
-      col.style.border = {
-        width,
-        style: (['solid', 'dashed', 'dotted'] as const).includes(style as never) ? (style as 'solid' | 'dashed' | 'dotted') : 'solid',
-        color: typeof border.borderTopColor === 'string' ? border.borderTopColor : '#000000',
-      }
-    }
-
-    const topWidth = parsePx(border.borderTopWidth as string | number | undefined, 0)
-    const topColor = typeof border.borderTopColor === 'string' ? border.borderTopColor : undefined
-    const widthsDiffer = (['borderRightWidth', 'borderBottomWidth', 'borderLeftWidth'] as const)
-      .some((k) => k in border && parsePx(border[k] as string | number | undefined, 0) !== topWidth)
-    const colorsDiffer = (['borderRightColor', 'borderBottomColor', 'borderLeftColor'] as const)
-      .some((k) => k in border && border[k] !== topColor)
-    if (widthsDiffer || colorsDiffer) warnings.add(BORDER_SIDES_NOTE)
-  }
+  const colBorder = parseUnlayerBorder(values.border, warnings)
+  if (colBorder) col.style.border = colBorder
 
   const contents = Array.isArray(raw.contents) ? (raw.contents as unknown[]) : []
   col.blocks = contents
@@ -291,6 +295,7 @@ function toBlock(content: Record<string, unknown>, warnings: Set<string>): Block
         color: typeof values.color === 'string' ? values.color : b.style.color,
         fontSize: parsePx(values.fontSize as string | number | undefined, b.style.fontSize),
         align: toAlign(values.textAlign, 'left'),
+        lineHeight: parsePercent(values.lineHeight, b.style.lineHeight),
         padding: parseShorthandPadding(values.containerPadding as string | undefined),
       }
       return b
@@ -324,7 +329,14 @@ function toBlock(content: Record<string, unknown>, warnings: Set<string>): Block
         borderRadius: parsePx(values.borderRadius as string | number | undefined, b.style.borderRadius),
         innerPaddingX: innerPad.left,
         innerPaddingY: innerPad.top,
+        border: parseUnlayerBorder(values.border, warnings) ?? undefined,
         padding: parseShorthandPadding(values.containerPadding as string | undefined),
+      }
+      // ancho fijo del botón (size.width tipo "70%", autoWidth:false)
+      const size = values.size as Record<string, unknown> | undefined
+      if (size && size.autoWidth === false && typeof size.width === 'string') {
+        const w = Math.round(parsePx(size.width, 0))
+        if (w >= 10 && w <= 100) b.widthPct = w
       }
       return b
     }
