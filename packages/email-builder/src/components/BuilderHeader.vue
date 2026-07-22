@@ -6,12 +6,12 @@
     </button>
     <span class="vmd-header-spacer" />
     <span class="vmd-header-status">● {{ t('header.saved') }}</span>
-    <button type="button" class="vmd-header-btn" :title="ui.theme === 'dark' ? t('header.themeLight') : t('header.themeDark')" @click="ui.toggleTheme()">
-      {{ ui.theme === 'dark' ? '☀' : '☾' }}
+    <button type="button" class="vmd-header-btn vmd-header-btn--icon" :title="ui.theme === 'dark' ? t('header.themeLight') : t('header.themeDark')" @click="ui.toggleTheme()">
+      <span class="vmd-ico" v-html="ui.theme === 'dark' ? ICONS.sun : ICONS.moon" />
     </button>
     <div ref="exportRoot" class="vmd-export">
       <button type="button" class="vmd-btn-export" data-action="export" @click="menuOpen = !menuOpen">
-        {{ t('header.export') }} ▾
+        {{ t('header.export') }} <span class="vmd-ico" v-html="ICONS.chevronDown" />
       </button>
       <div v-if="menuOpen" class="vmd-export-menu">
         <button type="button" data-action="export-html" @click="exportHtmlFile">{{ t('header.exportHtml') }}</button>
@@ -31,6 +31,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from '../i18n/useI18n'
+import { ICONS } from './icons'
 import { renderHtml } from '../render/html'
 import { useBuilderOptions } from '../options'
 import { useDocumentStore } from '../store/document'

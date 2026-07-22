@@ -3,7 +3,7 @@
     <div class="vmd-modal-box vmd-gallery-box">
       <div class="vmd-preview-bar">
         <h3 class="vmd-inspector-title" style="margin: 0">Elegir plantilla</h3>
-        <button type="button" class="vmd-btn" @click="ui.galleryOpen = false">Cerrar ✕</button>
+        <button type="button" class="vmd-btn vmd-btn--icon" title="Cerrar" @click="ui.galleryOpen = false"><span class="vmd-ico" v-html="ICONS.close" /></button>
       </div>
       <div class="vmd-gallery-grid">
         <button type="button" v-for="tpl in templates" :key="tpl.id" class="vmd-gallery-card" @click="pick(tpl)">
@@ -17,6 +17,7 @@
 </template>
 
 <script setup lang="ts">
+import { ICONS } from './icons'
 import { computed } from 'vue'
 import { useBuilderOptions } from '../options'
 import { useDocumentStore } from '../store/document'

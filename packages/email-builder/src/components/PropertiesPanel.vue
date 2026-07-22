@@ -3,9 +3,9 @@
     <div class="vmd-props-header">
       <h3>{{ title }}</h3>
       <div class="vmd-toolbar-group">
-        <button type="button" class="vmd-mini-btn" title="Duplicar" data-action="props-duplicate" @click="duplicate">⧉</button>
-        <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" title="Eliminar" data-action="props-delete" @click="remove">🗑</button>
-        <button type="button" class="vmd-mini-btn" title="Cerrar" data-action="props-close" @click="store.select(null)">✕</button>
+        <button type="button" class="vmd-mini-btn" title="Duplicar" data-action="props-duplicate" @click="duplicate"><span class="vmd-ico" v-html="ICONS.duplicate" /></button>
+        <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" title="Eliminar" data-action="props-delete" @click="remove"><span class="vmd-ico" v-html="ICONS.trash" /></button>
+        <button type="button" class="vmd-mini-btn" title="Cerrar" data-action="props-close" @click="store.select(null)"><span class="vmd-ico" v-html="ICONS.close" /></button>
       </div>
     </div>
 
@@ -69,7 +69,7 @@
         <div v-for="(n, i) in block.networks" :key="i" class="vmd-social-row">
           <SelectField :label="'Red ' + (i + 1)" :model-value="n.kind" :options="NETWORK_OPTIONS" @update:model-value="setNetwork(i, { kind: $event as SocialNetworkKind })" />
           <TextField label="URL" :model-value="n.url" @update:model-value="setNetwork(i, { url: $event })" />
-          <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" @click="removeNetwork(i)">🗑</button>
+          <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" @click="removeNetwork(i)"><span class="vmd-ico" v-html="ICONS.trash" /></button>
         </div>
         <button type="button" class="vmd-btn" @click="addNetwork">+ Agregar red</button>
         <NumberField label="Tamaño ícono" :model-value="block.iconSize" :min="16" :max="64" @update:model-value="upd({ iconSize: $event })" />
@@ -81,7 +81,7 @@
         <div v-for="(it, i) in block.items" :key="i" class="vmd-social-row">
           <TextField label="Etiqueta" :model-value="it.label" @update:model-value="setMenuItem(i, { label: $event })" />
           <TextField label="URL" :model-value="it.href" @update:model-value="setMenuItem(i, { href: $event })" />
-          <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" @click="removeMenuItem(i)">🗑</button>
+          <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" @click="removeMenuItem(i)"><span class="vmd-ico" v-html="ICONS.trash" /></button>
         </div>
         <button type="button" class="vmd-btn" @click="addMenuItem">+ Agregar ítem</button>
         <TextField label="Separador" :model-value="block.separator" @update:model-value="upd({ separator: $event })" />
@@ -138,7 +138,7 @@
           <TextField label="URL" :model-value="img.src" @update:model-value="setGalleryImage(i, { src: $event })" />
           <TextField label="Alt" :model-value="img.alt" @update:model-value="setGalleryImage(i, { alt: $event })" />
           <TextField label="Enlace (opcional)" :model-value="img.href ?? ''" @update:model-value="setGalleryImage(i, { href: $event })" />
-          <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" @click="removeGalleryImage(i)">🗑</button>
+          <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" @click="removeGalleryImage(i)"><span class="vmd-ico" v-html="ICONS.trash" /></button>
         </div>
         <button type="button" class="vmd-btn" @click="addGalleryImage">+ Agregar imagen</button>
         <SelectField label="Columnas" :model-value="String(block.columns)" :options="[{label:'2',value:'2'},{label:'3',value:'3'},{label:'4',value:'4'}]" @update:model-value="upd({ columns: Number($event) })" />
@@ -197,6 +197,7 @@ import { useBuilderOptions } from '../options'
 import type { Row, SocialNetworkKind } from '../schema'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
+import { ICONS } from './icons'
 import AlignField from './fields/AlignField.vue'
 import CheckboxField from './fields/CheckboxField.vue'
 import ColorField from './fields/ColorField.vue'

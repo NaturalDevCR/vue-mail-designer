@@ -1,15 +1,15 @@
 <template>
   <div ref="barEl" class="vmd-canvasbar">
     <div class="vmd-toolbar-group">
-      <button type="button" class="vmd-btn" data-action="undo" :disabled="!store.canUndo" :title="`${t('canvasbar.undo')} (⌘Z)`" @click="store.undo()">↶</button>
-      <button type="button" class="vmd-btn" data-action="redo" :disabled="!store.canRedo" :title="`${t('canvasbar.redo')} (⌘⇧Z)`" @click="store.redo()">↷</button>
+      <button type="button" class="vmd-btn vmd-btn--icon" data-action="undo" :disabled="!store.canUndo" :title="`${t('canvasbar.undo')} (⌘Z)`" @click="store.undo()"><span class="vmd-ico" v-html="ICONS.undo" /></button>
+      <button type="button" class="vmd-btn vmd-btn--icon" data-action="redo" :disabled="!store.canRedo" :title="`${t('canvasbar.redo')} (⌘⇧Z)`" @click="store.redo()"><span class="vmd-ico" v-html="ICONS.redo" /></button>
     </div>
     <div class="vmd-canvasbar-center">
-      <button type="button" class="vmd-btn" :class="{ 'vmd-active': ui.canvasDevice === 'desktop' }" data-device="desktop" :title="t('canvasbar.desktop')" @click="ui.canvasDevice = 'desktop'">🖥</button>
-      <button type="button" class="vmd-btn" :class="{ 'vmd-active': ui.canvasDevice === 'mobile' }" data-device="mobile" :title="t('canvasbar.mobile')" @click="ui.canvasDevice = 'mobile'">📱</button>
+      <button type="button" class="vmd-btn vmd-btn--icon" :class="{ 'vmd-active': ui.canvasDevice === 'desktop' }" data-device="desktop" :title="t('canvasbar.desktop')" @click="ui.canvasDevice = 'desktop'"><span class="vmd-ico" v-html="ICONS.desktop" /></button>
+      <button type="button" class="vmd-btn vmd-btn--icon" :class="{ 'vmd-active': ui.canvasDevice === 'mobile' }" data-device="mobile" :title="t('canvasbar.mobile')" @click="ui.canvasDevice = 'mobile'"><span class="vmd-ico" v-html="ICONS.mobile" /></button>
     </div>
     <div class="vmd-toolbar-group">
-      <button type="button" class="vmd-btn" data-action="preview" :title="t('canvasbar.preview')" @click="ui.previewOpen = true">👁</button>
+      <button type="button" class="vmd-btn vmd-btn--icon" data-action="preview" :title="t('canvasbar.preview')" @click="ui.previewOpen = true"><span class="vmd-ico" v-html="ICONS.preview" /></button>
     </div>
   </div>
 </template>
@@ -20,6 +20,7 @@ import { useI18n } from '../i18n/useI18n'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
 import { useUiStore } from '../store/ui'
+import { ICONS } from './icons'
 
 const pinia = useBuilderPinia()
 const store = useDocumentStore(pinia)

@@ -7,10 +7,10 @@
   >
     <div class="vmd-row-actions">
       <span class="vmd-row-badge">{{ t('props.row') }}</span>
-      <button type="button" class="vmd-mini-btn vmd-drag-handle" :title="t('props.move')">✥</button>
-      <button type="button" class="vmd-mini-btn" :title="t('props.rowSettings')" @click.stop="selectRow">⚙</button>
-      <button type="button" class="vmd-mini-btn" :title="t('props.duplicate')" @click.stop="store.duplicateRow(row.id)">⧉</button>
-      <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" :title="t('props.delete')" @click.stop="store.removeRow(row.id)">🗑</button>
+      <button type="button" class="vmd-mini-btn vmd-drag-handle" :title="t('props.move')"><span class="vmd-ico" v-html="ICONS.move" /></button>
+      <button type="button" class="vmd-mini-btn" :title="t('props.rowSettings')" @click.stop="selectRow"><span class="vmd-ico" v-html="ICONS.settings" /></button>
+      <button type="button" class="vmd-mini-btn" :title="t('props.duplicate')" @click.stop="store.duplicateRow(row.id)"><span class="vmd-ico" v-html="ICONS.duplicate" /></button>
+      <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" :title="t('props.delete')" @click.stop="store.removeRow(row.id)"><span class="vmd-ico" v-html="ICONS.trash" /></button>
     </div>
     <div class="vmd-row-columns">
       <div
@@ -50,6 +50,7 @@ import { useUiStore } from '../store/ui'
 import { useI18n } from '../i18n/useI18n'
 import BlockView from './BlockView.vue'
 import { DND_OPTIONS } from './dnd'
+import { ICONS } from './icons'
 
 const props = defineProps<{ row: Row }>()
 const store = useDocumentStore(useBuilderPinia())

@@ -7,12 +7,12 @@
             v-for="preset in presets"
             :key="preset.name"
             type="button"
-            class="vmd-btn"
+            class="vmd-btn vmd-btn--pill"
             :class="{ 'vmd-btn--primary': ui.previewWidth === preset.width }"
             :data-preset="preset.name"
             :title="preset.title"
             @click="ui.previewWidth = preset.width"
-          >{{ preset.icon }} {{ preset.title }}</button>
+          ><span class="vmd-ico" v-html="ICONS[preset.icon]" /> {{ preset.title }}</button>
           <input
             type="number"
             class="vmd-preview-width vmd-field-input"
@@ -23,7 +23,7 @@
         </div>
         <div class="vmd-toolbar-group">
           <button type="button" class="vmd-btn" @click="copyHtml">{{ copied ? '✓ Copiado' : 'Copiar HTML' }}</button>
-          <button type="button" class="vmd-btn" @click="ui.previewOpen = false">Cerrar ✕</button>
+          <button type="button" class="vmd-btn vmd-btn--icon" title="Cerrar" @click="ui.previewOpen = false"><span class="vmd-ico" v-html="ICONS.close" /></button>
         </div>
       </div>
       <div class="vmd-preview-stage">
@@ -40,6 +40,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { renderHtml } from '../render/html'
+import { ICONS } from './icons'
 import { useBuilderOptions } from '../options'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
@@ -52,9 +53,9 @@ const options = useBuilderOptions()
 const html = computed(() => renderHtml(store.doc, options.fonts, options.customBlocks))
 const copied = ref(false)
 const presets = [
-  { name: 'desktop', title: 'Escritorio', icon: '🖥', width: 1000 },
-  { name: 'tablet', title: 'Tablet', icon: '💻', width: 768 },
-  { name: 'mobile', title: 'Móvil', icon: '📱', width: 375 },
+  { name: 'desktop', title: 'Escritorio', icon: 'desktop', width: 1000 },
+  { name: 'tablet', title: 'Tablet', icon: 'tablet', width: 768 },
+  { name: 'mobile', title: 'Móvil', icon: 'mobile', width: 375 },
 ]
 
 async function copyHtml() {

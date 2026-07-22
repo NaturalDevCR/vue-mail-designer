@@ -6,9 +6,9 @@
   >
     <span v-if="showHiddenBadge" class="vmd-hidden-badge">Oculto aquí</span>
     <div class="vmd-block-actions">
-      <button type="button" class="vmd-mini-btn vmd-drag-handle" title="Mover">✥</button>
-      <button type="button" class="vmd-mini-btn" title="Duplicar" @click.stop="store.duplicateBlock(block.id)">⧉</button>
-      <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" title="Eliminar" @click.stop="store.removeBlock(block.id)">🗑</button>
+      <button type="button" class="vmd-mini-btn vmd-drag-handle" :title="t('props.move')"><span class="vmd-ico" v-html="ICONS.move" /></button>
+      <button type="button" class="vmd-mini-btn" :title="t('props.duplicate')" @click.stop="store.duplicateBlock(block.id)"><span class="vmd-ico" v-html="ICONS.duplicate" /></button>
+      <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" :title="t('props.delete')" @click.stop="store.removeBlock(block.id)"><span class="vmd-ico" v-html="ICONS.trash" /></button>
     </div>
 
     <!-- heading -->
@@ -85,12 +85,11 @@
         class="vmd-b-social-icon"
         :style="{
           width: block.iconSize + 'px', height: block.iconSize + 'px',
-          lineHeight: block.iconSize + 'px',
           margin: '0 ' + block.spacing / 2 + 'px',
           background: SOCIAL_BRANDS[n.kind].color,
-          fontSize: Math.round(block.iconSize * 0.45) + 'px',
         }"
-      >{{ SOCIAL_BRANDS[n.kind].label }}</span>
+        v-html="socialGlyphHtml(n.kind, block.iconSize)"
+      />
     </div>
 
     <!-- menu -->
@@ -169,19 +168,22 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { SOCIAL_BRANDS } from '../render/html'
-import type { Block, Padding } from '../schema'
+import { SOCIAL_BRANDS, socialSvg } from '../render/html'
+import type { Block, Padding, SocialNetworkKind } from '../schema'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
 import { useUiStore } from '../store/ui'
 import { useBuilderOptions } from '../options'
+import { useI18n } from '../i18n/useI18n'
 import RichTextEditor from './RichTextEditor.vue'
+import { ICONS } from './icons'
 
 const props = defineProps<{ block: Block }>()
 const pinia = useBuilderPinia()
 const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
 const options = useBuilderOptions()
+const { t } = useI18n()
 
 const customHtml = computed<string | null>(() => {
   const b = props.block
@@ -191,6 +193,11 @@ const customHtml = computed<string | null>(() => {
 })
 const isSelected = computed(() => store.selection?.kind === 'block' && store.selection.id === props.block.id)
 const fontFamily = computed(() => store.doc.settings.fontFamily)
+
+function socialGlyphHtml(kind: SocialNetworkKind, size: number): string {
+  const g = Math.round(size * 0.62)
+  return `<span style="display:inline-block;width:${g}px;height:${g}px;line-height:0;">${socialSvg(kind)}</span>`
+}
 
 const showHiddenBadge = computed(() => {
   const b = props.block
