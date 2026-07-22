@@ -6,12 +6,12 @@
       <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('underline') }" :title="t('rte.underline')" @click="editor?.chain().focus().toggleUnderline().run()"><u>U</u></button>
       <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('strike') }" :title="t('rte.strike')" @click="editor?.chain().focus().toggleStrike().run()"><s>S</s></button>
       <span class="vmd-rte-sep" />
-      <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('bulletList') }" :title="t('rte.bulletList')" @click="editor?.chain().focus().toggleBulletList().run()">•≡</button>
-      <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('orderedList') }" :title="t('rte.orderedList')" @click="editor?.chain().focus().toggleOrderedList().run()">1≡</button>
+      <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('bulletList') }" :title="t('rte.bulletList')" @click="editor?.chain().focus().toggleBulletList().run()"><span class="vmd-ico" v-html="ICONS.listBullet" /></button>
+      <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('orderedList') }" :title="t('rte.orderedList')" @click="editor?.chain().focus().toggleOrderedList().run()"><span class="vmd-ico" v-html="ICONS.listOrdered" /></button>
       <span class="vmd-rte-sep" />
-      <button type="button" class="vmd-mini-btn" :title="t('rte.alignLeft')" @click="editor?.chain().focus().setTextAlign('left').run()">⇤</button>
-      <button type="button" class="vmd-mini-btn" :title="t('rte.alignCenter')" @click="editor?.chain().focus().setTextAlign('center').run()">↔</button>
-      <button type="button" class="vmd-mini-btn" :title="t('rte.alignRight')" @click="editor?.chain().focus().setTextAlign('right').run()">⇥</button>
+      <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive({ textAlign: 'left' }) }" :title="t('rte.alignLeft')" @click="editor?.chain().focus().setTextAlign('left').run()"><span class="vmd-ico" v-html="ICONS.alignLeft" /></button>
+      <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive({ textAlign: 'center' }) }" :title="t('rte.alignCenter')" @click="editor?.chain().focus().setTextAlign('center').run()"><span class="vmd-ico" v-html="ICONS.alignCenter" /></button>
+      <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive({ textAlign: 'right' }) }" :title="t('rte.alignRight')" @click="editor?.chain().focus().setTextAlign('right').run()"><span class="vmd-ico" v-html="ICONS.alignRight" /></button>
       <span class="vmd-rte-sep" />
       <label class="vmd-mini-btn vmd-rte-color" :title="t('rte.color')">
         A
@@ -22,8 +22,8 @@
         <option v-for="s in FONT_SIZES" :key="s" :value="s + 'px'">{{ s }}</option>
       </select>
       <span class="vmd-rte-sep" />
-      <button type="button" class="vmd-mini-btn" :title="t('rte.link')" @click="setLink">🔗</button>
-      <button type="button" class="vmd-mini-btn" :title="t('rte.clear')" @click="clearFormat">⌫</button>
+      <button type="button" class="vmd-mini-btn" :title="t('rte.link')" @click="setLink"><span class="vmd-ico" v-html="ICONS.link" /></button>
+      <button type="button" class="vmd-mini-btn" :title="t('rte.clear')" @click="clearFormat"><span class="vmd-ico" v-html="ICONS.clearFormat" /></button>
       <select v-if="flatTags.length" class="vmd-rte-tags" @change="onTagPick">
         <option value="">{{ t('rte.variable') }}</option>
         <template v-for="(item, i) in options.mergeTags" :key="i">
@@ -52,6 +52,7 @@ import { computed, watch } from 'vue'
 import { MergeTag, insertMergeTag } from '../editor/mergeTag'
 import { InlineStyle } from '../editor/inlineStyle'
 import { useI18n } from '../i18n/useI18n'
+import { ICONS } from './icons'
 import { DEFAULT_SPECIAL_LINKS, flattenMergeTags, isMergeTagGroup, useBuilderOptions } from '../options'
 
 const FONT_SIZES = [12, 14, 16, 18, 20, 24, 28, 32, 40]

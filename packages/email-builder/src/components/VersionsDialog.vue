@@ -3,7 +3,7 @@
     <div class="vmd-modal-box vmd-versions-box">
       <div class="vmd-preview-bar">
         <h3 class="vmd-inspector-title" style="margin: 0">{{ t('versions.title') }}</h3>
-        <button type="button" class="vmd-btn" @click="ui.versionsOpen = false">{{ t('common.close') }} ✕</button>
+        <button type="button" class="vmd-btn" @click="ui.versionsOpen = false"><span class="vmd-ico" v-html="ICONS.close" /></button>
       </div>
       <div class="vmd-versions-body">
         <div class="vmd-versions-save">
@@ -15,7 +15,7 @@
             <span class="vmd-versions-name">{{ v.name }}</span>
             <span class="vmd-versions-date">{{ new Date(v.at).toLocaleString() }}</span>
             <button type="button" class="vmd-mini-btn" :title="t('versions.load')" @click="load(v.id)">↺</button>
-            <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" :title="t('versions.delete')" @click="store.deleteVersion(v.id)">🗑</button>
+            <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" :title="t('versions.delete')" @click="store.deleteVersion(v.id)"><span class="vmd-ico" v-html="ICONS.trash" /></button>
           </li>
           <li v-if="!store.versions.length" class="vmd-versions-empty">{{ t('versions.empty') }}</li>
         </ul>
@@ -25,6 +25,7 @@
 </template>
 
 <script setup lang="ts">
+import { ICONS } from './icons'
 import { ref } from 'vue'
 import { useI18n } from '../i18n/useI18n'
 import { useDocumentStore } from '../store/document'

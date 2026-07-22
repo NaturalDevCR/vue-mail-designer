@@ -4,6 +4,23 @@ import type { CustomBlockDef } from '../options'
 
 export type RenderCtx = { fontFamily: string; linkColor: string; linkUnderline: boolean; customBlocks?: CustomBlockDef[] }
 
+/** Glifos sociales propios (clean-room), en blanco sobre el círculo de marca. */
+export const SOCIAL_GLYPHS: Record<SocialNetworkKind, string> = {
+  facebook: '<path fill="#fff" d="M13.6 21v-7h2.3l.4-2.8h-2.7V9.4c0-.8.2-1.4 1.4-1.4h1.4V5.5C17.5 5.4 16.6 5.3 15.7 5.3c-2 0-3.4 1.2-3.4 3.5v2.4H9.9V14h2.4v7z"/>',
+  instagram: '<rect x="5" y="5" width="14" height="14" rx="4.2" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="12" cy="12" r="3.3" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16.2" cy="7.8" r="1" fill="#fff"/>',
+  x: '<path fill="#fff" d="M6 5h3l3.4 4.7L16.3 5H19l-5 6.4L19.3 19h-3l-3.7-5-4.1 5H6l5.3-6.6z"/>',
+  linkedin: '<rect x="5.5" y="9.5" width="2.6" height="9" fill="#fff"/><circle cx="6.8" cy="6.4" r="1.5" fill="#fff"/><path fill="#fff" d="M10.4 9.5h2.5v1.2c.5-.8 1.5-1.4 2.8-1.4 2.3 0 3.3 1.5 3.3 4v5.2h-2.6v-4.7c0-1.2-.4-1.9-1.4-1.9-1 0-1.5.7-1.5 1.9v4.7h-2.6z"/>',
+  youtube: '<rect x="4" y="7" width="16" height="10" rx="3" fill="#fff"/><path fill="#ff0000" d="m10.5 9.5 4 2.5-4 2.5z"/>',
+  tiktok: '<path fill="#fff" d="M14 4c.3 2 1.6 3.4 3.6 3.6v2.5c-1.2 0-2.4-.4-3.4-1.1v5.2c0 2.6-2 4.6-4.5 4.6S5.2 16.8 5.2 14.3c0-2.4 1.9-4.3 4.2-4.5v2.6c-.9.2-1.6 1-1.6 1.9 0 1.1.9 2 2 2s2-.9 2-2V4z"/>',
+  whatsapp: '<path fill="#fff" d="M12 4.5a7.5 7.5 0 0 0-6.4 11.4L4.5 20l4.2-1.1A7.5 7.5 0 1 0 12 4.5zm3.9 10.4c-.2.5-1 .9-1.4 1-.4 0-.8.2-2.6-.5-2.2-.9-3.6-3.1-3.7-3.3-.1-.2-.9-1.2-.9-2.3s.6-1.6.8-1.8c.2-.2.4-.3.6-.3h.4c.1 0 .3 0 .5.4l.7 1.6c0 .2.1.3 0 .5l-.4.5c-.1.2-.3.3-.1.6.1.2.6 1 1.3 1.6.9.8 1.6 1 1.8 1.1.2.1.4.1.5-.1l.6-.7c.2-.2.3-.2.5-.1l1.5.7c.2.1.4.2.4.3s.1.6-.1 1.1z"/>',
+  web: '<circle cx="12" cy="12" r="7.5" fill="none" stroke="#fff" stroke-width="1.6"/><path fill="none" stroke="#fff" stroke-width="1.6" d="M4.5 12h15M12 4.5c2.5 2.8 2.5 12.2 0 15M12 4.5c-2.5 2.8-2.5 12.2 0 15"/>',
+}
+
+/** SVG cuadrado con un glifo social centrado (para canvas y como data-URI en export). */
+export function socialSvg(kind: SocialNetworkKind): string {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">${SOCIAL_GLYPHS[kind]}</svg>`
+}
+
 export const SOCIAL_BRANDS: Record<SocialNetworkKind, { label: string; color: string }> = {
   facebook: { label: 'f', color: '#1877f2' },
   instagram: { label: 'ig', color: '#e4405f' },
@@ -118,12 +135,17 @@ function renderBlockInner(block: Block, ctx: RenderCtx): string {
       )
     case 'social': {
       const s = block.style
+      const glyphSize = Math.round(block.iconSize * 0.62)
       const icons = block.networks
         .map(({ kind, url }) => {
           const brand = SOCIAL_BRANDS[kind]
+          const dataUri = `data:image/svg+xml,${encodeURIComponent(socialSvg(kind))}`
+          // círculo de marca como fondo (degrada bien si el cliente bloquea la imagen) + glifo SVG centrado
           return (
             `<td style="padding:0 ${block.spacing / 2}px;">` +
-            `<a href="${escapeHtml(url)}" target="_blank" style="display:inline-block;width:${block.iconSize}px;height:${block.iconSize}px;line-height:${block.iconSize}px;border-radius:50%;background-color:${brand.color};color:#ffffff;text-align:center;text-decoration:none;font-family:${ctx.fontFamily};font-size:${Math.round(block.iconSize * 0.45)}px;font-weight:bold;">${brand.label}</a>` +
+            `<a href="${escapeHtml(url)}" target="_blank" style="display:inline-block;width:${block.iconSize}px;height:${block.iconSize}px;line-height:${block.iconSize}px;border-radius:50%;background-color:${brand.color};text-align:center;text-decoration:none;">` +
+            `<img src="${dataUri}" alt="${kind}" width="${glyphSize}" height="${glyphSize}" style="display:inline-block;vertical-align:middle;border:0;">` +
+            `</a>` +
             `</td>`
           )
         })

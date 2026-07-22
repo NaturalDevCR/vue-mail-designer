@@ -3,7 +3,7 @@
     <div class="vmd-modal-box vmd-import-box">
       <div class="vmd-preview-bar">
         <h3 class="vmd-inspector-title" style="margin: 0">Importar de Unlayer</h3>
-        <button type="button" class="vmd-btn" @click="close">Cerrar ✕</button>
+        <button type="button" class="vmd-btn vmd-btn--icon" title="Cerrar" @click="close"><span class="vmd-ico" v-html="ICONS.close" /></button>
       </div>
       <div class="vmd-import-body">
         <label class="vmd-field-label" for="vmd-import-json">Pega aquí el JSON de diseño de Unlayer</label>
@@ -47,6 +47,7 @@
 </template>
 
 <script setup lang="ts">
+import { ICONS } from './icons'
 import { ref } from 'vue'
 import { defaultUnlayerFetch, unlayerSlugFromUrl } from '../import/unlayerUrl'
 import { unlayerToDocument } from '../import/unlayer'
