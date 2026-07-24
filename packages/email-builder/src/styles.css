@@ -30,7 +30,8 @@
   padding: 6px 12px; background: var(--vmd-panel); border-bottom: 1px solid var(--vmd-border);
 }
 .vmd-canvasbar-center { display: flex; gap: 4px; }
-.vmd-canvas { flex: 1; overflow-y: auto; padding: 24px; }
+/* padding horizontal amplio: deja gutter para los controles de fila que salen del canvas */
+.vmd-canvas { flex: 1; overflow-y: auto; padding: 24px 56px; }
 .vmd-btn {
   padding: 6px 10px; border: 1px solid var(--vmd-border); border-radius: 6px;
   background: var(--vmd-panel); color: var(--vmd-fg); cursor: pointer; font-size: 13px;
@@ -45,18 +46,49 @@
 .vmd-canvas-page { margin: 0 auto; max-width: 100%; min-height: 200px; box-shadow: 0 1px 4px rgba(0,0,0,.12); transition: width 0.25s ease; }
 .vmd-canvas-empty { padding: 48px 16px; text-align: center; color: var(--vmd-muted); }
 .vmd-canvas-rows { min-height: 40px; }
-.vmd-row { position: relative; border: 1px dashed transparent; transition: box-shadow 0.15s ease, border-color 0.15s ease; }
-.vmd-row:hover { border-color: var(--vmd-accent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vmd-accent) 35%, transparent); }
-.vmd-row.vmd-selected { border: 1px solid var(--vmd-accent); box-shadow: inset 0 0 0 1px var(--vmd-accent); }
-.vmd-row-actions { position: absolute; top: -12px; left: 8px; z-index: 7; gap: 4px; align-items: center; }
-.vmd-row-badge {
-  padding: 1px 8px; border-radius: 4px; font-size: 11px; line-height: 22px;
+.vmd-row { position: relative; outline: 1px dashed transparent; outline-offset: -1px; transition: outline-color 0.12s ease, box-shadow 0.12s ease; }
+.vmd-row:hover { outline: 1px solid color-mix(in srgb, var(--vmd-accent) 55%, transparent); }
+.vmd-row.vmd-selected { outline: 2px solid var(--vmd-accent); outline-offset: -1px; box-shadow: 0 0 0 3px color-mix(in srgb, var(--vmd-accent) 18%, transparent); }
+
+/* handle de arrastre flotante, fuera del canvas a la derecha */
+.vmd-row-handle {
+  position: absolute; top: 50%; right: -40px; transform: translateY(-50%);
+  width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center;
+  border: none; border-radius: 50%; z-index: 8;
+  background: var(--vmd-accent); color: #fff; cursor: grab;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--vmd-accent) 45%, transparent);
+}
+.vmd-row-handle:active { cursor: grabbing; }
+.vmd-row-handle .vmd-ico svg { width: 16px; height: 16px; }
+
+/* botones "+" para insertar fila arriba/abajo, centrados en el borde */
+.vmd-row-add {
+  position: absolute; left: 50%; transform: translateX(-50%); z-index: 9;
+  width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center;
+  border: none; border-radius: 50%; background: var(--vmd-accent); color: #fff; cursor: pointer;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--vmd-accent) 45%, transparent);
+}
+.vmd-row-add .vmd-ico svg { width: 14px; height: 14px; }
+.vmd-row-add--top { top: -11px; }
+.vmd-row-add--bottom { bottom: -11px; }
+
+/* barra de acciones flotante (arriba a la derecha) */
+.vmd-row-actions { position: absolute; top: -14px; right: 6px; z-index: 8; gap: 4px; align-items: center; }
+
+/* etiqueta identificadora de la fila (abajo a la derecha) */
+.vmd-row-tag {
+  position: absolute; bottom: 0; right: 0; z-index: 7;
+  padding: 1px 8px; border-radius: 4px 0 0 0; font-size: 10px; line-height: 16px; font-weight: 600;
+  letter-spacing: 0.02em; text-transform: uppercase;
   background: var(--vmd-accent); color: #fff; pointer-events: none;
 }
 .vmd-mini-btn {
-  width: 24px; height: 24px; border: 1px solid var(--vmd-border); border-radius: 4px;
+  width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--vmd-border); border-radius: 5px;
   background: var(--vmd-panel); color: var(--vmd-fg); cursor: pointer; font-size: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.12);
 }
+.vmd-mini-btn:hover { border-color: var(--vmd-accent); color: var(--vmd-accent); }
 .vmd-mini-btn--danger:hover { border-color: var(--vmd-danger); color: var(--vmd-danger); }
 .vmd-ico { display: inline-flex; align-items: center; justify-content: center; line-height: 0; }
 .vmd-ico svg { width: 16px; height: 16px; display: block; }
@@ -67,10 +99,10 @@
    se ajustan a su contenido para no dejar bandas en blanco (p.ej. divisores finos). */
 .vmd-column-blocks:empty { min-height: 24px; }
 .vmd-column-empty { padding: 12px; margin: 4px; text-align: center; font-size: 12px; color: var(--vmd-muted); border: 1px dashed var(--vmd-border); border-radius: 6px; }
-.vmd-block { position: relative; border: 1px dashed transparent; cursor: pointer; }
-.vmd-block:hover { border-color: var(--vmd-border); }
-.vmd-block.vmd-selected { border: 1px solid var(--vmd-accent); }
-.vmd-block-actions { position: absolute; top: -12px; right: 4px; z-index: 6; gap: 4px; }
+.vmd-block { position: relative; outline: 1px dashed transparent; outline-offset: -1px; cursor: pointer; transition: outline-color 0.12s ease; }
+.vmd-block:hover { outline: 1px solid color-mix(in srgb, var(--vmd-accent) 45%, transparent); }
+.vmd-block.vmd-selected { outline: 2px solid var(--vmd-accent); outline-offset: -1px; }
+.vmd-block-actions { position: absolute; top: -13px; right: 6px; z-index: 6; gap: 4px; }
 
 /* --- Pragmatic Drag and Drop --- */
 /* preview propio que sigue al cursor (no se desplaza ni se transparenta) */
@@ -94,9 +126,19 @@
 .vmd-drag-handle { cursor: grab; }
 .vmd-root.vmd-is-dragging { user-select: none; -webkit-user-select: none; }
 .vmd-root.vmd-is-dragging .vmd-column-blocks { min-height: 36px; }
-.vmd-row-actions, .vmd-block-actions { display: none; }
-.vmd-row:hover > .vmd-row-actions, .vmd-row.vmd-selected > .vmd-row-actions { display: flex; }
+/* controles de fila/bloque ocultos por defecto; visibles al hover o selección */
+.vmd-row-actions, .vmd-block-actions,
+.vmd-row-handle, .vmd-row-add, .vmd-row-tag { display: none; }
+.vmd-row:hover > .vmd-row-handle, .vmd-row.vmd-selected > .vmd-row-handle,
+.vmd-row:hover > .vmd-row-add, .vmd-row.vmd-selected > .vmd-row-add,
+.vmd-row:hover > .vmd-row-tag, .vmd-row.vmd-selected > .vmd-row-tag { display: inline-flex; }
+.vmd-row:hover > .vmd-row-actions, .vmd-row.vmd-selected > .vmd-row-actions,
 .vmd-block:hover > .vmd-block-actions, .vmd-block.vmd-selected > .vmd-block-actions { display: flex; }
+/* mientras se arrastra, ocultar los controles flotantes para no estorbar */
+.vmd-root.vmd-is-dragging .vmd-row-handle,
+.vmd-root.vmd-is-dragging .vmd-row-add,
+.vmd-root.vmd-is-dragging .vmd-row-actions,
+.vmd-root.vmd-is-dragging .vmd-block-actions { display: none !important; }
 .vmd-b-text p { margin: 0 0 0.5em; }
 .vmd-b-text p:last-child { margin-bottom: 0; }
 .vmd-b-image-placeholder {
@@ -183,6 +225,14 @@
 .vmd-layout-thumb { display: flex; gap: 3px; padding: 6px; margin-bottom: 10px; border: 1px solid var(--vmd-border); border-radius: 8px; cursor: grab; height: 56px; box-sizing: border-box; }
 .vmd-layout-thumb:hover { border-color: var(--vmd-accent); }
 .vmd-layout-cell { background: var(--vmd-bg); border: 1px solid var(--vmd-border); border-radius: 4px; }
+
+/* selector de estructura de columnas en el inspector de fila */
+.vmd-layout-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 4px; }
+.vmd-layout-opt { display: flex; gap: 2px; padding: 6px; height: 34px; box-sizing: border-box; background: var(--vmd-panel); border: 1px solid var(--vmd-border); border-radius: 6px; cursor: pointer; }
+.vmd-layout-opt:hover { border-color: var(--vmd-accent); }
+.vmd-layout-opt.vmd-active { border-color: var(--vmd-accent); box-shadow: inset 0 0 0 1px var(--vmd-accent); }
+.vmd-layout-opt-cell { background: var(--vmd-bg); border: 1px solid var(--vmd-border); border-radius: 2px; }
+.vmd-layout-opt.vmd-active .vmd-layout-opt-cell { background: color-mix(in srgb, var(--vmd-accent) 22%, transparent); border-color: var(--vmd-accent); }
 .vmd-props-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .vmd-props-header h3 { margin: 0; font-size: 14px; }
 .vmd-tab-placeholder { color: var(--vmd-muted); font-size: 13px; }

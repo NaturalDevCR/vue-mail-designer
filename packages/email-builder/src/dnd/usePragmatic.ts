@@ -33,11 +33,25 @@ export function useDraggableItem(opts: {
       onGenerateDragPreview: ({ nativeSetDragImage }) => {
         setCustomNativeDragPreview({
           nativeSetDragImage,
-          getOffset: pointerOutsideOfPreview({ x: '14px', y: '10px' }),
+          getOffset: pointerOutsideOfPreview({ x: '12px', y: '8px' }),
           render: ({ container }) => {
+            // el contenedor se monta en <body>, fuera de .vmd-root: los estilos deben ser
+            // autocontenidos (nada de var(--vmd-*), que aquí no está definido).
             const chip = document.createElement('div')
             chip.className = 'vmd-drag-preview'
-            chip.textContent = opts.previewLabel()
+            chip.style.cssText =
+              'display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 10px;' +
+              'border-radius:10px;font:600 13px/1.2 system-ui,-apple-system,"Segoe UI",sans-serif;' +
+              'background:#2563eb;color:#fff;box-shadow:0 10px 30px rgba(37,99,235,.45);' +
+              'white-space:nowrap;transform:translateZ(0);'
+            chip.innerHTML =
+              '<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">' +
+              '<circle cx="5" cy="3" r="1.4"/><circle cx="11" cy="3" r="1.4"/>' +
+              '<circle cx="5" cy="8" r="1.4"/><circle cx="11" cy="8" r="1.4"/>' +
+              '<circle cx="5" cy="13" r="1.4"/><circle cx="11" cy="13" r="1.4"/></svg>' +
+              '<span></span>'
+            const span = chip.querySelector('span')
+            if (span) span.textContent = opts.previewLabel()
             container.appendChild(chip)
           },
         })
