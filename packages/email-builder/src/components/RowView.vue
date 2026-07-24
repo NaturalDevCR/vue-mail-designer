@@ -3,7 +3,6 @@
     ref="el"
     class="vmd-row"
     :class="{ 'vmd-selected': isSelected, 'vmd-drop-before': rowEdge === 'before', 'vmd-drop-after': rowEdge === 'after' }"
-    :style="rowStyle"
     @click.stop="selectRow"
   >
     <!-- insertar fila arriba / abajo -->
@@ -14,21 +13,22 @@
       <span class="vmd-ico" v-html="ICONS.plus" />
     </button>
 
-    <!-- barra de acciones (aparece al hover / selección) — siempre dentro del canvas para que
-         nunca dependa de espacio libre alrededor (el handle externo se recortaba en pantallas
-         angostas y quedaba inalcanzable) -->
-    <div class="vmd-row-actions">
-      <button ref="handle" type="button" class="vmd-mini-btn vmd-drag-handle" :title="t('props.move')"><span class="vmd-ico" v-html="ICONS.move" /></button>
-      <button type="button" class="vmd-mini-btn" :title="t('props.rowSettings')" @click.stop="selectRow"><span class="vmd-ico" v-html="ICONS.settings" /></button>
-      <button type="button" class="vmd-mini-btn" :title="t('props.duplicate')" @click.stop="store.duplicateRow(row.id)"><span class="vmd-ico" v-html="ICONS.duplicate" /></button>
-      <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" :title="t('props.delete')" @click.stop="store.removeRow(row.id)"><span class="vmd-ico" v-html="ICONS.trash" /></button>
-    </div>
-
-    <!-- etiqueta identificadora (decorativa: no debe interceptar clics sobre el bloque de abajo) -->
+    <!-- handle de arrastre y etiqueta — en el margen ancho del canvas, nunca sobre el
+         contenido (que vive centrado y más angosto en .vmd-row-inner) -->
+    <button ref="handle" type="button" class="vmd-row-handle vmd-mini-btn vmd-drag-handle" :title="t('props.move')"><span class="vmd-ico" v-html="ICONS.move" /></button>
     <span class="vmd-row-tag">{{ t('props.row') }}</span>
 
-    <div class="vmd-row-columns">
-      <ColumnView v-for="column in row.columns" :key="column.id" :column="column" />
+    <!-- "body" de la fila: ancho de contenido, centrado — aquí vive el contenido real -->
+    <div class="vmd-row-inner" :style="rowInnerStyle">
+      <!-- mini-toolbar pegada al borde superior del contenido, igual que la de cada bloque -->
+      <div class="vmd-row-actions">
+        <button type="button" class="vmd-mini-btn" :title="t('props.rowSettings')" @click.stop="selectRow"><span class="vmd-ico" v-html="ICONS.settings" /></button>
+        <button type="button" class="vmd-mini-btn" :title="t('props.duplicate')" @click.stop="store.duplicateRow(row.id)"><span class="vmd-ico" v-html="ICONS.duplicate" /></button>
+        <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" :title="t('props.delete')" @click.stop="store.removeRow(row.id)"><span class="vmd-ico" v-html="ICONS.trash" /></button>
+      </div>
+      <div class="vmd-row-columns">
+        <ColumnView v-for="column in row.columns" :key="column.id" :column="column" />
+      </div>
     </div>
   </div>
 </template>
@@ -46,7 +46,7 @@ import { dropRow } from '../dnd/applyDrop'
 import ColumnView from './ColumnView.vue'
 import { ICONS } from './icons'
 
-const props = defineProps<{ row: Row }>()
+const props = defineProps<{ row: Row; contentWidth: number }>()
 const store = useDocumentStore(useBuilderPinia())
 const ui = useUiStore(useBuilderPinia())
 const { t } = useI18n()
@@ -54,9 +54,13 @@ const el = ref<HTMLElement | null>(null)
 const handle = ref<HTMLElement | null>(null)
 const isSelected = computed(() => store.selection?.kind === 'row' && store.selection.id === props.row.id)
 
-const rowStyle = computed<CSSProperties>(() => {
+const rowInnerStyle = computed<CSSProperties>(() => {
   const s = props.row.style
-  const style: CSSProperties = { background: s.backgroundColor, borderRadius: s.borderRadius + 'px' }
+  const style: CSSProperties = {
+    maxWidth: props.contentWidth + 'px',
+    background: s.backgroundColor,
+    borderRadius: s.borderRadius + 'px',
+  }
   if (s.backgroundImage && s.backgroundImage.url) {
     style.backgroundImage = `url(${s.backgroundImage.url})`
     style.backgroundSize = s.backgroundImage.size

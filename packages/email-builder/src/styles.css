@@ -30,8 +30,7 @@
   padding: 6px 12px; background: var(--vmd-panel); border-bottom: 1px solid var(--vmd-border);
 }
 .vmd-canvasbar-center { display: flex; gap: 4px; }
-/* padding horizontal amplio: deja gutter para los controles de fila que salen del canvas */
-.vmd-canvas { flex: 1; overflow-y: auto; padding: 24px 56px; }
+.vmd-canvas { flex: 1; overflow-y: auto; padding: 24px; }
 .vmd-btn {
   padding: 6px 10px; border: 1px solid var(--vmd-border); border-radius: 6px;
   background: var(--vmd-panel); color: var(--vmd-fg); cursor: pointer; font-size: 13px;
@@ -43,17 +42,38 @@
 .vmd-btn--icon .vmd-ico svg { width: 18px; height: 18px; }
 .vmd-btn--icon.vmd-active { border-color: var(--vmd-accent); color: var(--vmd-accent); }
 
-.vmd-canvas-page { margin: 0 auto; max-width: 100%; min-height: 200px; box-shadow: 0 1px 4px rgba(0,0,0,.12); transition: width 0.25s ease; }
-.vmd-canvas-empty { padding: 48px 16px; text-align: center; color: var(--vmd-muted); }
-.vmd-canvas-rows { min-height: 40px; }
-.vmd-row { position: relative; outline: 1px dashed transparent; outline-offset: -1px; transition: outline-color 0.12s ease, box-shadow 0.12s ease; }
-.vmd-row:hover { outline: 1px solid color-mix(in srgb, var(--vmd-accent) 55%, transparent); }
-.vmd-row.vmd-selected { outline: 2px solid var(--vmd-accent); outline-offset: -1px; box-shadow: 0 0 0 3px color-mix(in srgb, var(--vmd-accent) 18%, transparent); }
+/* superficie ancha del canvas: aquí viven las filas (position:relative, sin fondo propio) */
+.vmd-canvas-surface { position: relative; width: 100%; max-width: 1400px; margin: 0 auto; }
+/* franja del "body": ancho de contenido, centrada, absoluta detrás de las filas — su color
+   es el de doc.settings.backgroundColor y NO afecta el resto de la superficie del canvas */
+.vmd-canvas-body-bg {
+  position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%);
+  margin: 0 auto; box-shadow: 0 1px 4px rgba(0,0,0,.12); pointer-events: none; z-index: 0;
+  transition: width 0.25s ease;
+}
+.vmd-canvas-empty { position: relative; padding: 48px 16px; text-align: center; color: var(--vmd-muted); }
+.vmd-canvas-rows { position: relative; z-index: 1; min-height: 40px; }
 
-.vmd-row-actions .vmd-drag-handle { cursor: grab; }
-.vmd-row-actions .vmd-drag-handle:active { cursor: grabbing; }
+/* la fila ocupa toda la superficie del canvas: el hover/selección puede extenderse a los
+   márgenes sin pisar nunca el contenido (que vive centrado en .vmd-row-inner, más angosto).
+   El hover de fila se suprime mientras el mouse está sobre un bloque anidado (:has() detecta
+   ese caso), así el foco siempre "aterriza" en el elemento más específico bajo el cursor —
+   salvo que la fila o alguno de sus bloques esté seleccionado, en cuyo caso ambos quedan
+   visibles para poder alternar entre ellos con un clic. */
+.vmd-row { position: relative; border-radius: 4px; transition: background-color 0.12s ease, box-shadow 0.12s ease; }
+.vmd-row:hover:not(:has(.vmd-block:hover)),
+.vmd-row:has(.vmd-block.vmd-selected) {
+  background-color: color-mix(in srgb, var(--vmd-accent) 6%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vmd-accent) 45%, transparent);
+}
+.vmd-row.vmd-selected { background-color: color-mix(in srgb, var(--vmd-accent) 10%, transparent); box-shadow: inset 0 0 0 2px var(--vmd-accent); }
+.vmd-row-inner { position: relative; margin: 0 auto; box-sizing: border-box; }
 
-/* botones "+" para insertar fila arriba/abajo, centrados en el borde */
+/* handle de arrastre — flota en el margen ancho del canvas (fuera del "body") */
+.vmd-row-handle { position: absolute; top: 8px; right: 8px; z-index: 8; cursor: grab; }
+.vmd-row-handle:active { cursor: grabbing; }
+
+/* botones "+" para insertar fila arriba/abajo, centrados sobre el contenido */
 .vmd-row-add {
   position: absolute; left: 50%; transform: translateX(-50%); z-index: 9;
   width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center;
@@ -64,13 +84,13 @@
 .vmd-row-add--top { top: -11px; }
 .vmd-row-add--bottom { bottom: -11px; }
 
-/* barra de acciones flotante (arriba a la derecha) */
-.vmd-row-actions { position: absolute; top: -14px; right: 6px; z-index: 8; gap: 4px; align-items: center; }
+/* barra de acciones — pegada al borde superior del contenido, igual que la de cada bloque */
+.vmd-row-actions { position: absolute; top: -13px; right: 6px; z-index: 8; gap: 4px; align-items: center; }
 
-/* etiqueta identificadora de la fila (abajo a la derecha) */
+/* etiqueta identificadora de la fila — en el margen ancho (decorativa, no intercepta clics) */
 .vmd-row-tag {
-  position: absolute; bottom: 0; right: 0; z-index: 7;
-  padding: 1px 8px; border-radius: 4px 0 0 0; font-size: 10px; line-height: 16px; font-weight: 600;
+  position: absolute; bottom: 8px; right: 8px; z-index: 7;
+  padding: 1px 8px; border-radius: 4px; font-size: 10px; line-height: 16px; font-weight: 600;
   letter-spacing: 0.02em; text-transform: uppercase;
   background: var(--vmd-accent); color: #fff; pointer-events: none;
 }
@@ -118,13 +138,23 @@
 .vmd-drag-handle { cursor: grab; }
 .vmd-root.vmd-is-dragging { user-select: none; -webkit-user-select: none; }
 .vmd-root.vmd-is-dragging .vmd-column-blocks { min-height: 36px; }
-/* controles de fila/bloque ocultos por defecto; visibles al hover o selección */
+/* controles de fila/bloque ocultos por defecto; visibles al hover o selección.
+   Misma regla de exclusividad que el resaltado de fila: hover propio (sin bloque hovered),
+   fila seleccionada, o algún bloque adentro seleccionado. */
 .vmd-row-actions, .vmd-block-actions,
 .vmd-row-handle, .vmd-row-add, .vmd-row-tag { display: none; }
-.vmd-row:hover > .vmd-row-handle, .vmd-row.vmd-selected > .vmd-row-handle,
-.vmd-row:hover > .vmd-row-add, .vmd-row.vmd-selected > .vmd-row-add,
-.vmd-row:hover > .vmd-row-tag, .vmd-row.vmd-selected > .vmd-row-tag { display: inline-flex; }
-.vmd-row:hover > .vmd-row-actions, .vmd-row.vmd-selected > .vmd-row-actions,
+.vmd-row:hover:not(:has(.vmd-block:hover)) .vmd-row-handle,
+.vmd-row.vmd-selected .vmd-row-handle,
+.vmd-row:has(.vmd-block.vmd-selected) .vmd-row-handle,
+.vmd-row:hover:not(:has(.vmd-block:hover)) > .vmd-row-add,
+.vmd-row.vmd-selected > .vmd-row-add,
+.vmd-row:has(.vmd-block.vmd-selected) > .vmd-row-add,
+.vmd-row:hover:not(:has(.vmd-block:hover)) .vmd-row-tag,
+.vmd-row.vmd-selected .vmd-row-tag,
+.vmd-row:has(.vmd-block.vmd-selected) .vmd-row-tag { display: inline-flex; }
+.vmd-row:hover:not(:has(.vmd-block:hover)) .vmd-row-actions,
+.vmd-row.vmd-selected .vmd-row-actions,
+.vmd-row:has(.vmd-block.vmd-selected) .vmd-row-actions,
 .vmd-block:hover > .vmd-block-actions, .vmd-block.vmd-selected > .vmd-block-actions { display: flex; }
 /* mientras se arrastra, ocultar los controles flotantes para no estorbar */
 .vmd-root.vmd-is-dragging .vmd-row-handle,
