@@ -173,6 +173,21 @@
 
     <!-- Fila seleccionada -->
     <template v-else-if="row">
+      <div class="vmd-props-section-title">Estructura de columnas</div>
+      <div class="vmd-layout-picker">
+        <button
+          v-for="l in ROW_LAYOUTS"
+          :key="l.key"
+          type="button"
+          class="vmd-layout-opt"
+          :class="{ 'vmd-active': isActiveLayout(l.widths) }"
+          :title="String(l.widths.length) + (l.widths.length === 1 ? ' columna' : ' columnas')"
+          @click="store.setRowColumns(row.id, l.widths)"
+        >
+          <span v-for="(w, i) in l.widths" :key="i" class="vmd-layout-opt-cell" :style="{ flex: w }" />
+        </button>
+      </div>
+
       <ColorField label="Fondo" :model-value="row.style.backgroundColor" @update:model-value="store.updateRowStyle(row.id, { backgroundColor: $event })" />
       <NumberField label="Radio borde" :model-value="row.style.borderRadius" :min="0" :max="32" @update:model-value="store.updateRowStyle(row.id, { borderRadius: $event })" />
       <PaddingField label="Padding" :model-value="row.style.padding" @update:model-value="store.updateRowStyle(row.id, { padding: $event })" />
@@ -198,6 +213,7 @@ import type { Row, SocialNetworkKind } from '../schema'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
 import { ICONS } from './icons'
+import { ROW_LAYOUTS } from './palette-items'
 import AlignField from './fields/AlignField.vue'
 import CheckboxField from './fields/CheckboxField.vue'
 import ColorField from './fields/ColorField.vue'
@@ -379,6 +395,12 @@ function addGalleryImage() {
 function removeGalleryImage(i: number) {
   if (block.value?.type !== 'gallery') return
   upd({ images: block.value.images.filter((_, j) => j !== i) })
+}
+
+function isActiveLayout(widths: number[]): boolean {
+  const cols = row.value?.columns
+  if (!cols || cols.length !== widths.length) return false
+  return cols.every((c, i) => c.widthPct === widths[i])
 }
 
 function setRowBgImage(patch: Partial<RowBackgroundImage>) {

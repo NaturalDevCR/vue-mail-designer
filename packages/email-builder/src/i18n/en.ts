@@ -78,4 +78,7 @@ export const en: LocaleDict = {
   'props.duplicate': 'Duplicate',
   'props.delete': 'Delete',
   'props.row': 'Row',
+  'props.addAbove': 'Add row above',
+  'props.addBelow': 'Add row below',
+  'props.layout': 'Column structure',
 }

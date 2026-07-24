@@ -6,13 +6,29 @@
     :style="rowStyle"
     @click.stop="selectRow"
   >
+    <!-- insertar fila arriba / abajo -->
+    <button type="button" class="vmd-row-add vmd-row-add--top" :title="t('props.addAbove')" @click.stop="addAbove">
+      <span class="vmd-ico" v-html="ICONS.plus" />
+    </button>
+    <button type="button" class="vmd-row-add vmd-row-add--bottom" :title="t('props.addBelow')" @click.stop="addBelow">
+      <span class="vmd-ico" v-html="ICONS.plus" />
+    </button>
+
+    <!-- handle de arrastre, flotando fuera del canvas -->
+    <button ref="handle" type="button" class="vmd-row-handle vmd-drag-handle" :title="t('props.move')">
+      <span class="vmd-ico" v-html="ICONS.move" />
+    </button>
+
+    <!-- barra de acciones (aparece al hover / seleccción) -->
     <div class="vmd-row-actions">
-      <span class="vmd-row-badge">{{ t('props.row') }}</span>
-      <button ref="handle" type="button" class="vmd-mini-btn vmd-drag-handle" :title="t('props.move')"><span class="vmd-ico" v-html="ICONS.move" /></button>
       <button type="button" class="vmd-mini-btn" :title="t('props.rowSettings')" @click.stop="selectRow"><span class="vmd-ico" v-html="ICONS.settings" /></button>
       <button type="button" class="vmd-mini-btn" :title="t('props.duplicate')" @click.stop="store.duplicateRow(row.id)"><span class="vmd-ico" v-html="ICONS.duplicate" /></button>
       <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" :title="t('props.delete')" @click.stop="store.removeRow(row.id)"><span class="vmd-ico" v-html="ICONS.trash" /></button>
     </div>
+
+    <!-- etiqueta identificadora -->
+    <span class="vmd-row-tag">{{ t('props.row') }}</span>
+
     <div class="vmd-row-columns">
       <ColumnView v-for="column in row.columns" :key="column.id" :column="column" />
     </div>
@@ -55,6 +71,18 @@ const rowStyle = computed<CSSProperties>(() => {
 function selectRow() {
   store.select({ kind: 'row', id: props.row.id })
   ui.panelMode = 'props'
+}
+
+function rowIndex(): number {
+  return store.doc.rows.findIndex((r) => r.id === props.row.id)
+}
+function addAbove() {
+  const i = rowIndex()
+  if (i !== -1) store.select({ kind: 'row', id: store.addRow([100], i).id })
+}
+function addBelow() {
+  const i = rowIndex()
+  if (i !== -1) store.select({ kind: 'row', id: store.addRow([100], i + 1).id })
 }
 
 // arrastrar la fila (solo desde el handle ✥)

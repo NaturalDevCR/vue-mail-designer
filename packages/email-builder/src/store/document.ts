@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import type { Block, BlockType, Column, EmailDocument, EmailSettings, Row } from '../schema'
-import { createBlock, createId, createDocument, createRow, zEmailDocument } from '../schema'
+import { createBlock, createColumn, createId, createDocument, createRow, zEmailDocument } from '../schema'
 
 export type Selection = { kind: 'row' | 'block'; id: string }
 
@@ -103,6 +103,35 @@ export const useDocumentStore = defineStore('vmd-document', () => {
     const [row] = doc.value.rows.splice(from, 1)
     const clamped = Math.max(0, Math.min(toIndex, doc.value.rows.length))
     doc.value.rows.splice(clamped, 0, row)
+  }
+
+  /**
+   * Cambia la estructura de columnas de una fila conservando el contenido:
+   * reutiliza las columnas existentes (ajustando su ancho); si se reduce el número
+   * de columnas, los bloques sobrantes se anexan a la última columna; si aumenta,
+   * se agregan columnas vacías. Un solo paso de historial.
+   */
+  function setRowColumns(rowId: string, widths: number[]) {
+    const row = findRow(rowId)
+    if (!row || widths.length === 0) return
+    const unchanged =
+      row.columns.length === widths.length && row.columns.every((c, i) => c.widthPct === widths[i])
+    if (unchanged) return
+    commit()
+    const old = row.columns
+    const next: Column[] = widths.map((w, i) => {
+      const existing = old[i]
+      if (existing) {
+        existing.widthPct = w
+        return existing
+      }
+      return createColumn(w)
+    })
+    if (old.length > widths.length) {
+      const last = next[next.length - 1]
+      for (let i = widths.length; i < old.length; i++) last.blocks.push(...old[i].blocks)
+    }
+    row.columns = next
   }
 
   function addBlockToColumn(columnId: string, type: BlockType, index?: number): Block {
@@ -284,7 +313,7 @@ export const useDocumentStore = defineStore('vmd-document', () => {
     doc, selection, past, future,
     selectedBlock, selectedRow,
     commit, findRow, findColumn, findBlock,
-    addRow, removeRow, duplicateRow, replaceRows, moveRow,
+    addRow, removeRow, duplicateRow, replaceRows, moveRow, setRowColumns,
     addBlockToColumn, insertBlockAt, removeBlock, duplicateBlock, replaceColumnBlocks, moveBlock,
     updateBlock, updateRowStyle, updateRow, updateColumn, updateSettings,
     select, loadDesign,
