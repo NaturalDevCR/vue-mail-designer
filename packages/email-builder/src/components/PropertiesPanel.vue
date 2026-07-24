@@ -47,8 +47,13 @@
         <div class="vmd-props-section-title">Imagen</div>
         <div v-if="options.uploadImage" class="vmd-field">
           <span class="vmd-field-label">Subir imagen</span>
-          <input type="file" accept="image/*" @change="onUpload" />
-          <span v-if="uploading" class="vmd-field-hint">Subiendo…</span>
+          <div class="vmd-upload-row">
+            <button type="button" class="vmd-btn" :disabled="uploading" @click="fileInput?.click()">
+              <span class="vmd-ico" v-html="ICONS.upload" />{{ uploading ? 'Subiendo…' : 'Elegir archivo' }}
+            </button>
+            <span class="vmd-upload-filename">{{ uploadFileName ?? 'Ningún archivo seleccionado' }}</span>
+          </div>
+          <input ref="fileInput" type="file" accept="image/*" class="vmd-visually-hidden" @change="onUpload" />
         </div>
         <TextField label="URL" :model-value="block.src" @update:model-value="upd({ src: $event })" />
         <CheckboxField label="Ancho automático" :model-value="block.widthAuto" @update:model-value="upd({ widthAuto: $event })" />
@@ -321,6 +326,8 @@ type RowBackgroundImage = NonNullable<Row['style']['backgroundImage']>
 
 const store = useDocumentStore(useBuilderPinia())
 const options = useBuilderOptions()
+const fileInput = ref<HTMLInputElement | null>(null)
+const uploadFileName = ref<string | null>(null)
 const block = computed(() => store.selectedBlock)
 const row = computed(() => store.selectedRow)
 const uploading = ref(false)
@@ -478,8 +485,10 @@ function updData(key: string, value: unknown) {
 }
 
 async function onUpload(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
   if (!file || !options.uploadImage || !block.value) return
+  uploadFileName.value = file.name
   const id = block.value.id
   uploading.value = true
   try {
@@ -487,6 +496,7 @@ async function onUpload(e: Event) {
     store.updateBlock(id, { src: url })
   } finally {
     uploading.value = false
+    input.value = ''
   }
 }
 

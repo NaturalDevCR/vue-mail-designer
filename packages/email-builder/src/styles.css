@@ -32,9 +32,11 @@
 .vmd-canvasbar-center { display: flex; gap: 4px; }
 .vmd-canvas { flex: 1; overflow-y: auto; padding: 24px; }
 .vmd-btn {
+  display: inline-flex; align-items: center; gap: 6px;
   padding: 6px 10px; border: 1px solid var(--vmd-border); border-radius: 6px;
   background: var(--vmd-panel); color: var(--vmd-fg); cursor: pointer; font-size: 13px;
 }
+.vmd-btn .vmd-ico svg { width: 15px; height: 15px; }
 .vmd-btn:hover { border-color: var(--vmd-accent); }
 .vmd-btn:disabled { opacity: 0.4; cursor: default; }
 .vmd-btn--primary { background: var(--vmd-accent); border-color: var(--vmd-accent); color: #fff; }
@@ -191,17 +193,23 @@
 }
 .vmd-mt { background: color-mix(in srgb, var(--vmd-accent) 15%, transparent); border-radius: 3px; padding: 0 3px; }
 .vmd-rte { position: relative; }
+/* flota arriba del bloque por defecto (como Unlayer); .vmd-rte-toolbar--below la voltea
+   cuando no hay espacio arriba, para no taparse con el contenido anterior */
 .vmd-rte-toolbar {
-  position: absolute; left: 0; bottom: calc(100% + 6px); z-index: 20;
-  display: flex; flex-wrap: wrap; align-items: center; gap: 2px; padding: 5px;
-  min-width: max-content; max-width: 340px;
-  background: var(--vmd-panel); border: 1px solid var(--vmd-border); border-radius: 8px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(100% + 8px); z-index: 20;
+  display: flex; flex-direction: column; gap: 4px; padding: 6px;
+  width: max-content; max-width: min(480px, 90vw);
+  background: var(--vmd-panel); border: 1px solid var(--vmd-border); border-radius: 10px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
 }
-.vmd-rte-sep { width: 1px; align-self: stretch; margin: 2px 3px; background: var(--vmd-border); }
+.vmd-rte-toolbar--below { bottom: auto; top: calc(100% + 8px); }
+.vmd-rte-row { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; }
+.vmd-rte-row:not(:last-child) { padding-bottom: 4px; border-bottom: 1px solid var(--vmd-border); }
+.vmd-rte-toolbar .vmd-mini-btn { width: 28px; height: 28px; flex: none; }
+.vmd-rte-sep { width: 1px; align-self: stretch; margin: 2px 3px; background: var(--vmd-border); flex: none; }
 .vmd-rte-color { position: relative; overflow: hidden; font-weight: 700; }
 .vmd-rte-color input[type='color'] { position: absolute; left: 0; bottom: 0; width: 100%; height: 4px; padding: 0; border: 0; cursor: pointer; }
-.vmd-rte-size { font-size: 12px; border: 1px solid var(--vmd-border); border-radius: 4px; background: var(--vmd-panel); color: var(--vmd-fg); }
+.vmd-rte-size { flex: none; font-size: 12px; border: 1px solid var(--vmd-border); border-radius: 4px; background: var(--vmd-panel); color: var(--vmd-fg); height: 28px; }
 .vmd-rte .ProseMirror { outline: none; min-height: 24px; }
 .vmd-active { border-color: var(--vmd-accent); color: var(--vmd-accent); }
 .vmd-rte-tags { font-size: 12px; border: 1px solid var(--vmd-border); border-radius: 4px; background: var(--vmd-panel); color: var(--vmd-fg); }
@@ -213,6 +221,12 @@
 .vmd-field-color input[type='color'] { width: 32px; height: 32px; padding: 0; border: 1px solid var(--vmd-border); border-radius: 6px; background: none; }
 .vmd-field-code { font-family: ui-monospace, monospace; font-size: 12px; }
 .vmd-field-hint { font-size: 12px; color: var(--vmd-muted); }
+.vmd-upload-row { display: flex; align-items: center; gap: 8px; }
+.vmd-upload-filename { font-size: 12px; color: var(--vmd-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vmd-visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
 .vmd-align-group { display: flex; gap: 4px; }
 .vmd-padding-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
 .vmd-social-row { padding: 8px; margin-bottom: 8px; border: 1px solid var(--vmd-border); border-radius: 6px; }

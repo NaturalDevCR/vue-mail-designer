@@ -44,6 +44,7 @@ export const ICONS: Record<string, string> = {
   chevronDown: svg('<path d="m6 9 6 6 6-6"/>'),
   plus: svg('<path d="M12 5v14M5 12h14"/>'),
   check: svg('<path d="M5 13l4 4L19 7"/>'),
+  upload: svg('<path d="M12 16V4M7 9l5-5 5 5M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/>'),
   play: svg('<circle cx="12" cy="12" r="9"/><path d="m10 9 5 3-5 3z" fill="currentColor" stroke="none"/>'),
 
   // --- editor de texto ---
