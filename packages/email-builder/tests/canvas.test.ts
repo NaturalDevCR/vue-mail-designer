@@ -19,11 +19,11 @@ describe('paleta y canvas', () => {
     expect(wrapper.find('.vmd-row.vmd-selected').exists()).toBe(true)
   })
 
-  it('el toggle de device cambia el ancho del canvas', async () => {
+  it('el toggle de device cambia el ancho del body (no el de la superficie del canvas)', async () => {
     const wrapper = mount(EmailBuilder)
-    const page = wrapper.find('.vmd-canvas-page')
-    expect(page.attributes('style')).toContain('width: 600px')
+    const body = wrapper.find('.vmd-canvas-body-bg')
+    expect(body.attributes('style')).toContain('width: 600px')
     await wrapper.find('[data-device="mobile"]').trigger('click')
-    expect(wrapper.find('.vmd-canvas-page').attributes('style')).toContain('width: 375px')
+    expect(wrapper.find('.vmd-canvas-body-bg').attributes('style')).toContain('width: 375px')
   })
 })
