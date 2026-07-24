@@ -95,6 +95,16 @@ export const useDocumentStore = defineStore('vmd-document', () => {
     doc.value.rows = rows
   }
 
+  /** Mueve una fila a `toIndex` (índice en la lista final tras quitarla). Un solo paso de historial. */
+  function moveRow(rowId: string, toIndex: number) {
+    const from = doc.value.rows.findIndex((r) => r.id === rowId)
+    if (from === -1) return
+    commit()
+    const [row] = doc.value.rows.splice(from, 1)
+    const clamped = Math.max(0, Math.min(toIndex, doc.value.rows.length))
+    doc.value.rows.splice(clamped, 0, row)
+  }
+
   function addBlockToColumn(columnId: string, type: BlockType, index?: number): Block {
     const found = findColumn(columnId)
     if (!found) throw new Error(`Columna no encontrada: ${columnId}`)
@@ -102,6 +112,17 @@ export const useDocumentStore = defineStore('vmd-document', () => {
     const block = createBlock(type)
     found.column.blocks.splice(index ?? found.column.blocks.length, 0, block)
     return block
+  }
+
+  /** Inserta un bloque ya construido (se le asigna id nuevo) en `columnId` en `index`. */
+  function insertBlockAt(columnId: string, block: Block, index?: number): Block | undefined {
+    const found = findColumn(columnId)
+    if (!found) return undefined
+    commit()
+    const copy = clone(block)
+    copy.id = createId('blk')
+    found.column.blocks.splice(index ?? found.column.blocks.length, 0, copy)
+    return copy
   }
 
   function removeBlock(id: string) {
@@ -126,6 +147,19 @@ export const useDocumentStore = defineStore('vmd-document', () => {
     if (!found) return
     commit('dnd-blocks')
     found.column.blocks = blocks
+  }
+
+  /** Mueve un bloque a otra (o la misma) columna en `toIndex`. Un solo paso de historial. */
+  function moveBlock(blockId: string, toColumnId: string, toIndex: number) {
+    const src = findBlock(blockId)
+    const dst = findColumn(toColumnId)
+    if (!src || !dst) return
+    commit()
+    src.column.blocks.splice(src.index, 1)
+    // si es la misma columna y el destino estaba después del origen, el índice se corrió al quitar
+    let idx = toIndex
+    if (src.column === dst.column && toIndex > src.index) idx -= 1
+    dst.column.blocks.splice(Math.max(0, Math.min(idx, dst.column.blocks.length)), 0, src.block)
   }
 
   function updateBlock(id: string, patch: Record<string, unknown>) {
@@ -250,8 +284,8 @@ export const useDocumentStore = defineStore('vmd-document', () => {
     doc, selection, past, future,
     selectedBlock, selectedRow,
     commit, findRow, findColumn, findBlock,
-    addRow, removeRow, duplicateRow, replaceRows,
-    addBlockToColumn, removeBlock, duplicateBlock, replaceColumnBlocks,
+    addRow, removeRow, duplicateRow, replaceRows, moveRow,
+    addBlockToColumn, insertBlockAt, removeBlock, duplicateBlock, replaceColumnBlocks, moveBlock,
     updateBlock, updateRowStyle, updateRow, updateColumn, updateSettings,
     select, loadDesign,
     canUndo, canRedo, undo, redo, resetHistory, sealHistory, exportJson, importJson,
