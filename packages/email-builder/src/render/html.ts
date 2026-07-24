@@ -21,15 +21,15 @@ export function socialSvg(kind: SocialNetworkKind): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">${SOCIAL_GLYPHS[kind]}</svg>`
 }
 
-export const SOCIAL_BRANDS: Record<SocialNetworkKind, { label: string; color: string }> = {
-  facebook: { label: 'f', color: '#1877f2' },
-  instagram: { label: 'ig', color: '#e4405f' },
-  x: { label: 'x', color: '#000000' },
-  linkedin: { label: 'in', color: '#0a66c2' },
-  youtube: { label: '▶', color: '#ff0000' },
-  tiktok: { label: 'tt', color: '#010101' },
-  whatsapp: { label: 'wa', color: '#25d366' },
-  web: { label: '@', color: '#6b7280' },
+export const SOCIAL_BRANDS: Record<SocialNetworkKind, { color: string }> = {
+  facebook: { color: '#1877f2' },
+  instagram: { color: '#e4405f' },
+  x: { color: '#000000' },
+  linkedin: { color: '#0a66c2' },
+  youtube: { color: '#ff0000' },
+  tiktok: { color: '#010101' },
+  whatsapp: { color: '#25d366' },
+  web: { color: '#6b7280' },
 }
 
 export const MERGE_TAG_RE = /<span[^>]*\bdata-mt="([^"]+)"[^>]*>.*?<\/span>/gs
@@ -255,17 +255,27 @@ function renderColumnBlocks(blocks: Block[], ctx: RenderCtx): string {
   return blocks.map((b) => renderBlock(b, ctx)).join('')
 }
 
-function renderRow(row: Row, contentWidth: number, ctx: RenderCtx): string {
+/**
+ * Cada fila es su propia tabla de 100% de ancho (bleedea hasta el borde del cliente de
+ * correo) con una tabla interna centrada al ancho de contenido — igual que Unlayer:
+ * `backgroundColor`/imagen con `fullWidth` pintan la tabla exterior; `contentBackgroundColor`
+ * (e imagen sin `fullWidth`) pintan solo el área de contenido.
+ */
+function renderRow(row: Row, contentWidth: number, contentAlignment: 'left' | 'center', ctx: RenderCtx): string {
   const rs = row.style
-  const bg = rs.backgroundColor === 'transparent' ? '' : `background-color:${rs.backgroundColor};`
+  const outerBg = rs.backgroundColor === 'transparent' ? '' : `background-color:${rs.backgroundColor};`
+  const contentBg = rs.contentBackgroundColor && rs.contentBackgroundColor !== 'transparent'
+    ? `background-color:${rs.contentBackgroundColor};`
+    : ''
   const radius = rs.borderRadius > 0 ? `border-radius:${rs.borderRadius}px;` : ''
   const innerWidth = contentWidth - rs.padding.left - rs.padding.right // el padding de fila resta ancho disponible para las columnas
 
   const bgImg = rs.backgroundImage
-  const bgAttr = bgImg ? ` background="${escapeHtml(bgImg.url)}"` : ''
-  const bgStyle = bgImg
-    ? `background-image:url(${escapeHtml(bgImg.url)});background-size:${bgImg.size};background-position:${escapeHtml(bgImg.position)};background-repeat:${bgImg.repeat};`
-    : ''
+  const fullImg = bgImg && bgImg.fullWidth ? bgImg : undefined
+  const contentImg = bgImg && !bgImg.fullWidth ? bgImg : undefined
+  const bgAttr = (img?: typeof bgImg) => (img ? ` background="${escapeHtml(img.url)}"` : '')
+  const bgStyle = (img?: typeof bgImg) =>
+    img ? `background-image:url(${escapeHtml(img.url)});background-size:${img.size};background-position:${escapeHtml(img.position)};background-repeat:${img.repeat};` : ''
 
   const cols = row.columns
     .map((col) => {
@@ -286,16 +296,23 @@ function renderRow(row: Row, contentWidth: number, ctx: RenderCtx): string {
     })
     .join('')
 
-  const table = (
-    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>` +
-    `<td${bgAttr} style="${bg}${radius}${bgStyle}padding:${paddingCss(rs.padding)};font-size:0;">` +
+  const contentTable = (
+    `<table role="presentation" width="${contentWidth}" cellpadding="0" cellspacing="0" border="0" class="vmd-container" style="width:${contentWidth}px;max-width:100%;">` +
+    `<tr><td${bgAttr(contentImg)} style="${contentBg}${radius}${bgStyle(contentImg)}padding:${paddingCss(rs.padding)};font-size:0;">` +
     `<!--[if mso]><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><![endif]-->` +
     cols +
     `<!--[if mso]></tr></table><![endif]-->` +
     `</td></tr></table>`
   )
 
-  return wrapHidden(table, row.hideDesktop, row.hideMobile)
+  const outerTable = (
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"${bgAttr(fullImg)} style="${outerBg}${bgStyle(fullImg)}">` +
+    `<tr><td align="${contentAlignment}" style="padding:0;">` +
+    contentTable +
+    `</td></tr></table>`
+  )
+
+  return wrapHidden(outerTable, row.hideDesktop, row.hideMobile)
 }
 
 export function renderHtml(doc: EmailDocument, fonts: FontDef[] = DEFAULT_FONTS, customBlocks?: CustomBlockDef[]): string {
@@ -309,13 +326,15 @@ export function renderHtml(doc: EmailDocument, fonts: FontDef[] = DEFAULT_FONTS,
     ? `<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">${escapeHtml(settings.preheader)}</div>`
     : ''
 
-  const rows = doc.rows.map((r) => renderRow(r, settings.contentWidth, ctx)).join('')
+  const rows = doc.rows.map((r) => renderRow(r, settings.contentWidth, settings.contentAlignment, ctx)).join('')
 
   const bodyBgImg = settings.backgroundImage
   const bodyBgAttr = bodyBgImg ? ` background="${escapeHtml(bodyBgImg.url)}"` : ''
   const bodyBgStyle = bodyBgImg
     ? `background-image:url(${escapeHtml(bodyBgImg.url)});background-size:${bodyBgImg.size};background-position:${escapeHtml(bodyBgImg.position)};background-repeat:${bodyBgImg.repeat};`
     : ''
+  const titleTag = settings.htmlTitle ? `<title>${escapeHtml(settings.htmlTitle)}</title>\n` : ''
+  const bodyFontWeight = settings.fontWeight === 'bold' ? 'font-weight:bold;' : ''
 
   return `<!doctype html>
 <html lang="es" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -323,7 +342,7 @@ export function renderHtml(doc: EmailDocument, fonts: FontDef[] = DEFAULT_FONTS,
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->
+${titleTag}<!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->
 ${fontLinks}<style>
   body { margin: 0; padding: 0; }
   img { border: 0; }
@@ -337,14 +356,11 @@ ${fontLinks}<style>
   }
 </style>
 </head>
-<body style="margin:0;padding:0;background-color:${settings.backgroundColor};">
+<body style="margin:0;padding:0;background-color:${settings.backgroundColor};color:${settings.textColor};${bodyFontWeight}font-family:${settings.fontFamily};">
 ${preheader}
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"${bodyBgAttr} style="background-color:${settings.backgroundColor};${bodyBgStyle}">
-<tr><td align="${settings.contentAlignment}" style="padding:16px 8px;">
-<table role="presentation" width="${settings.contentWidth}" cellpadding="0" cellspacing="0" border="0" class="vmd-container" style="width:${settings.contentWidth}px;max-width:100%;">
-<tr><td>
+<tr><td align="${settings.contentAlignment}" style="padding:0;">
 ${rows}
-</td></tr></table>
 </td></tr></table>
 </body>
 </html>`

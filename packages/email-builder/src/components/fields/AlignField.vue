@@ -8,19 +8,21 @@
         type="button"
         class="vmd-mini-btn"
         :class="{ 'vmd-active': modelValue === a.value }"
+        :title="a.value"
         @click="$emit('update:modelValue', a.value)"
-      >{{ a.icon }}</button>
+      ><span class="vmd-ico" v-html="ICONS[a.icon]" /></button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { Align } from '../../schema'
+import { ICONS } from '../icons'
 defineProps<{ label: string; modelValue: Align }>()
 defineEmits<{ 'update:modelValue': [value: Align] }>()
-const ALIGNS: { value: Align; icon: string }[] = [
-  { value: 'left', icon: '⇤' },
-  { value: 'center', icon: '↔' },
-  { value: 'right', icon: '⇥' },
+const ALIGNS: { value: Align; icon: 'alignLeft' | 'alignCenter' | 'alignRight' }[] = [
+  { value: 'left', icon: 'alignLeft' },
+  { value: 'center', icon: 'alignCenter' },
+  { value: 'right', icon: 'alignRight' },
 ]
 </script>

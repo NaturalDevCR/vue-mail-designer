@@ -188,17 +188,49 @@
         </button>
       </div>
 
+      <div class="vmd-props-section-title">Propiedades de columna</div>
+      <div class="vmd-col-tabs">
+        <button
+          v-for="(col, i) in row.columns"
+          :key="col.id"
+          type="button"
+          class="vmd-col-tab"
+          :class="{ 'vmd-active': activeColIdx === i }"
+          @click="activeColIdx = i"
+        >Columna {{ i + 1 }}</button>
+      </div>
+      <template v-if="activeColumn">
+        <ColorField label="Fondo" :model-value="activeColumn.style.backgroundColor" @update:model-value="store.updateColumn(activeColumn!.id, { style: { backgroundColor: $event } })" />
+        <PaddingField label="Padding" :model-value="activeColumn.style.padding" @update:model-value="store.updateColumn(activeColumn!.id, { style: { padding: $event } })" />
+        <NumberField label="Radio borde" :model-value="activeColumn.style.borderRadius ?? 0" :min="0" :max="32" @update:model-value="store.updateColumn(activeColumn!.id, { style: { borderRadius: $event } })" />
+        <div class="vmd-props-subtitle">Borde</div>
+        <NumberField label="Grosor" :model-value="activeColumnBorder.width" :min="0" :max="12" @update:model-value="setColumnBorder({ width: $event })" />
+        <SelectField label="Estilo" :model-value="activeColumnBorder.style" :options="BORDER_STYLE_OPTIONS" @update:model-value="setColumnBorder({ style: $event as Border['style'] })" />
+        <ColorField label="Color" :model-value="activeColumnBorder.color" @update:model-value="setColumnBorder({ color: $event })" />
+      </template>
+
+      <div class="vmd-props-section-title">Propiedades de fila</div>
       <ColorField label="Fondo" :model-value="row.style.backgroundColor" @update:model-value="store.updateRowStyle(row.id, { backgroundColor: $event })" />
+      <ColorField label="Fondo del contenido" :model-value="row.style.contentBackgroundColor" @update:model-value="store.updateRowStyle(row.id, { contentBackgroundColor: $event })" />
       <NumberField label="Radio borde" :model-value="row.style.borderRadius" :min="0" :max="32" @update:model-value="store.updateRowStyle(row.id, { borderRadius: $event })" />
       <PaddingField label="Padding" :model-value="row.style.padding" @update:model-value="store.updateRowStyle(row.id, { padding: $event })" />
 
-      <div class="vmd-props-section-title">Imagen de fondo</div>
+      <div class="vmd-props-subtitle">Imagen de fondo</div>
       <TextField label="URL" :model-value="row.style.backgroundImage?.url ?? ''" @update:model-value="setRowBgImage({ url: $event })" />
-      <SelectField label="Repetición" :model-value="row.style.backgroundImage?.repeat ?? 'no-repeat'" :options="BG_REPEAT_OPTIONS" @update:model-value="setRowBgImage({ repeat: $event as RowBackgroundImage['repeat'] })" />
-      <SelectField label="Tamaño" :model-value="row.style.backgroundImage?.size ?? 'auto'" :options="BG_SIZE_OPTIONS" @update:model-value="setRowBgImage({ size: $event as RowBackgroundImage['size'] })" />
-      <TextField label="Posición" :model-value="row.style.backgroundImage?.position ?? 'center'" @update:model-value="setRowBgImage({ position: $event })" />
+      <template v-if="row.style.backgroundImage?.url">
+        <SelectField label="Repetición" :model-value="row.style.backgroundImage?.repeat ?? 'no-repeat'" :options="BG_REPEAT_OPTIONS" @update:model-value="setRowBgImage({ repeat: $event as RowBackgroundImage['repeat'] })" />
+        <SelectField label="Tamaño" :model-value="row.style.backgroundImage?.size ?? 'auto'" :options="BG_SIZE_OPTIONS" @update:model-value="setRowBgImage({ size: $event as RowBackgroundImage['size'] })" />
+        <TextField label="Posición" :model-value="row.style.backgroundImage?.position ?? 'center'" @update:model-value="setRowBgImage({ position: $event })" />
+        <div class="vmd-field">
+          <span class="vmd-field-label">Ancho del contenedor</span>
+          <div class="vmd-align-group">
+            <button type="button" class="vmd-mini-btn vmd-mini-btn--text" :class="{ 'vmd-active': !row.style.backgroundImage?.fullWidth }" @click="setRowBgImage({ fullWidth: false })">Contenido</button>
+            <button type="button" class="vmd-mini-btn vmd-mini-btn--text" :class="{ 'vmd-active': row.style.backgroundImage?.fullWidth }" @click="setRowBgImage({ fullWidth: true })">Ancho completo</button>
+          </div>
+        </div>
+      </template>
 
-      <div class="vmd-props-section-title">Visibilidad</div>
+      <div class="vmd-props-section-title">Diseño responsivo</div>
       <CheckboxField label="Ocultar en escritorio" :model-value="!!row.hideDesktop" @update:model-value="store.updateRow(row.id, { hideDesktop: $event })" />
       <CheckboxField label="Ocultar en móvil" :model-value="!!row.hideMobile" @update:model-value="store.updateRow(row.id, { hideMobile: $event })" />
     </template>
@@ -206,10 +238,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { DEFAULT_FONTS } from '../fonts'
 import { useBuilderOptions } from '../options'
-import type { Row, SocialNetworkKind } from '../schema'
+import type { Border, Row, SocialNetworkKind } from '../schema'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
 import { ICONS } from './icons'
@@ -229,6 +261,28 @@ const options = useBuilderOptions()
 const block = computed(() => store.selectedBlock)
 const row = computed(() => store.selectedRow)
 const uploading = ref(false)
+
+const activeColIdx = ref(0)
+watch(
+  () => row.value?.id,
+  () => { activeColIdx.value = 0 },
+)
+const activeColumn = computed(() => {
+  const cols = row.value?.columns
+  if (!cols || cols.length === 0) return null
+  return cols[Math.min(activeColIdx.value, cols.length - 1)]
+})
+const DEFAULT_BORDER: Border = { width: 0, style: 'solid', color: '#000000' }
+const activeColumnBorder = computed<Border>(() => activeColumn.value?.style.border ?? DEFAULT_BORDER)
+function setColumnBorder(patch: Partial<Border>) {
+  if (!activeColumn.value) return
+  store.updateColumn(activeColumn.value.id, { style: { border: { ...activeColumnBorder.value, ...patch } } })
+}
+const BORDER_STYLE_OPTIONS = [
+  { label: 'Sólido', value: 'solid' },
+  { label: 'Discontinuo', value: 'dashed' },
+  { label: 'Punteado', value: 'dotted' },
+]
 
 const TYPE_LABELS: Record<string, string> = {
   heading: 'Título',
@@ -406,7 +460,7 @@ function isActiveLayout(widths: number[]): boolean {
 function setRowBgImage(patch: Partial<RowBackgroundImage>) {
   if (!row.value) return
   const current: RowBackgroundImage = row.value.style.backgroundImage ?? {
-    url: '', repeat: 'no-repeat', size: 'auto', position: 'center',
+    url: '', repeat: 'no-repeat', size: 'auto', position: 'center', fullWidth: false,
   }
   store.updateRowStyle(row.value.id, { backgroundImage: { ...current, ...patch } })
 }

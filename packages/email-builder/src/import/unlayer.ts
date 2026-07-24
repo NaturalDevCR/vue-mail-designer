@@ -103,7 +103,7 @@ function parsePercent(v: unknown, fallback: number): number {
   return fallback
 }
 
-type BgImage = { url: string; repeat: 'no-repeat' | 'repeat' | 'repeat-x' | 'repeat-y'; size: 'auto' | 'cover' | 'contain'; position: string }
+type BgImage = { url: string; repeat: 'no-repeat' | 'repeat' | 'repeat-x' | 'repeat-y'; size: 'auto' | 'cover' | 'contain'; position: string; fullWidth: boolean }
 
 function parseBackgroundImage(raw: unknown): BgImage | null {
   if (!raw || typeof raw !== 'object') return null
@@ -119,6 +119,8 @@ function parseBackgroundImage(raw: unknown): BgImage | null {
     // Unlayer usa size 'custom'/'cover'/'contain'/'auto'; lo que no reconocemos → cover
     size: (['auto', 'cover', 'contain'] as const).includes(size as never) ? (size as BgImage['size']) : 'cover',
     position: typeof bg.position === 'string' ? bg.position : 'center',
+    // Unlayer: backgroundImage.fullWidth → la imagen bleedea fuera del contenedor de contenido
+    fullWidth: bg.fullWidth === true,
   }
 }
 
@@ -194,6 +196,7 @@ export function unlayerToDocument(json: unknown): { document: EmailDocument; war
 
   doc.settings.contentWidth = clamp(parsePx(bodyValues.contentWidth as string | number | undefined, doc.settings.contentWidth), 320, 900)
   if (typeof bodyValues.backgroundColor === 'string') doc.settings.backgroundColor = bodyValues.backgroundColor
+  if (typeof bodyValues.textColor === 'string') doc.settings.textColor = bodyValues.textColor
   const fontFamily = getFontFamily(bodyValues.fontFamily)
   if (fontFamily) doc.settings.fontFamily = fontFamily
   if (typeof bodyValues.preheaderText === 'string') doc.settings.preheader = bodyValues.preheaderText
@@ -232,6 +235,7 @@ function toRow(raw: Record<string, unknown>, warnings: Set<string>): Row {
   checkCommonWarnings(values, warnings)
 
   if (typeof values.backgroundColor === 'string') row.style.backgroundColor = values.backgroundColor
+  if (typeof values.columnsBackgroundColor === 'string') row.style.contentBackgroundColor = values.columnsBackgroundColor
   row.style.padding = parseShorthandPadding(values.padding as string | undefined)
 
   const borderRadius = parsePx(values.borderRadius as string | number | undefined, 0)

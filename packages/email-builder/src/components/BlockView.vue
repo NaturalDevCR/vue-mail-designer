@@ -48,7 +48,7 @@
     <!-- image -->
     <div v-else-if="block.type === 'image'" :style="{ padding: padCss(block.style.padding), textAlign: block.align }">
       <img v-if="block.src" :src="block.src" :alt="block.alt" :style="{ width: block.widthPct + '%', display: 'inline-block' }" />
-      <div v-else class="vmd-b-image-placeholder">🖼 Selecciona una imagen en el inspector</div>
+      <div v-else class="vmd-b-image-placeholder"><span class="vmd-ico" v-html="ICONS.image" />Selecciona una imagen en el inspector</div>
     </div>
 
     <!-- button -->
@@ -111,9 +111,9 @@
     <div v-else-if="block.type === 'video'" :style="{ padding: padCss(block.style.padding), textAlign: 'center' }">
       <div v-if="block.thumbnailUrl" class="vmd-b-video" :style="{ width: block.widthPct + '%' }">
         <img :src="block.thumbnailUrl" :alt="block.alt" style="width: 100%; display: block" />
-        <span class="vmd-b-video-play">▶</span>
+        <span class="vmd-b-video-play" v-html="ICONS.play" />
       </div>
-      <div v-else class="vmd-b-image-placeholder">▶ Configura el video en el inspector</div>
+      <div v-else class="vmd-b-image-placeholder"><span class="vmd-ico" v-html="ICONS.video" />Configura el video en el inspector</div>
     </div>
 
     <!-- table -->
@@ -148,7 +148,7 @@
       >
         <template v-for="(img, i) in block.images" :key="i">
           <img v-if="img.src" :src="img.src" :alt="img.alt" style="width: 100%; display: block" />
-          <div v-else class="vmd-b-image-placeholder vmd-b-gallery-placeholder">🖼</div>
+          <div v-else class="vmd-b-image-placeholder vmd-b-gallery-placeholder"><span class="vmd-ico" v-html="ICONS.image" /></div>
         </template>
       </div>
     </div>

@@ -18,8 +18,8 @@ describe('SidePanel', () => {
   it('tab Body edita settings incluidos los nuevos', async () => {
     const wrapper = mount(EmailBuilder)
     await wrapper.find('[data-tab="body"]').trigger('click')
-    expect(wrapper.text()).toContain('Preheader')
-    expect(wrapper.text()).toContain('Subrayar links')
+    expect(wrapper.text()).toContain('Texto del preheader')
+    expect(wrapper.text()).toContain('Subrayado')
   })
 
   it('seleccionar un elemento muestra propiedades con acciones y cerrar vuelve al tab', async () => {
@@ -48,7 +48,7 @@ describe('SidePanel', () => {
     expect(wrapper.find('.vmd-props-header').exists()).toBe(true)
     await wrapper.find('[data-tab="body"]').trigger('click')
     expect(wrapper.find('.vmd-props-header').exists()).toBe(false)
-    expect(wrapper.text()).toContain('Preheader')
+    expect(wrapper.text()).toContain('Texto del preheader')
   })
 
   it('re-seleccionar un elemento vuelve a propiedades', async () => {

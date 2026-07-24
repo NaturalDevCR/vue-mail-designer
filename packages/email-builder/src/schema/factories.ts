@@ -27,8 +27,11 @@ export function createDocument(): EmailDocument {
     settings: {
       contentWidth: 600,
       backgroundColor: '#f4f4f5',
+      textColor: '#000000',
       fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif",
+      fontWeight: 'normal',
       preheader: '',
+      htmlTitle: '',
       contentAlignment: 'center',
       linkColor: '#3b82f6',
       linkUnderline: true,
@@ -50,7 +53,7 @@ export function createRow(widths: number[]): Row {
   return {
     id: createId('row'),
     // transparente por defecto: así el color/imagen de fondo del cuerpo se ve a través de la fila
-    style: { backgroundColor: 'transparent', padding: pad(8, 0, 8, 0), borderRadius: 0 },
+    style: { backgroundColor: 'transparent', contentBackgroundColor: 'transparent', padding: pad(8, 0, 8, 0), borderRadius: 0 },
     columns: widths.map((w) => createColumn(w)),
   }
 }

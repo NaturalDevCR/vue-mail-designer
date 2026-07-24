@@ -35,7 +35,7 @@ describe('renderer fase B — props ricas', () => {
   it('fila con imagen de fondo emite background y estilos', () => {
     const html = docWith((doc) => {
       const row = createRow([100])
-      row.style.backgroundImage = { url: 'https://cdn.x/bg.jpg', repeat: 'no-repeat', size: 'cover', position: 'center' }
+      row.style.backgroundImage = { url: 'https://cdn.x/bg.jpg', repeat: 'no-repeat', size: 'cover', position: 'center', fullWidth: false }
       doc.rows.push(row)
     })
     expect(html).toContain('background="https://cdn.x/bg.jpg"')
@@ -67,7 +67,7 @@ describe('renderer fase B — props ricas', () => {
 describe('fondo del cuerpo (settings.backgroundImage)', () => {
   it('emite background image en el body y valida retrocompat sin el campo', () => {
     const doc = createDocument()
-    doc.settings.backgroundImage = { url: 'https://cdn.x/bg.jpg', repeat: 'repeat', size: 'contain', position: 'top' }
+    doc.settings.backgroundImage = { url: 'https://cdn.x/bg.jpg', repeat: 'repeat', size: 'contain', position: 'top', fullWidth: false }
     const html = renderHtml(doc)
     expect(html).toContain('background="https://cdn.x/bg.jpg"')
     expect(html).toContain('background-image:url(https://cdn.x/bg.jpg)')

@@ -237,7 +237,10 @@ export const useDocumentStore = defineStore('vmd-document', () => {
 
   function loadDesign(next: EmailDocument) {
     commit()
-    doc.value = clone(next)
+    // normaliza vía zod: documentos guardados antes de agregar un campo nuevo (con
+    // .default()) llegan sin él — parse() lo completa en vez de dejarlo undefined.
+    const parsed = zEmailDocument.safeParse(clone(next))
+    doc.value = parsed.success ? parsed.data : clone(next)
     selection.value = null
   }
 

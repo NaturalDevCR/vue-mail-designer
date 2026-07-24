@@ -76,16 +76,22 @@ function selectRow() {
 function rowIndex(): number {
   return store.doc.rows.findIndex((r) => r.id === props.row.id)
 }
+// inserta una fila de 1 columna y abre de una vez el inspector (con el selector de
+// estructura de columnas arriba de todo) para que el usuario elija el layout ahí mismo.
 function addAbove() {
   const i = rowIndex()
-  if (i !== -1) store.select({ kind: 'row', id: store.addRow([100], i).id })
+  if (i === -1) return
+  store.select({ kind: 'row', id: store.addRow([100], i).id })
+  ui.panelMode = 'props'
 }
 function addBelow() {
   const i = rowIndex()
-  if (i !== -1) store.select({ kind: 'row', id: store.addRow([100], i + 1).id })
+  if (i === -1) return
+  store.select({ kind: 'row', id: store.addRow([100], i + 1).id })
+  ui.panelMode = 'props'
 }
 
-// arrastrar la fila (solo desde el handle ✥)
+// arrastrar la fila (solo desde el handle de mover)
 useDraggableItem({
   el,
   handle,
