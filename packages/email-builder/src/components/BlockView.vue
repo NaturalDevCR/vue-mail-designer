@@ -1,12 +1,13 @@
 <template>
   <div
+    ref="el"
     class="vmd-block"
-    :class="{ 'vmd-selected': isSelected }"
+    :class="{ 'vmd-selected': isSelected, 'vmd-drop-before': blockEdge === 'before', 'vmd-drop-after': blockEdge === 'after' }"
     @click.stop="selectBlock"
   >
     <span v-if="showHiddenBadge" class="vmd-hidden-badge">Oculto aquí</span>
     <div class="vmd-block-actions">
-      <button type="button" class="vmd-mini-btn vmd-drag-handle" :title="t('props.move')"><span class="vmd-ico" v-html="ICONS.move" /></button>
+      <button ref="handle" type="button" class="vmd-mini-btn vmd-drag-handle" :title="t('props.move')"><span class="vmd-ico" v-html="ICONS.move" /></button>
       <button type="button" class="vmd-mini-btn" :title="t('props.duplicate')" @click.stop="store.duplicateBlock(block.id)"><span class="vmd-ico" v-html="ICONS.duplicate" /></button>
       <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" :title="t('props.delete')" @click.stop="store.removeBlock(block.id)"><span class="vmd-ico" v-html="ICONS.trash" /></button>
     </div>
@@ -167,7 +168,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { SOCIAL_BRANDS, socialSvg } from '../render/html'
 import type { Block, Padding, SocialNetworkKind } from '../schema'
 import { useDocumentStore } from '../store/document'
@@ -175,15 +176,33 @@ import { useBuilderPinia } from '../store/keys'
 import { useUiStore } from '../store/ui'
 import { useBuilderOptions } from '../options'
 import { useI18n } from '../i18n/useI18n'
+import { useDraggableItem, useDropTarget } from '../dnd/usePragmatic'
+import { dropBlock } from '../dnd/applyDrop'
 import RichTextEditor from './RichTextEditor.vue'
 import { ICONS } from './icons'
 
-const props = defineProps<{ block: Block }>()
+const props = withDefaults(defineProps<{ block: Block; columnId?: string }>(), { columnId: '' })
 const pinia = useBuilderPinia()
 const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
 const options = useBuilderOptions()
 const { t } = useI18n()
+const el = ref<HTMLElement | null>(null)
+const handle = ref<HTMLElement | null>(null)
+
+useDraggableItem({
+  el,
+  handle,
+  getData: () => ({ kind: 'canvas-block', blockId: props.block.id, columnId: props.columnId }),
+  previewLabel: () => props.block.type,
+})
+
+const { edge: blockEdge } = useDropTarget({
+  el,
+  getData: () => ({ vmdBlockId: props.block.id }),
+  accept: (d) => d.kind === 'palette-block' || d.kind === 'canvas-block',
+  onDrop: (drag, e) => dropBlock(store, drag, props.columnId, props.block.id, e),
+})
 
 const customHtml = computed<string | null>(() => {
   const b = props.block

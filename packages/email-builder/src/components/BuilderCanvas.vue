@@ -1,42 +1,34 @@
 <template>
-  <section class="vmd-canvas" @click.self="store.select(null)">
+  <section ref="scrollEl" class="vmd-canvas" @click.self="store.select(null)">
     <div class="vmd-canvas-page" :style="pageStyle">
       <div v-if="store.doc.rows.length === 0" class="vmd-canvas-empty">
         <p>{{ t('canvas.emptyHint') }}</p>
         <button type="button" class="vmd-btn vmd-btn--primary" @click="store.addRow([100])">{{ t('canvas.addRow') }}</button>
       </div>
-      <draggable
-        :model-value="store.doc.rows"
-        group="rows"
-        item-key="id"
-        class="vmd-canvas-rows"
-        v-bind="DND_OPTIONS"
-        @update:model-value="store.replaceRows($event)"
-        @start="ui.isDragging = true"
-        @end="onDragEnd"
-      >
-        <template #item="{ element }">
-          <RowView :row="element" />
-        </template>
-      </draggable>
+      <div ref="rowsEl" class="vmd-canvas-rows" :class="{ 'vmd-drop-active': containerEdge !== null }">
+        <RowView v-for="row in store.doc.rows" :key="row.id" :row="row" />
+      </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import draggable from 'vuedraggable'
+import { computed, ref } from 'vue'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
 import { useUiStore } from '../store/ui'
 import { useI18n } from '../i18n/useI18n'
-import { DND_OPTIONS } from './dnd'
+import { useDragMonitor, useDropTarget } from '../dnd/usePragmatic'
+import { dropRow } from '../dnd/applyDrop'
 import RowView from './RowView.vue'
 
 const pinia = useBuilderPinia()
 const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
 const { t } = useI18n()
+
+const scrollEl = ref<HTMLElement | null>(null)
+const rowsEl = ref<HTMLElement | null>(null)
 
 const pageWidth = computed(() => (ui.canvasDevice === 'mobile' ? 375 : store.doc.settings.contentWidth))
 
@@ -55,8 +47,23 @@ const pageStyle = computed(() => {
   return style
 })
 
-function onDragEnd() {
-  ui.isDragging = false
-  store.sealHistory()
-}
+// zona de drop del contenedor: recibe filas y las agrega al final (las RowView internas
+// manejan la posición precisa; esta atrapa el drop en el espacio vacío o cuando no hay filas)
+const { edge: containerEdge } = useDropTarget({
+  el: rowsEl,
+  getData: () => ({ vmdRowsContainer: true }),
+  accept: (d) => d.kind === 'palette-row' || d.kind === 'canvas-row',
+  onDrop: (drag) => dropRow(store, drag, null, null),
+})
+
+useDragMonitor({
+  scrollEl,
+  onStart: () => {
+    ui.isDragging = true
+  },
+  onEnd: () => {
+    ui.isDragging = false
+    store.sealHistory()
+  },
+})
 </script>
