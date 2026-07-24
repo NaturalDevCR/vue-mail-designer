@@ -43,6 +43,8 @@ export const ICONS: Record<string, string> = {
   moon: svg('<path d="M20 14a8 8 0 1 1-9.5-9.8A6 6 0 0 0 20 14z"/>'),
   chevronDown: svg('<path d="m6 9 6 6 6-6"/>'),
   plus: svg('<path d="M12 5v14M5 12h14"/>'),
+  check: svg('<path d="M5 13l4 4L19 7"/>'),
+  play: svg('<circle cx="12" cy="12" r="9"/><path d="m10 9 5 3-5 3z" fill="currentColor" stroke="none"/>'),
 
   // --- editor de texto ---
   bold: svg('<path d="M7 5h6.5a3.5 3.5 0 0 1 0 7H7zM7 12h7.5a3.5 3.5 0 0 1 0 7H7z"/>'),

@@ -5,7 +5,7 @@
       {{ t('header.templates') }}
     </button>
     <span class="vmd-header-spacer" />
-    <span class="vmd-header-status">● {{ t('header.saved') }}</span>
+    <span class="vmd-header-status"><span class="vmd-status-dot" />{{ t('header.saved') }}</span>
     <button type="button" class="vmd-header-btn vmd-header-btn--icon" :title="ui.theme === 'dark' ? t('header.themeLight') : t('header.themeDark')" @click="ui.toggleTheme()">
       <span class="vmd-ico" v-html="ui.theme === 'dark' ? ICONS.sun : ICONS.moon" />
     </button>

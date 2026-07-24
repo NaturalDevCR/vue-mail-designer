@@ -142,9 +142,11 @@
 .vmd-b-text p { margin: 0 0 0.5em; }
 .vmd-b-text p:last-child { margin-bottom: 0; }
 .vmd-b-image-placeholder {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
   padding: 24px; border: 1px dashed var(--vmd-border); border-radius: 6px;
   color: var(--vmd-muted); font-size: 13px; text-align: center; background: rgba(0,0,0,.02);
 }
+.vmd-b-image-placeholder .vmd-ico svg { width: 22px; height: 22px; }
 .vmd-b-button { display: inline-block; font-weight: bold; }
 .vmd-b-spacer { background: repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(0,0,0,.04) 6px, rgba(0,0,0,.04) 12px); }
 .vmd-b-social-icon { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; border-radius: 50%; color: #fff; }
@@ -152,12 +154,14 @@
 .vmd-b-video { position: relative; display: inline-block; }
 .vmd-b-video-play {
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  font-size: 40px; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.6);
+  color: #fff; filter: drop-shadow(0 1px 6px rgba(0,0,0,.6));
 }
+.vmd-b-video-play svg { width: 48px; height: 48px; }
 .vmd-b-table { width: 100%; }
 .vmd-b-table th, .vmd-b-table td { vertical-align: top; }
 .vmd-b-gallery { width: 100%; }
-.vmd-b-gallery-placeholder { padding: 12px; font-size: 20px; }
+.vmd-b-gallery-placeholder { padding: 12px; }
+.vmd-b-gallery-placeholder .vmd-ico svg { width: 20px; height: 20px; }
 .vmd-hidden-badge {
   position: absolute; top: -10px; left: 4px; z-index: 5; pointer-events: none;
   background: var(--vmd-accent); color: #fff; font-size: 10px; line-height: 1;
@@ -193,6 +197,18 @@
 .vmd-checkbox-field { display: flex; align-items: center; gap: 8px; }
 .vmd-checkbox-field .vmd-field-label { margin-bottom: 0; }
 .vmd-props-section-title { margin: 16px 0 8px; font-size: 12px; text-transform: uppercase; color: var(--vmd-muted); border-top: 1px solid var(--vmd-border); padding-top: 12px; }
+.vmd-props-subtitle { margin: 12px 0 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--vmd-muted); }
+
+/* tabs de propiedades de columna en el inspector de fila */
+.vmd-col-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--vmd-border); margin-bottom: 12px; overflow-x: auto; }
+.vmd-col-tab {
+  flex: none; padding: 6px 10px; font-size: 12px; border: none; border-bottom: 2px solid transparent;
+  background: transparent; color: var(--vmd-muted); cursor: pointer;
+}
+.vmd-col-tab:hover { color: var(--vmd-fg); }
+.vmd-col-tab.vmd-active { color: var(--vmd-accent); border-bottom-color: var(--vmd-accent); font-weight: 600; }
+
+.vmd-mini-btn--text { width: auto; padding: 0 10px; font-size: 11px; }
 .vmd-table-toolbar { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
 .vmd-table-grid { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
 .vmd-table-grid-row { display: flex; gap: 4px; }
@@ -266,7 +282,8 @@
 .vmd-btn-export { display: inline-flex; align-items: center; gap: 4px; }
 .vmd-btn-export .vmd-ico svg { width: 15px; height: 15px; }
 .vmd-header-spacer { flex: 1; }
-.vmd-header-status { font-size: 12px; color: #7dd3a8; }
+.vmd-header-status { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: #7dd3a8; }
+.vmd-status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .vmd-export { position: relative; }
 .vmd-btn-export {
   padding: 8px 18px; border: 0; border-radius: 6px; background: #2f9bf4; color: #fff;

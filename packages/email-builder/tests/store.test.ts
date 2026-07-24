@@ -101,4 +101,18 @@ describe('useDocumentStore', () => {
     expect(store.doc.rows).toHaveLength(0)
     expect(store.selection).toBeNull()
   })
+
+  it('loadDesign normaliza documentos guardados antes de campos nuevos (defaults, no undefined)', () => {
+    const store = useDocumentStore()
+    const legacy = createDocument() as Record<string, unknown>
+    const settings = { ...(legacy.settings as Record<string, unknown>) }
+    delete settings.textColor
+    delete settings.fontWeight
+    delete settings.htmlTitle
+    legacy.settings = settings
+    store.loadDesign(legacy as never)
+    expect(store.doc.settings.textColor).toBe('#000000')
+    expect(store.doc.settings.fontWeight).toBe('normal')
+    expect(store.doc.settings.htmlTitle).toBe('')
+  })
 })

@@ -16,6 +16,9 @@ export const zBackgroundImage = z.object({
   repeat: z.enum(['no-repeat', 'repeat', 'repeat-x', 'repeat-y']),
   size: z.enum(['auto', 'cover', 'contain']),
   position: z.string(),
+  // solo aplica a nivel de fila: si es true, la imagen cubre el ancho completo (fuera del
+  // contenedor de contenido); si es false/ausente, queda confinada al ancho de contenido.
+  fullWidth: z.boolean().default(false),
 })
 export type BackgroundImage = z.infer<typeof zBackgroundImage>
 
@@ -255,6 +258,9 @@ export const zRow = z.object({
   id: z.string(),
   style: z.object({
     backgroundColor: z.string(),
+    // fondo del área de contenido (ancho de contenido), distinto del backgroundColor
+    // que ahora bleedea a todo el ancho del cliente de correo.
+    contentBackgroundColor: z.string().default('transparent'),
     padding: zPadding,
     borderRadius: z.number(),
     backgroundImage: zBackgroundImage.optional(),
@@ -267,8 +273,11 @@ export const zRow = z.object({
 export const zEmailSettings = z.object({
   contentWidth: z.number().min(320).max(900),
   backgroundColor: z.string(),
+  textColor: z.string().default('#000000'),
   fontFamily: z.string(),
+  fontWeight: z.enum(['normal', 'bold']).default('normal'),
   preheader: z.string(),
+  htmlTitle: z.string().default(''),
   contentAlignment: z.enum(['left', 'center']).default('center'),
   linkColor: z.string().default('#3b82f6'),
   linkUnderline: z.boolean().default(true),

@@ -22,7 +22,9 @@
           />
         </div>
         <div class="vmd-toolbar-group">
-          <button type="button" class="vmd-btn" @click="copyHtml">{{ copied ? '✓ Copiado' : 'Copiar HTML' }}</button>
+          <button type="button" class="vmd-btn" @click="copyHtml">
+            <span v-if="copied" class="vmd-ico" v-html="ICONS.check" />{{ copied ? 'Copiado' : 'Copiar HTML' }}
+          </button>
           <button type="button" class="vmd-btn vmd-btn--icon" title="Cerrar" @click="ui.previewOpen = false"><span class="vmd-ico" v-html="ICONS.close" /></button>
         </div>
       </div>
