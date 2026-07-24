@@ -19,8 +19,9 @@
         color: block.style.color,
         fontSize: block.style.fontSize + 'px',
         textAlign: block.style.align,
-        fontWeight: 'bold',
+        fontWeight: block.fontWeight,
         lineHeight: String(block.style.lineHeight),
+        letterSpacing: block.style.letterSpacing + 'px',
         padding: padCss(block.style.padding),
         fontFamily: block.fontFamily || fontFamily,
       }"
@@ -33,6 +34,7 @@
         color: block.style.color,
         fontSize: block.style.fontSize + 'px',
         lineHeight: String(block.style.lineHeight),
+        letterSpacing: block.style.letterSpacing + 'px',
         padding: padCss(block.style.padding),
         fontFamily: block.fontFamily || fontFamily,
       }"
@@ -47,7 +49,12 @@
 
     <!-- image -->
     <div v-else-if="block.type === 'image'" :style="{ padding: padCss(block.style.padding), textAlign: block.align }">
-      <img v-if="block.src" :src="block.src" :alt="block.alt" :style="{ width: block.widthPct + '%', display: 'inline-block' }" />
+      <img
+        v-if="block.src"
+        :src="block.src"
+        :alt="block.alt"
+        :style="block.widthAuto ? { width: 'auto', maxWidth: '100%', display: 'inline-block' } : { width: block.widthPct + '%', display: 'inline-block' }"
+      />
       <div v-else class="vmd-b-image-placeholder"><span class="vmd-ico" v-html="ICONS.image" />Selecciona una imagen en el inspector</div>
     </div>
 
@@ -59,6 +66,8 @@
           background: block.style.backgroundColor,
           color: block.style.color,
           fontSize: block.style.fontSize + 'px',
+          lineHeight: String(block.style.lineHeight),
+          letterSpacing: block.style.letterSpacing + 'px',
           borderRadius: block.style.borderRadius + 'px',
           padding: block.style.innerPaddingY + 'px ' + block.style.innerPaddingX + 'px',
           fontFamily: fontFamily,
@@ -71,8 +80,8 @@
     </div>
 
     <!-- divider -->
-    <div v-else-if="block.type === 'divider'" :style="{ padding: padCss(block.style.padding), textAlign: 'center' }">
-      <div :style="{ width: block.style.widthPct + '%', display: 'inline-block', borderTop: block.style.thickness + 'px solid ' + block.style.color }" />
+    <div v-else-if="block.type === 'divider'" :style="{ padding: padCss(block.style.padding), textAlign: block.style.align }">
+      <div :style="{ width: block.style.widthPct + '%', display: 'inline-block', borderTop: block.style.thickness + 'px ' + block.style.lineStyle + ' ' + block.style.color }" />
     </div>
 
     <!-- spacer -->
@@ -88,6 +97,7 @@
           width: block.iconSize + 'px', height: block.iconSize + 'px',
           margin: '0 ' + block.spacing / 2 + 'px',
           background: SOCIAL_BRANDS[n.kind].color,
+          borderRadius: block.iconShape === 'circle' ? '50%' : block.iconShape === 'rounded' ? '8px' : '0',
         }"
         v-html="socialGlyphHtml(n.kind, block.iconSize)"
       />
@@ -96,16 +106,21 @@
     <!-- menu -->
     <div
       v-else-if="block.type === 'menu'"
-      :style="{ padding: padCss(block.style.padding), textAlign: block.align, color: block.style.color, fontSize: block.style.fontSize + 'px', fontFamily: fontFamily }"
+      :style="{ padding: padCss(block.style.padding), textAlign: block.align, color: block.style.color, fontSize: block.style.fontSize + 'px', letterSpacing: block.style.letterSpacing + 'px', fontWeight: block.fontWeight, fontFamily: block.fontFamily || fontFamily }"
     >
-      <template v-for="(it, i) in block.items" :key="i">
-        <span v-if="i > 0" style="padding: 0 8px">{{ block.separator }}</span>
-        <span>{{ it.label }}</span>
+      <template v-if="block.layout === 'vertical'">
+        <div v-for="(it, i) in block.items" :key="i" :style="{ padding: padCss(block.style.itemPadding), color: block.linkColor || block.style.color }">{{ it.label }}</div>
+      </template>
+      <template v-else>
+        <template v-for="(it, i) in block.items" :key="i">
+          <span v-if="i > 0" style="padding: 0 4px">{{ block.separator }}</span>
+          <span :style="{ padding: padCss(block.style.itemPadding), color: block.linkColor || block.style.color, display: 'inline-block' }">{{ it.label }}</span>
+        </template>
       </template>
     </div>
 
     <!-- html -->
-    <div v-else-if="block.type === 'html'" class="vmd-b-html" v-html="block.code" />
+    <div v-else-if="block.type === 'html'" class="vmd-b-html" :style="{ padding: padCss(block.style.padding) }" v-html="block.code" />
 
     <!-- video -->
     <div v-else-if="block.type === 'video'" :style="{ padding: padCss(block.style.padding), textAlign: 'center' }">
@@ -131,7 +146,10 @@
               :style="{
                 border: block.style.borderWidth + 'px solid ' + block.style.borderColor,
                 padding: block.style.cellPadding + 'px',
-                background: block.headerRow && r === 0 ? block.style.headerBackground : 'transparent',
+                background: block.headerRow && r === 0
+                  ? block.style.headerBackground
+                  : block.stripedRows && (block.headerRow ? r % 2 === 0 : r % 2 === 1) ? 'rgba(0,0,0,.03)' : 'transparent',
+                color: block.headerRow && r === 0 && block.style.headerColor ? block.style.headerColor : block.style.color,
                 textAlign: 'left',
               }"
             >{{ cell }}</component>

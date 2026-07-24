@@ -14,19 +14,17 @@
       <span class="vmd-ico" v-html="ICONS.plus" />
     </button>
 
-    <!-- handle de arrastre, flotando fuera del canvas -->
-    <button ref="handle" type="button" class="vmd-row-handle vmd-drag-handle" :title="t('props.move')">
-      <span class="vmd-ico" v-html="ICONS.move" />
-    </button>
-
-    <!-- barra de acciones (aparece al hover / seleccción) -->
+    <!-- barra de acciones (aparece al hover / selección) — siempre dentro del canvas para que
+         nunca dependa de espacio libre alrededor (el handle externo se recortaba en pantallas
+         angostas y quedaba inalcanzable) -->
     <div class="vmd-row-actions">
+      <button ref="handle" type="button" class="vmd-mini-btn vmd-drag-handle" :title="t('props.move')"><span class="vmd-ico" v-html="ICONS.move" /></button>
       <button type="button" class="vmd-mini-btn" :title="t('props.rowSettings')" @click.stop="selectRow"><span class="vmd-ico" v-html="ICONS.settings" /></button>
       <button type="button" class="vmd-mini-btn" :title="t('props.duplicate')" @click.stop="store.duplicateRow(row.id)"><span class="vmd-ico" v-html="ICONS.duplicate" /></button>
       <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" :title="t('props.delete')" @click.stop="store.removeRow(row.id)"><span class="vmd-ico" v-html="ICONS.trash" /></button>
     </div>
 
-    <!-- etiqueta identificadora -->
+    <!-- etiqueta identificadora (decorativa: no debe interceptar clics sobre el bloque de abajo) -->
     <span class="vmd-row-tag">{{ t('props.row') }}</span>
 
     <div class="vmd-row-columns">

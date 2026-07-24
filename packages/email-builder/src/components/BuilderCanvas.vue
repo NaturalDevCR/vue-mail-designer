@@ -1,11 +1,11 @@
 <template>
   <section ref="scrollEl" class="vmd-canvas" @click.self="store.select(null)">
     <div class="vmd-canvas-page" :style="pageStyle">
-      <div v-if="store.doc.rows.length === 0" class="vmd-canvas-empty">
-        <p>{{ t('canvas.emptyHint') }}</p>
-        <button type="button" class="vmd-btn vmd-btn--primary" @click="store.addRow([100])">{{ t('canvas.addRow') }}</button>
-      </div>
       <div ref="rowsEl" class="vmd-canvas-rows" :class="{ 'vmd-drop-active': containerEdge !== null }">
+        <div v-if="store.doc.rows.length === 0" class="vmd-canvas-empty">
+          <p>{{ t('canvas.emptyHint') }}</p>
+          <button type="button" class="vmd-btn vmd-btn--primary" @click="store.addRow([100])">{{ t('canvas.addRow') }}</button>
+        </div>
         <RowView v-for="row in store.doc.rows" :key="row.id" :row="row" />
       </div>
     </div>
@@ -19,7 +19,7 @@ import { useBuilderPinia } from '../store/keys'
 import { useUiStore } from '../store/ui'
 import { useI18n } from '../i18n/useI18n'
 import { useDragMonitor, useDropTarget } from '../dnd/usePragmatic'
-import { dropRow } from '../dnd/applyDrop'
+import { dropBlockOnEmptyCanvas, dropRow } from '../dnd/applyDrop'
 import RowView from './RowView.vue'
 
 const pinia = useBuilderPinia()
@@ -52,8 +52,11 @@ const pageStyle = computed(() => {
 const { edge: containerEdge } = useDropTarget({
   el: rowsEl,
   getData: () => ({ vmdRowsContainer: true }),
-  accept: (d) => d.kind === 'palette-row' || d.kind === 'canvas-row',
-  onDrop: (drag) => dropRow(store, drag, null, null),
+  accept: (d) => d.kind === 'palette-row' || d.kind === 'canvas-row' || (store.doc.rows.length === 0 && (d.kind === 'palette-block' || d.kind === 'canvas-block')),
+  onDrop: (drag) => {
+    if (drag.kind === 'palette-row' || drag.kind === 'canvas-row') dropRow(store, drag, null, null)
+    else if (store.doc.rows.length === 0) dropBlockOnEmptyCanvas(store, drag)
+  },
 })
 
 useDragMonitor({

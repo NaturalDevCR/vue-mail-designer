@@ -36,3 +36,16 @@ export function dropBlock(
     store.moveBlock(drag.blockId, columnId, insertIdx)
   }
 }
+
+/**
+ * Suelta un bloque en el canvas vacío: crea una fila de 1 columna y lo inserta ahí.
+ * addRow + insertBlockAt/moveBlock hacen dos commits de historial separados; se fusionan
+ * en uno solo para que un único undo revierta todo el drop (crear fila + insertar bloque).
+ */
+export function dropBlockOnEmptyCanvas(store: Store, drag: DragData): void {
+  if (drag.kind !== 'palette-block' && drag.kind !== 'canvas-block') return
+  const row = store.addRow([100])
+  const before = store.past.length
+  dropBlock(store, drag, row.columns[0].id, null, null)
+  if (store.past.length === before + 1) store.past.pop()
+}

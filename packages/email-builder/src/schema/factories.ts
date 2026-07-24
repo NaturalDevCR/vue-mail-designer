@@ -63,31 +63,31 @@ export function createBlock(type: BlockType): Block {
   switch (type) {
     case 'heading':
       return {
-        id, type, text: 'Escribe un título', level: 1,
-        style: { color: '#111827', fontSize: 28, align: 'left', lineHeight: 1.3, padding: pad(12, 24, 12, 24) },
+        id, type, text: 'Escribe un título', level: 1, fontWeight: 'bold',
+        style: { color: '#111827', fontSize: 28, align: 'left', lineHeight: 1.3, letterSpacing: 0, padding: pad(12, 24, 12, 24) },
       }
     case 'text':
       return {
         id, type, html: '<p>Escribe aquí tu texto.</p>',
-        style: { color: '#374151', fontSize: 14, lineHeight: 1.6, padding: pad(8, 24, 8, 24) },
+        style: { color: '#374151', fontSize: 14, lineHeight: 1.6, letterSpacing: 0, padding: pad(8, 24, 8, 24) },
       }
     case 'image':
       return {
-        id, type, src: '', alt: '', widthPct: 100, align: 'center',
+        id, type, src: '', alt: '', target: '_blank', widthPct: 100, widthAuto: false, align: 'center',
         style: { padding: pad(8, 24, 8, 24) },
       }
     case 'button':
       return {
-        id, type, label: 'Haz clic aquí', href: 'https://example.com', align: 'center',
+        id, type, label: 'Haz clic aquí', href: 'https://example.com', target: '_blank', align: 'center',
         style: {
-          backgroundColor: '#3b82f6', color: '#ffffff', fontSize: 14,
+          backgroundColor: '#3b82f6', color: '#ffffff', fontSize: 14, lineHeight: 1.2, letterSpacing: 0,
           borderRadius: 6, innerPaddingX: 24, innerPaddingY: 12, padding: pad(12, 24, 12, 24),
         },
       }
     case 'divider':
       return {
         id, type,
-        style: { color: '#e5e7eb', thickness: 1, widthPct: 100, padding: pad(12, 24, 12, 24) },
+        style: { color: '#e5e7eb', lineStyle: 'solid', thickness: 1, widthPct: 100, align: 'center', padding: pad(12, 24, 12, 24) },
       }
     case 'spacer':
       return { id, type, height: 24 }
@@ -99,7 +99,7 @@ export function createBlock(type: BlockType): Block {
           { kind: 'instagram', url: 'https://instagram.com/' },
           { kind: 'x', url: 'https://x.com/' },
         ],
-        iconSize: 32, spacing: 8, align: 'center',
+        iconShape: 'circle', iconSize: 32, spacing: 8, align: 'center',
         style: { padding: pad(12, 24, 12, 24) },
       }
     case 'menu':
@@ -110,11 +110,11 @@ export function createBlock(type: BlockType): Block {
           { label: 'Productos', href: 'https://example.com' },
           { label: 'Contacto', href: 'https://example.com' },
         ],
-        separator: '·', align: 'center',
-        style: { color: '#374151', fontSize: 14, padding: pad(12, 24, 12, 24) },
+        separator: '·', align: 'center', layout: 'horizontal', fontWeight: 'normal',
+        style: { color: '#374151', fontSize: 14, letterSpacing: 0, itemPadding: pad(5, 15, 5, 15), padding: pad(12, 24, 12, 24) },
       }
     case 'html':
-      return { id, type, code: '<div style="text-align:center">HTML personalizado</div>' }
+      return { id, type, code: '<div style="text-align:center">HTML personalizado</div>', style: { padding: pad(0, 0, 0, 0) } }
     case 'video':
       return {
         id, type, thumbnailUrl: '', videoUrl: '', alt: 'Ver video', widthPct: 100,
@@ -124,7 +124,7 @@ export function createBlock(type: BlockType): Block {
       return {
         id, type,
         rows: [['Encabezado 1', 'Encabezado 2'], ['Celda', 'Celda'], ['Celda', 'Celda']],
-        headerRow: true,
+        headerRow: true, stripedRows: false,
         style: { borderColor: '#e5e7eb', borderWidth: 1, cellPadding: 8, headerBackground: '#f4f4f5', fontSize: 14, color: '#374151', padding: pad(8, 24, 8, 24) },
       }
     case 'gallery':

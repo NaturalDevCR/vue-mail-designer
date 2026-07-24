@@ -43,7 +43,7 @@ export const es: LocaleDict = {
   'layout.33-66': '1:2',
   'layout.25-25-25-25': '4 columnas',
 
-  'canvas.emptyHint': 'Arrastra una fila desde el tab Bloques o',
+  'canvas.emptyHint': 'Arrastra un elemento o una fila aquí, o',
   'canvas.addRow': 'Agregar fila',
   'canvas.dropHere': 'Suelta un bloque aquí',
   'rte.bold': 'Negrita',

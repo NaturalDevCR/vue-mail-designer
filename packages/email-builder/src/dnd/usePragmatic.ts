@@ -79,6 +79,11 @@ export function useDropTarget(opts: {
   onMounted(() => {
     const element = opts.el.value
     if (!element) return
+    // los drop targets anidados (bloque dentro de columna dentro de fila) burbujean el
+    // evento a TODOS los targets ancestros compatibles — sin este chequeo, soltar sobre un
+    // bloque dispara también el onDrop de su columna y duplica la inserción.
+    const isInnermost = (location: { current: { dropTargets: { element: Element }[] } }) =>
+      location.current.dropTargets[0]?.element === element
     cleanup = dropTargetForElements({
       element,
       canDrop: ({ source }) => {
@@ -88,17 +93,22 @@ export function useDropTarget(opts: {
       getData: ({ input, element: el }) =>
         attachClosestEdge(opts.getData(), { input, element: el, allowedEdges: ['top', 'bottom'] }),
       getIsSticky: () => true,
-      onDrag: ({ self }) => {
+      onDrag: ({ self, location }) => {
+        if (!isInnermost(location)) {
+          edge.value = null
+          return
+        }
         const e = extractClosestEdge(self.data)
         edge.value = e === 'top' ? 'before' : e === 'bottom' ? 'after' : null
       },
       onDragLeave: () => {
         edge.value = null
       },
-      onDrop: ({ self, source }) => {
+      onDrop: ({ self, source, location }) => {
+        edge.value = null
+        if (!isInnermost(location)) return
         const d = readDrag(source.data as Record<string, unknown>)
         const e = extractClosestEdge(self.data)
-        edge.value = null
         if (d) opts.onDrop(d, e === 'top' ? 'before' : e === 'bottom' ? 'after' : null)
       },
     })

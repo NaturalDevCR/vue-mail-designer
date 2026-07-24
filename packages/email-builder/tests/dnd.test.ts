@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
 import EmailBuilder from '../src/components/EmailBuilder.vue'
-import { dropBlock, dropRow } from '../src/dnd/applyDrop'
+import { dropBlock, dropBlockOnEmptyCanvas, dropRow } from '../src/dnd/applyDrop'
 import { createBlock } from '../src/schema'
 import { useDocumentStore } from '../src/store/document'
 
@@ -48,6 +48,17 @@ describe('applyDrop — bloques', () => {
     dropBlock(store, { kind: 'canvas-block', blockId: block.id, columnId: colA.id }, colB.id, null, null)
     expect(store.findColumn(colA.id)!.column.blocks).toHaveLength(0)
     expect(store.findColumn(colB.id)!.column.blocks[0].id).toBe(block.id)
+  })
+
+  it('palette-block en canvas vacío crea una fila de 1 columna y un solo paso de undo', () => {
+    const store = useDocumentStore()
+    const base = store.past.length
+    dropBlockOnEmptyCanvas(store, { kind: 'palette-block', create: () => createBlock('heading') })
+    expect(store.doc.rows).toHaveLength(1)
+    expect(store.doc.rows[0].columns[0].blocks.map((b) => b.type)).toEqual(['heading'])
+    expect(store.past.length).toBe(base + 1)
+    store.undo()
+    expect(store.doc.rows).toHaveLength(0)
   })
 
   it('un movimiento entre columnas es un solo paso de undo', () => {

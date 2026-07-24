@@ -43,7 +43,7 @@ export const en: LocaleDict = {
   'layout.33-66': '1:2',
   'layout.25-25-25-25': '4 columns',
 
-  'canvas.emptyHint': 'Drag a row from the Blocks tab or',
+  'canvas.emptyHint': 'Drag an element or a row here, or',
   'canvas.addRow': 'Add row',
   'canvas.dropHere': 'Drop a block here',
   'rte.bold': 'Bold',

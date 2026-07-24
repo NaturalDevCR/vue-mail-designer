@@ -292,14 +292,16 @@ function toBlock(content: Record<string, unknown>, warnings: Set<string>): Block
       b.text = stripTags(typeof values.text === 'string' ? values.text : '')
       const headingType = typeof values.headingType === 'string' ? values.headingType : 'h1'
       const level = parseInt(headingType.replace(/[^0-9]/g, ''), 10)
-      b.level = level === 1 || level === 2 || level === 3 ? level : 1
+      b.level = level === 1 || level === 2 || level === 3 || level === 4 ? level : 1
       const fontFamily = getFontFamily(values.fontFamily)
       if (fontFamily) b.fontFamily = fontFamily
+      if (values.fontWeight === 'normal' || values.fontWeight === 'bold') b.fontWeight = values.fontWeight
       b.style = {
         color: typeof values.color === 'string' ? values.color : b.style.color,
         fontSize: parsePx(values.fontSize as string | number | undefined, b.style.fontSize),
         align: toAlign(values.textAlign, 'left'),
         lineHeight: parsePercent(values.lineHeight, b.style.lineHeight),
+        letterSpacing: parsePx(values.letterSpacing as string | number | undefined, b.style.letterSpacing),
         padding: parseShorthandPadding(values.containerPadding as string | undefined),
       }
       return b
@@ -309,10 +311,14 @@ function toBlock(content: Record<string, unknown>, warnings: Set<string>): Block
       if (typeof values.text === 'string') b.html = values.text
       const fontFamily = getFontFamily(values.fontFamily)
       if (fontFamily) b.fontFamily = fontFamily
+      const linkStyle = values.linkStyle as Record<string, unknown> | undefined
+      if (typeof linkStyle?.linkColor === 'string') b.linkColor = linkStyle.linkColor
+      if (typeof linkStyle?.linkUnderline === 'boolean') b.linkUnderline = linkStyle.linkUnderline
       b.style = {
         color: typeof values.color === 'string' ? values.color : b.style.color,
         fontSize: parsePx(values.fontSize as string | number | undefined, b.style.fontSize),
         lineHeight: parsePercent(values.lineHeight, b.style.lineHeight),
+        letterSpacing: parsePx(values.letterSpacing as string | number | undefined, b.style.letterSpacing),
         padding: parseShorthandPadding(values.containerPadding as string | undefined),
       }
       return b
@@ -323,6 +329,7 @@ function toBlock(content: Record<string, unknown>, warnings: Set<string>): Block
       const hrefObj = values.href as Record<string, unknown> | undefined
       const hrefVals = hrefObj?.values as Record<string, unknown> | undefined
       if (typeof hrefVals?.href === 'string') b.href = hrefVals.href
+      if (hrefVals?.target === '_self' || hrefVals?.target === '_blank') b.target = hrefVals.target
       b.align = toAlign(values.textAlign, 'center')
       const colors = values.buttonColors as Record<string, unknown> | undefined
       const innerPad = parseShorthandPadding(values.padding as string | undefined)
@@ -330,6 +337,8 @@ function toBlock(content: Record<string, unknown>, warnings: Set<string>): Block
         backgroundColor: typeof colors?.backgroundColor === 'string' ? colors.backgroundColor : b.style.backgroundColor,
         color: typeof colors?.color === 'string' ? colors.color : b.style.color,
         fontSize: parsePx(values.fontSize as string | number | undefined, b.style.fontSize),
+        lineHeight: parsePercent(values.lineHeight, b.style.lineHeight),
+        letterSpacing: parsePx(values.letterSpacing as string | number | undefined, b.style.letterSpacing),
         borderRadius: parsePx(values.borderRadius as string | number | undefined, b.style.borderRadius),
         innerPaddingX: innerPad.left,
         innerPaddingY: innerPad.top,
@@ -347,10 +356,13 @@ function toBlock(content: Record<string, unknown>, warnings: Set<string>): Block
     case 'divider': {
       const b = createBlock('divider') as DividerBlock
       const border = values.border as Record<string, unknown> | undefined
+      const lineStyle = border?.borderTopStyle
       b.style = {
         color: typeof border?.borderTopColor === 'string' ? border.borderTopColor : b.style.color,
+        lineStyle: lineStyle === 'dashed' || lineStyle === 'dotted' ? lineStyle : 'solid',
         thickness: parsePx(border?.borderTopWidth as string | number | undefined, b.style.thickness),
         widthPct: clamp(parsePx(values.width as string | number | undefined, b.style.widthPct), 10, 100),
+        align: toAlign(values.align, 'center'),
         padding: parseShorthandPadding(values.containerPadding as string | undefined),
       }
       return b
@@ -363,13 +375,17 @@ function toBlock(content: Record<string, unknown>, warnings: Set<string>): Block
       const action = values.action as Record<string, unknown> | undefined
       const actionVals = action?.values as Record<string, unknown> | undefined
       if (typeof actionVals?.href === 'string' && actionVals.href) b.href = actionVals.href
+      if (actionVals?.target === '_self' || actionVals?.target === '_blank') b.target = actionVals.target
       b.align = toAlign(values.textAlign, 'center')
+      const autoWidth = (values.width as Record<string, unknown> | undefined)?.autoWidth
+      if (typeof autoWidth === 'boolean') b.widthAuto = autoWidth
       b.style = { padding: parseShorthandPadding(values.containerPadding as string | undefined) }
       return b
     }
     case 'html': {
       const b = createBlock('html') as HtmlBlock
       if (typeof values.html === 'string') b.code = values.html
+      b.style = { padding: parseShorthandPadding(values.containerPadding as string | undefined) }
       return b
     }
     case 'social': {
@@ -388,6 +404,8 @@ function toBlock(content: Record<string, unknown>, warnings: Set<string>): Block
       b.align = toAlign(values.align, 'center')
       const spacing = values.spacing
       if (typeof spacing === 'number' || typeof spacing === 'string') b.spacing = parsePx(spacing, b.spacing)
+      const iconType = icons?.iconType
+      if (iconType === 'square' || iconType === 'rounded') b.iconShape = iconType
       b.style = { padding: parseShorthandPadding(values.containerPadding as string | undefined) }
       return b
     }
