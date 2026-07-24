@@ -44,7 +44,7 @@ describe('PropertiesPanel — Fase B', () => {
     const block = store.addBlockToColumn(row.columns[0].id, 'timer')
     store.select({ kind: 'block', id: block.id })
     await wrapper.vm.$nextTick()
-    expect(wrapper.text()).toContain('Fecha límite')
+    expect(wrapper.text()).toContain('Fecha y hora límite')
     expect(wrapper.text()).toContain('URL de imagen')
   })
 

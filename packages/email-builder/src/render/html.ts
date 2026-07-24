@@ -50,10 +50,10 @@ function convertMergeTags(html: string): string {
   return html.replace(MERGE_TAG_RE, (_m, value: string) => `{{${value}}}`)
 }
 
-function styleLinks(html: string, ctx: RenderCtx): string {
+function styleLinks(html: string, color: string, underline: boolean): string {
   return html.replace(
     /<a\s/g,
-    `<a style="color:${ctx.linkColor};text-decoration:${ctx.linkUnderline ? 'underline' : 'none'};" `,
+    `<a style="color:${color};text-decoration:${underline ? 'underline' : 'none'};" `,
   )
 }
 
@@ -80,15 +80,19 @@ function renderBlockInner(block: Block, ctx: RenderCtx): string {
     case 'heading': {
       const s = block.style
       const fam = block.fontFamily ?? ctx.fontFamily
+      const ls = s.letterSpacing ? `letter-spacing:${s.letterSpacing}px;` : ''
       return cellTable(
-        `<tr><td style="padding:${paddingCss(s.padding)};font-family:${fam};font-size:${s.fontSize}px;line-height:${s.lineHeight};font-weight:bold;color:${s.color};text-align:${s.align};">${escapeHtml(block.text)}</td></tr>`,
+        `<tr><td style="padding:${paddingCss(s.padding)};font-family:${fam};font-size:${s.fontSize}px;line-height:${s.lineHeight};${ls}font-weight:${block.fontWeight};color:${s.color};text-align:${s.align};">${escapeHtml(block.text)}</td></tr>`,
       )
     }
     case 'text': {
       const s = block.style
       const fam = block.fontFamily ?? ctx.fontFamily
+      const ls = s.letterSpacing ? `letter-spacing:${s.letterSpacing}px;` : ''
+      const linkColor = block.linkColor ?? ctx.linkColor
+      const linkUnderline = block.linkUnderline ?? ctx.linkUnderline
       return cellTable(
-        `<tr><td style="padding:${paddingCss(s.padding)};font-family:${fam};font-size:${s.fontSize}px;line-height:${s.lineHeight};color:${s.color};">${styleLinks(convertMergeTags(block.html), ctx)}</td></tr>`,
+        `<tr><td style="padding:${paddingCss(s.padding)};font-family:${fam};font-size:${s.fontSize}px;line-height:${s.lineHeight};${ls}color:${s.color};">${styleLinks(convertMergeTags(block.html), linkColor, linkUnderline)}</td></tr>`,
       )
     }
     case 'image': {
@@ -96,17 +100,22 @@ function renderBlockInner(block: Block, ctx: RenderCtx): string {
       if (!block.src) {
         return cellTable(`<tr><td style="padding:${paddingCss(s.padding)};"></td></tr>`)
       }
-      const img = `<img src="${escapeHtml(block.src)}" alt="${escapeHtml(block.alt)}" width="100%" style="display:block;width:100%;max-width:100%;height:auto;border:0;">`
-      const content = block.href ? `<a href="${escapeHtml(block.href)}" target="_blank">${img}</a>` : img
+      const imgStyle = block.widthAuto
+        ? 'display:block;width:auto;max-width:100%;height:auto;border:0;'
+        : 'display:block;width:100%;max-width:100%;height:auto;border:0;'
+      const img = `<img src="${escapeHtml(block.src)}" alt="${escapeHtml(block.alt)}" ${block.widthAuto ? '' : 'width="100%" '}style="${imgStyle}">`
+      const content = block.href ? `<a href="${escapeHtml(block.href)}" target="${block.target}">${img}</a>` : img
+      const tableWidth = block.widthAuto ? '' : ` width="${block.widthPct}%"`
       return cellTable(
         `<tr><td align="${block.align}" style="padding:${paddingCss(s.padding)};">` +
-        `<table role="presentation" width="${block.widthPct}%" cellpadding="0" cellspacing="0" border="0"><tr><td>${content}</td></tr></table>` +
+        `<table role="presentation"${tableWidth} cellpadding="0" cellspacing="0" border="0"><tr><td>${content}</td></tr></table>` +
         `</td></tr>`,
       )
     }
     case 'button': {
       const s = block.style
       const border = s.border ? `border:${s.border.width}px ${s.border.style} ${s.border.color};` : ''
+      const ls = s.letterSpacing ? `letter-spacing:${s.letterSpacing}px;` : ''
       // ancho fijo (%) → la tabla del botón ocupa ese % y el <a> se estira (display:block, centrado)
       const hasWidth = typeof block.widthPct === 'number'
       const btnTableWidth = hasWidth ? ` width="${block.widthPct}%"` : ''
@@ -116,16 +125,16 @@ function renderBlockInner(block: Block, ctx: RenderCtx): string {
         `<tr><td align="${block.align}" style="padding:${paddingCss(s.padding)};">` +
         `<table role="presentation"${btnTableWidth} cellpadding="0" cellspacing="0" border="0"><tr>` +
         `<td style="border-radius:${s.borderRadius}px;background-color:${s.backgroundColor};${border}${textAlign}">` +
-        `<a href="${escapeHtml(block.href)}" target="_blank" style="display:${linkDisplay};padding:${s.innerPaddingY}px ${s.innerPaddingX}px;font-family:${ctx.fontFamily};font-size:${s.fontSize}px;font-weight:bold;color:${s.color};text-decoration:none;border-radius:${s.borderRadius}px;">${escapeHtml(block.label)}</a>` +
+        `<a href="${escapeHtml(block.href)}" target="${block.target}" style="display:${linkDisplay};padding:${s.innerPaddingY}px ${s.innerPaddingX}px;font-family:${ctx.fontFamily};font-size:${s.fontSize}px;line-height:${s.lineHeight};${ls}font-weight:bold;color:${s.color};text-decoration:none;border-radius:${s.borderRadius}px;">${escapeHtml(block.label)}</a>` +
         `</td></tr></table></td></tr>`,
       )
     }
     case 'divider': {
       const s = block.style
       return cellTable(
-        `<tr><td align="center" style="padding:${paddingCss(s.padding)};">` +
+        `<tr><td align="${s.align}" style="padding:${paddingCss(s.padding)};">` +
         `<table role="presentation" width="${s.widthPct}%" cellpadding="0" cellspacing="0" border="0"><tr>` +
-        `<td style="border-top:${s.thickness}px solid ${s.color};font-size:0;line-height:0;">&nbsp;</td>` +
+        `<td style="border-top:${s.thickness}px ${s.lineStyle} ${s.color};font-size:0;line-height:0;">&nbsp;</td>` +
         `</tr></table></td></tr>`,
       )
     }
@@ -136,14 +145,15 @@ function renderBlockInner(block: Block, ctx: RenderCtx): string {
     case 'social': {
       const s = block.style
       const glyphSize = Math.round(block.iconSize * 0.62)
+      const iconRadius = block.iconShape === 'circle' ? '50%' : block.iconShape === 'rounded' ? '8px' : '0'
       const icons = block.networks
         .map(({ kind, url }) => {
           const brand = SOCIAL_BRANDS[kind]
           const dataUri = `data:image/svg+xml,${encodeURIComponent(socialSvg(kind))}`
-          // círculo de marca como fondo (degrada bien si el cliente bloquea la imagen) + glifo SVG centrado
+          // fondo de marca como color sólido (degrada bien si el cliente bloquea la imagen) + glifo SVG centrado
           return (
             `<td style="padding:0 ${block.spacing / 2}px;">` +
-            `<a href="${escapeHtml(url)}" target="_blank" style="display:inline-block;width:${block.iconSize}px;height:${block.iconSize}px;line-height:${block.iconSize}px;border-radius:50%;background-color:${brand.color};text-align:center;text-decoration:none;">` +
+            `<a href="${escapeHtml(url)}" target="_blank" style="display:inline-block;width:${block.iconSize}px;height:${block.iconSize}px;line-height:${block.iconSize}px;border-radius:${iconRadius};background-color:${brand.color};text-align:center;text-decoration:none;">` +
             `<img src="${dataUri}" alt="${kind}" width="${glyphSize}" height="${glyphSize}" style="display:inline-block;vertical-align:middle;border:0;">` +
             `</a>` +
             `</td>`
@@ -158,16 +168,28 @@ function renderBlockInner(block: Block, ctx: RenderCtx): string {
     }
     case 'menu': {
       const s = block.style
-      const sep = `<span style="padding:0 8px;color:${s.color};">${escapeHtml(block.separator)}</span>`
+      const fam = block.fontFamily ?? ctx.fontFamily
+      const linkColor = block.linkColor ?? s.color
+      const ls = s.letterSpacing ? `letter-spacing:${s.letterSpacing}px;` : ''
+      const itemStyle = `padding:${paddingCss(s.itemPadding)};color:${linkColor};font-family:${fam};font-size:${s.fontSize}px;font-weight:${block.fontWeight};${ls}text-decoration:none;`
+      if (block.layout === 'vertical') {
+        const rows = block.items
+          .map((it) => `<tr><td align="${block.align}"><a href="${escapeHtml(it.href)}" target="_blank" style="display:block;${itemStyle}">${escapeHtml(it.label)}</a></td></tr>`)
+          .join('')
+        return cellTable(`<tr><td style="padding:${paddingCss(s.padding)};"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rows}</table></td></tr>`)
+      }
+      const sep = `<span style="padding:0 4px;color:${s.color};">${escapeHtml(block.separator)}</span>`
       const items = block.items
-        .map((it) => `<a href="${escapeHtml(it.href)}" target="_blank" style="color:${s.color};font-family:${ctx.fontFamily};font-size:${s.fontSize}px;text-decoration:none;">${escapeHtml(it.label)}</a>`)
+        .map((it) => `<a href="${escapeHtml(it.href)}" target="_blank" style="display:inline-block;${itemStyle}">${escapeHtml(it.label)}</a>`)
         .join(sep)
       return cellTable(
-        `<tr><td align="${block.align}" style="padding:${paddingCss(s.padding)};font-family:${ctx.fontFamily};font-size:${s.fontSize}px;">${items}</td></tr>`,
+        `<tr><td align="${block.align}" style="padding:${paddingCss(s.padding)};font-family:${fam};font-size:${s.fontSize}px;">${items}</td></tr>`,
       )
     }
-    case 'html':
-      return cellTable(`<tr><td>${block.code}</td></tr>`)
+    case 'html': {
+      const s = block.style
+      return cellTable(`<tr><td style="padding:${paddingCss(s.padding)};">${block.code}</td></tr>`)
+    }
     case 'video': {
       const s = block.style
       if (!block.thumbnailUrl || !block.videoUrl) {
@@ -198,10 +220,15 @@ function renderBlockInner(block: Block, ctx: RenderCtx): string {
 function renderTable(block: TableBlock): string {
   const s = block.style
   const rows = block.rows.map((cells, r) => {
-    const tag = block.headerRow && r === 0 ? 'th' : 'td'
-    const bg = block.headerRow && r === 0 ? `background-color:${s.headerBackground};` : ''
+    const isHeader = block.headerRow && r === 0
+    const tag = isHeader ? 'th' : 'td'
+    const stripe = !isHeader && block.stripedRows && (block.headerRow ? r % 2 === 0 : r % 2 === 1)
+    const bg = isHeader
+      ? `background-color:${s.headerBackground};`
+      : stripe ? 'background-color:rgba(0,0,0,.03);' : ''
+    const color = isHeader && s.headerColor ? s.headerColor : s.color
     const tds = cells.map((c) =>
-      `<${tag} style="border:${s.borderWidth}px solid ${s.borderColor};padding:${s.cellPadding}px;font-size:${s.fontSize}px;color:${s.color};${bg}text-align:left;">${escapeHtml(c)}</${tag}>`,
+      `<${tag} style="border:${s.borderWidth}px solid ${s.borderColor};padding:${s.cellPadding}px;font-size:${s.fontSize}px;color:${color};${bg}text-align:left;">${escapeHtml(c)}</${tag}>`,
     ).join('')
     return `<tr>${tds}</tr>`
   }).join('')

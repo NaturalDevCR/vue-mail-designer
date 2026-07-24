@@ -50,16 +50,8 @@
 .vmd-row:hover { outline: 1px solid color-mix(in srgb, var(--vmd-accent) 55%, transparent); }
 .vmd-row.vmd-selected { outline: 2px solid var(--vmd-accent); outline-offset: -1px; box-shadow: 0 0 0 3px color-mix(in srgb, var(--vmd-accent) 18%, transparent); }
 
-/* handle de arrastre flotante, fuera del canvas a la derecha */
-.vmd-row-handle {
-  position: absolute; top: 50%; right: -40px; transform: translateY(-50%);
-  width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center;
-  border: none; border-radius: 50%; z-index: 8;
-  background: var(--vmd-accent); color: #fff; cursor: grab;
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--vmd-accent) 45%, transparent);
-}
-.vmd-row-handle:active { cursor: grabbing; }
-.vmd-row-handle .vmd-ico svg { width: 16px; height: 16px; }
+.vmd-row-actions .vmd-drag-handle { cursor: grab; }
+.vmd-row-actions .vmd-drag-handle:active { cursor: grabbing; }
 
 /* botones "+" para insertar fila arriba/abajo, centrados en el borde */
 .vmd-row-add {

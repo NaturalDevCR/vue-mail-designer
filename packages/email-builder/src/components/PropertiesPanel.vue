@@ -12,52 +12,90 @@
     <!-- Bloque seleccionado -->
     <template v-if="block">
       <template v-if="block.type === 'heading'">
+        <div class="vmd-props-section-title">Texto</div>
         <TextField label="Texto" :model-value="block.text" @update:model-value="upd({ text: $event })" />
-        <SelectField label="Nivel" :model-value="String(block.level)" :options="[{label:'H1',value:'1'},{label:'H2',value:'2'},{label:'H3',value:'3'}]" @update:model-value="upd({ level: Number($event) })" />
+        <SelectField label="Nivel" :model-value="String(block.level)" :options="HEADING_LEVEL_OPTIONS" @update:model-value="upd({ level: Number($event) })" />
         <SelectField label="Fuente" :model-value="block.fontFamily ?? ''" :options="FONT_OPTIONS" @update:model-value="updFont" />
-        <ColorField label="Color" :model-value="block.style.color" @update:model-value="upd({ style: { color: $event } })" />
+        <SelectField label="Peso de fuente" :model-value="block.fontWeight" :options="FONT_WEIGHT_OPTIONS" @update:model-value="upd({ fontWeight: $event as 'normal' | 'bold' })" />
         <NumberField label="Tamaño" :model-value="block.style.fontSize" :min="10" :max="72" @update:model-value="upd({ style: { fontSize: $event } })" />
+        <ColorField label="Color" :model-value="block.style.color" @update:model-value="upd({ style: { color: $event } })" />
         <AlignField label="Alineación" :model-value="block.style.align" @update:model-value="upd({ style: { align: $event } })" />
+        <NumberField label="Interlineado" :model-value="block.style.lineHeight" :min="0.8" :max="3" :step="0.1" @update:model-value="upd({ style: { lineHeight: $event } })" />
+        <NumberField label="Espaciado entre letras" :model-value="block.style.letterSpacing" :min="-2" :max="10" :step="0.5" @update:model-value="upd({ style: { letterSpacing: $event } })" />
+        <div class="vmd-props-section-title">General</div>
         <PaddingField label="Padding" :model-value="block.style.padding" @update:model-value="upd({ style: { padding: $event } })" />
       </template>
 
       <template v-else-if="block.type === 'text'">
+        <div class="vmd-props-section-title">Texto</div>
         <SelectField label="Fuente" :model-value="block.fontFamily ?? ''" :options="FONT_OPTIONS" @update:model-value="updFont" />
         <ColorField label="Color" :model-value="block.style.color" @update:model-value="upd({ style: { color: $event } })" />
         <NumberField label="Tamaño" :model-value="block.style.fontSize" :min="10" :max="40" @update:model-value="upd({ style: { fontSize: $event } })" />
-        <NumberField label="Interlineado" :model-value="block.style.lineHeight" :min="1" :max="3" @update:model-value="upd({ style: { lineHeight: $event } })" />
+        <NumberField label="Interlineado" :model-value="block.style.lineHeight" :min="1" :max="3" :step="0.1" @update:model-value="upd({ style: { lineHeight: $event } })" />
+        <NumberField label="Espaciado entre letras" :model-value="block.style.letterSpacing" :min="-2" :max="10" :step="0.5" @update:model-value="upd({ style: { letterSpacing: $event } })" />
+        <div class="vmd-props-section-title">Links</div>
+        <CheckboxField label="Heredar estilos del body" :model-value="textLinkInheritsBody" @update:model-value="toggleTextLinkInherit" />
+        <template v-if="!textLinkInheritsBody">
+          <ColorField label="Color de link" :model-value="block.linkColor ?? '#3b82f6'" @update:model-value="upd({ linkColor: $event })" />
+          <CheckboxField label="Subrayado" :model-value="block.linkUnderline ?? true" @update:model-value="upd({ linkUnderline: $event })" />
+        </template>
+        <div class="vmd-props-section-title">General</div>
         <PaddingField label="Padding" :model-value="block.style.padding" @update:model-value="upd({ style: { padding: $event } })" />
       </template>
 
       <template v-else-if="block.type === 'image'">
+        <div class="vmd-props-section-title">Imagen</div>
         <div v-if="options.uploadImage" class="vmd-field">
           <span class="vmd-field-label">Subir imagen</span>
           <input type="file" accept="image/*" @change="onUpload" />
           <span v-if="uploading" class="vmd-field-hint">Subiendo…</span>
         </div>
         <TextField label="URL" :model-value="block.src" @update:model-value="upd({ src: $event })" />
-        <TextField label="Texto alternativo" :model-value="block.alt" @update:model-value="upd({ alt: $event })" />
-        <TextField label="Enlace (opcional)" :model-value="block.href ?? ''" @update:model-value="upd({ href: $event })" />
-        <NumberField label="Ancho %" :model-value="block.widthPct" :min="10" :max="100" @update:model-value="upd({ widthPct: $event })" />
+        <CheckboxField label="Ancho automático" :model-value="block.widthAuto" @update:model-value="upd({ widthAuto: $event })" />
+        <NumberField v-if="!block.widthAuto" label="Ancho %" :model-value="block.widthPct" :min="10" :max="100" @update:model-value="upd({ widthPct: $event })" />
         <AlignField label="Alineación" :model-value="block.align" @update:model-value="upd({ align: $event })" />
+        <TextField label="Texto alternativo" :model-value="block.alt" @update:model-value="upd({ alt: $event })" />
+        <div class="vmd-props-section-title">Acción</div>
+        <TextField label="Enlace (opcional)" :model-value="block.href ?? ''" @update:model-value="upd({ href: $event })" />
+        <SelectField v-if="block.href" label="Destino" :model-value="block.target" :options="TARGET_OPTIONS" @update:model-value="upd({ target: $event as '_blank' | '_self' })" />
+        <div class="vmd-props-section-title">General</div>
         <PaddingField label="Padding" :model-value="block.style.padding" @update:model-value="upd({ style: { padding: $event } })" />
       </template>
 
       <template v-else-if="block.type === 'button'">
+        <div class="vmd-props-section-title">Acción</div>
         <TextField label="Texto" data-field="label" :model-value="block.label" @update:model-value="upd({ label: $event })" />
         <TextField label="Enlace" :model-value="block.href" @update:model-value="upd({ href: $event })" />
-        <AlignField label="Alineación" :model-value="block.align" @update:model-value="upd({ align: $event })" />
+        <SelectField label="Destino" :model-value="block.target" :options="TARGET_OPTIONS" @update:model-value="upd({ target: $event as '_blank' | '_self' })" />
+        <div class="vmd-props-section-title">Opciones del botón</div>
         <ColorField label="Fondo" :model-value="block.style.backgroundColor" @update:model-value="upd({ style: { backgroundColor: $event } })" />
         <ColorField label="Texto" :model-value="block.style.color" @update:model-value="upd({ style: { color: $event } })" />
+        <CheckboxField label="Ancho automático" :model-value="block.widthPct == null" @update:model-value="toggleButtonAutoWidth" />
+        <NumberField v-if="block.widthPct != null" label="Ancho %" :model-value="block.widthPct" :min="10" :max="100" @update:model-value="upd({ widthPct: $event })" />
         <NumberField label="Tamaño fuente" :model-value="block.style.fontSize" :min="10" :max="32" @update:model-value="upd({ style: { fontSize: $event } })" />
+        <NumberField label="Interlineado" :model-value="block.style.lineHeight" :min="0.8" :max="3" :step="0.1" @update:model-value="upd({ style: { lineHeight: $event } })" />
+        <NumberField label="Espaciado entre letras" :model-value="block.style.letterSpacing" :min="-2" :max="10" :step="0.5" @update:model-value="upd({ style: { letterSpacing: $event } })" />
+        <div class="vmd-props-section-title">Espaciado</div>
+        <AlignField label="Alineación" :model-value="block.align" @update:model-value="upd({ align: $event })" />
+        <NumberField label="Padding horizontal" :model-value="block.style.innerPaddingX" :min="0" :max="80" @update:model-value="upd({ style: { innerPaddingX: $event } })" />
+        <NumberField label="Padding vertical" :model-value="block.style.innerPaddingY" :min="0" :max="60" @update:model-value="upd({ style: { innerPaddingY: $event } })" />
+        <div class="vmd-props-subtitle">Borde</div>
+        <NumberField label="Grosor" :model-value="buttonBorder.width" :min="0" :max="12" @update:model-value="setButtonBorder({ width: $event })" />
+        <SelectField label="Estilo" :model-value="buttonBorder.style" :options="BORDER_STYLE_OPTIONS" @update:model-value="setButtonBorder({ style: $event as Border['style'] })" />
+        <ColorField label="Color" :model-value="buttonBorder.color" @update:model-value="setButtonBorder({ color: $event })" />
         <NumberField label="Radio borde" :model-value="block.style.borderRadius" :min="0" :max="40" @update:model-value="upd({ style: { borderRadius: $event } })" />
-        <PaddingField label="Padding" :model-value="block.style.padding" @update:model-value="upd({ style: { padding: $event } })" />
+        <div class="vmd-props-section-title">General</div>
+        <PaddingField label="Padding del contenedor" :model-value="block.style.padding" @update:model-value="upd({ style: { padding: $event } })" />
       </template>
 
       <template v-else-if="block.type === 'divider'">
-        <ColorField label="Color" :model-value="block.style.color" @update:model-value="upd({ style: { color: $event } })" />
-        <NumberField label="Grosor" :model-value="block.style.thickness" :min="1" :max="10" @update:model-value="upd({ style: { thickness: $event } })" />
+        <div class="vmd-props-section-title">Línea</div>
         <NumberField label="Ancho %" :model-value="block.style.widthPct" :min="10" :max="100" @update:model-value="upd({ style: { widthPct: $event } })" />
+        <SelectField label="Estilo de línea" :model-value="block.style.lineStyle" :options="LINE_STYLE_OPTIONS" @update:model-value="upd({ style: { lineStyle: $event as 'solid' | 'dashed' | 'dotted' } })" />
+        <NumberField label="Grosor" :model-value="block.style.thickness" :min="1" :max="10" @update:model-value="upd({ style: { thickness: $event } })" />
+        <ColorField label="Color" :model-value="block.style.color" @update:model-value="upd({ style: { color: $event } })" />
+        <AlignField label="Alineación" :model-value="block.style.align" @update:model-value="upd({ style: { align: $event } })" />
+        <div class="vmd-props-section-title">General</div>
         <PaddingField label="Padding" :model-value="block.style.padding" @update:model-value="upd({ style: { padding: $event } })" />
       </template>
 
@@ -72,9 +110,13 @@
           <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" @click="removeNetwork(i)"><span class="vmd-ico" v-html="ICONS.trash" /></button>
         </div>
         <button type="button" class="vmd-btn" @click="addNetwork">+ Agregar red</button>
+        <div class="vmd-props-section-title">Íconos</div>
+        <SelectField label="Forma de ícono" :model-value="block.iconShape" :options="ICON_SHAPE_OPTIONS" @update:model-value="upd({ iconShape: $event as 'circle' | 'square' | 'rounded' })" />
+        <AlignField label="Alineación" :model-value="block.align" @update:model-value="upd({ align: $event })" />
         <NumberField label="Tamaño ícono" :model-value="block.iconSize" :min="16" :max="64" @update:model-value="upd({ iconSize: $event })" />
         <NumberField label="Espaciado" :model-value="block.spacing" :min="0" :max="32" @update:model-value="upd({ spacing: $event })" />
-        <AlignField label="Alineación" :model-value="block.align" @update:model-value="upd({ align: $event })" />
+        <div class="vmd-props-section-title">General</div>
+        <PaddingField label="Padding" :model-value="block.style.padding" @update:model-value="upd({ style: { padding: $event } })" />
       </template>
 
       <template v-else-if="block.type === 'menu'">
@@ -84,9 +126,19 @@
           <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" @click="removeMenuItem(i)"><span class="vmd-ico" v-html="ICONS.trash" /></button>
         </div>
         <button type="button" class="vmd-btn" @click="addMenuItem">+ Agregar ítem</button>
-        <TextField label="Separador" :model-value="block.separator" @update:model-value="upd({ separator: $event })" />
-        <ColorField label="Color" :model-value="block.style.color" @update:model-value="upd({ style: { color: $event } })" />
+        <div class="vmd-props-section-title">Estilos</div>
+        <SelectField label="Fuente" :model-value="block.fontFamily ?? ''" :options="FONT_OPTIONS" @update:model-value="updFont" />
+        <SelectField label="Peso de fuente" :model-value="block.fontWeight" :options="FONT_WEIGHT_OPTIONS" @update:model-value="upd({ fontWeight: $event as 'normal' | 'bold' })" />
+        <NumberField label="Tamaño fuente" :model-value="block.style.fontSize" :min="10" :max="32" @update:model-value="upd({ style: { fontSize: $event } })" />
+        <NumberField label="Espaciado entre letras" :model-value="block.style.letterSpacing" :min="-2" :max="10" :step="0.5" @update:model-value="upd({ style: { letterSpacing: $event } })" />
+        <ColorField label="Color de texto" :model-value="block.style.color" @update:model-value="upd({ style: { color: $event } })" />
+        <ColorField label="Color de link" :model-value="block.linkColor ?? block.style.color" @update:model-value="upd({ linkColor: $event })" />
         <AlignField label="Alineación" :model-value="block.align" @update:model-value="upd({ align: $event })" />
+        <SelectField label="Layout" :model-value="block.layout" :options="MENU_LAYOUT_OPTIONS" @update:model-value="upd({ layout: $event as 'horizontal' | 'vertical' })" />
+        <TextField label="Separador" :model-value="block.separator" @update:model-value="upd({ separator: $event })" />
+        <PaddingField label="Padding de ítem" :model-value="block.style.itemPadding" @update:model-value="upd({ style: { itemPadding: $event } })" />
+        <div class="vmd-props-section-title">General</div>
+        <PaddingField label="Padding del contenedor" :model-value="block.style.padding" @update:model-value="upd({ style: { padding: $event } })" />
       </template>
 
       <template v-else-if="block.type === 'html'">
@@ -94,6 +146,8 @@
           <span class="vmd-field-label">Código HTML</span>
           <textarea class="vmd-field-input vmd-field-code" rows="8" :value="block.code" @input="upd({ code: ($event.target as HTMLTextAreaElement).value })" />
         </label>
+        <div class="vmd-props-section-title">General</div>
+        <PaddingField label="Padding" :model-value="block.style.padding" @update:model-value="upd({ style: { padding: $event } })" />
       </template>
 
       <template v-else-if="block.type === 'video'">
@@ -101,10 +155,13 @@
         <TextField label="URL de miniatura" :model-value="block.thumbnailUrl" @update:model-value="upd({ thumbnailUrl: $event })" />
         <TextField label="Texto alternativo" :model-value="block.alt" @update:model-value="upd({ alt: $event })" />
         <NumberField label="Ancho %" :model-value="block.widthPct" :min="10" :max="100" @update:model-value="upd({ widthPct: $event })" />
+        <div class="vmd-props-section-title">General</div>
+        <PaddingField label="Padding" :model-value="block.style.padding" @update:model-value="upd({ style: { padding: $event } })" />
       </template>
 
       <template v-else-if="block.type === 'table'">
         <CheckboxField label="Fila de encabezado" :model-value="block.headerRow" @update:model-value="upd({ headerRow: $event })" />
+        <CheckboxField label="Filas alternadas" :model-value="block.stripedRows" @update:model-value="upd({ stripedRows: $event })" />
         <div class="vmd-table-toolbar">
           <button type="button" class="vmd-btn" @click="addTableRow">+ Fila</button>
           <button type="button" class="vmd-btn" @click="removeLastTableRow">− Fila</button>
@@ -124,12 +181,17 @@
             />
           </div>
         </div>
+        <div class="vmd-props-section-title">Borde</div>
         <ColorField label="Color de borde" :model-value="block.style.borderColor" @update:model-value="upd({ style: { borderColor: $event } })" />
         <NumberField label="Grosor de borde" :model-value="block.style.borderWidth" :min="0" :max="8" @update:model-value="upd({ style: { borderWidth: $event } })" />
-        <ColorField label="Fondo encabezado" :model-value="block.style.headerBackground" @update:model-value="upd({ style: { headerBackground: $event } })" />
+        <div class="vmd-props-section-title">Encabezado</div>
+        <ColorField label="Fondo" :model-value="block.style.headerBackground" @update:model-value="upd({ style: { headerBackground: $event } })" />
+        <ColorField label="Color de texto" :model-value="block.style.headerColor ?? block.style.color" @update:model-value="upd({ style: { headerColor: $event } })" />
+        <div class="vmd-props-section-title">Contenido</div>
         <ColorField label="Color de texto" :model-value="block.style.color" @update:model-value="upd({ style: { color: $event } })" />
         <NumberField label="Tamaño fuente" :model-value="block.style.fontSize" :min="10" :max="32" @update:model-value="upd({ style: { fontSize: $event } })" />
         <NumberField label="Padding de celda" :model-value="block.style.cellPadding" :min="0" :max="32" @update:model-value="upd({ style: { cellPadding: $event } })" />
+        <div class="vmd-props-section-title">General</div>
         <PaddingField label="Padding" :model-value="block.style.padding" @update:model-value="upd({ style: { padding: $event } })" />
       </template>
 
@@ -147,7 +209,7 @@
       </template>
 
       <template v-else-if="block.type === 'timer'">
-        <TextField label="Fecha límite (ISO)" :model-value="block.endDate" @update:model-value="upd({ endDate: $event })" />
+        <DateTimeField label="Fecha y hora límite" :model-value="block.endDate" @update:model-value="upd({ endDate: $event })" />
         <TextField label="URL de imagen" :model-value="block.imageUrl" @update:model-value="upd({ imageUrl: $event })" />
         <TextField label="Texto alternativo" :model-value="block.alt" @update:model-value="upd({ alt: $event })" />
         <NumberField label="Ancho %" :model-value="block.widthPct" :min="10" :max="100" @update:model-value="upd({ widthPct: $event })" />
@@ -249,6 +311,7 @@ import { ROW_LAYOUTS } from './palette-items'
 import AlignField from './fields/AlignField.vue'
 import CheckboxField from './fields/CheckboxField.vue'
 import ColorField from './fields/ColorField.vue'
+import DateTimeField from './fields/DateTimeField.vue'
 import NumberField from './fields/NumberField.vue'
 import PaddingField from './fields/PaddingField.vue'
 import SelectField from './fields/SelectField.vue'
@@ -283,6 +346,50 @@ const BORDER_STYLE_OPTIONS = [
   { label: 'Discontinuo', value: 'dashed' },
   { label: 'Punteado', value: 'dotted' },
 ]
+const LINE_STYLE_OPTIONS = BORDER_STYLE_OPTIONS
+const HEADING_LEVEL_OPTIONS = [
+  { label: 'H1', value: '1' },
+  { label: 'H2', value: '2' },
+  { label: 'H3', value: '3' },
+  { label: 'H4', value: '4' },
+]
+const FONT_WEIGHT_OPTIONS = [
+  { label: 'Regular', value: 'normal' },
+  { label: 'Negrita', value: 'bold' },
+]
+const TARGET_OPTIONS = [
+  { label: 'Nueva pestaña', value: '_blank' },
+  { label: 'Misma pestaña', value: '_self' },
+]
+const ICON_SHAPE_OPTIONS = [
+  { label: 'Círculo', value: 'circle' },
+  { label: 'Cuadrado', value: 'square' },
+  { label: 'Redondeado', value: 'rounded' },
+]
+const MENU_LAYOUT_OPTIONS = [
+  { label: 'Horizontal', value: 'horizontal' },
+  { label: 'Vertical', value: 'vertical' },
+]
+
+const DEFAULT_BUTTON_BORDER: Border = { width: 0, style: 'solid', color: '#000000' }
+const buttonBorder = computed<Border>(() => (block.value?.type === 'button' ? (block.value.style.border ?? DEFAULT_BUTTON_BORDER) : DEFAULT_BUTTON_BORDER))
+function setButtonBorder(patch: Partial<Border>) {
+  if (block.value?.type !== 'button') return
+  upd({ style: { border: { ...buttonBorder.value, ...patch } } })
+}
+function toggleButtonAutoWidth(auto: boolean) {
+  if (block.value?.type !== 'button') return
+  upd({ widthPct: auto ? undefined : 100 })
+}
+
+const textLinkInheritsBody = computed(() => {
+  if (block.value?.type !== 'text') return true
+  return block.value.linkColor === undefined && block.value.linkUnderline === undefined
+})
+function toggleTextLinkInherit(inherit: boolean) {
+  if (block.value?.type !== 'text') return
+  upd(inherit ? { linkColor: undefined, linkUnderline: undefined } : { linkColor: '#3b82f6', linkUnderline: true })
+}
 
 const TYPE_LABELS: Record<string, string> = {
   heading: 'Título',
@@ -305,7 +412,8 @@ const FONT_OPTIONS = computed(() => {
   const fonts = options.fonts ?? DEFAULT_FONTS
   const opts = [{ label: 'Heredar', value: '' }, ...fonts.map((f) => ({ label: f.label, value: f.value }))]
   // conserva visible una fuente ya guardada que no esté en la lista (p. ej. 'Arial' de docs viejos)
-  const current = block.value?.type === 'heading' || block.value?.type === 'text' ? block.value.fontFamily : undefined
+  const b = block.value
+  const current = b?.type === 'heading' || b?.type === 'text' || b?.type === 'menu' ? b.fontFamily : undefined
   if (current && !opts.some((o) => o.value === current)) opts.push({ label: 'Actual', value: current })
   return opts
 })
