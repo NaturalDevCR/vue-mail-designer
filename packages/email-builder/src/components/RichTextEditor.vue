@@ -1,48 +1,59 @@
 <template>
-  <div ref="root" class="vmd-rte" @click.stop>
-    <div class="vmd-rte-toolbar" :class="{ 'vmd-rte-toolbar--below': flipped }">
-      <div class="vmd-rte-row">
-        <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('bold') }" :title="t('rte.bold')" @click="editor?.chain().focus().toggleBold().run()"><b>B</b></button>
-        <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('italic') }" :title="t('rte.italic')" @click="editor?.chain().focus().toggleItalic().run()"><i>I</i></button>
-        <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('underline') }" :title="t('rte.underline')" @click="editor?.chain().focus().toggleUnderline().run()"><u>U</u></button>
-        <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('strike') }" :title="t('rte.strike')" @click="editor?.chain().focus().toggleStrike().run()"><s>S</s></button>
-        <span class="vmd-rte-sep" />
-        <select class="vmd-rte-size" :title="t('rte.fontSize')" :value="currentFontSize" @change="onFontSize">
-          <option value="">{{ t('rte.fontSize') }}</option>
-          <option v-for="s in FONT_SIZES" :key="s" :value="s + 'px'">{{ s }}</option>
-        </select>
-        <label class="vmd-mini-btn vmd-rte-color" :title="t('rte.color')">
-          A
-          <input type="color" :value="currentColor" @input="onColor" />
-        </label>
+  <div ref="root" class="vmd-rte" :class="{ 'vmd-rte--static': !floating }" @click.stop>
+    <div
+      class="vmd-rte-toolbar"
+      :class="{ 'vmd-rte-toolbar--floating': floating, 'vmd-rte-toolbar--below': floating && flipped }"
+    >
+      <div class="vmd-rte-bar">
+        <span class="vmd-rte-bar-label">{{ t('rte.format') }}</span>
+        <button type="button" class="vmd-mini-btn" :title="collapsed ? t('rte.expand') : t('rte.collapse')" @click="collapsed = !collapsed">
+          <span class="vmd-ico" :class="{ 'vmd-ico--flip': !collapsed }" v-html="ICONS.chevronDown" />
+        </button>
       </div>
-      <div class="vmd-rte-row">
-        <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive({ textAlign: 'left' }) }" :title="t('rte.alignLeft')" @click="editor?.chain().focus().setTextAlign('left').run()"><span class="vmd-ico" v-html="ICONS.alignLeft" /></button>
-        <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive({ textAlign: 'center' }) }" :title="t('rte.alignCenter')" @click="editor?.chain().focus().setTextAlign('center').run()"><span class="vmd-ico" v-html="ICONS.alignCenter" /></button>
-        <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive({ textAlign: 'right' }) }" :title="t('rte.alignRight')" @click="editor?.chain().focus().setTextAlign('right').run()"><span class="vmd-ico" v-html="ICONS.alignRight" /></button>
-        <span class="vmd-rte-sep" />
-        <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('bulletList') }" :title="t('rte.bulletList')" @click="editor?.chain().focus().toggleBulletList().run()"><span class="vmd-ico" v-html="ICONS.listBullet" /></button>
-        <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('orderedList') }" :title="t('rte.orderedList')" @click="editor?.chain().focus().toggleOrderedList().run()"><span class="vmd-ico" v-html="ICONS.listOrdered" /></button>
-        <span class="vmd-rte-sep" />
-        <button type="button" class="vmd-mini-btn" :title="t('rte.link')" @click="setLink"><span class="vmd-ico" v-html="ICONS.link" /></button>
-        <button type="button" class="vmd-mini-btn" :title="t('rte.clear')" @click="clearFormat"><span class="vmd-ico" v-html="ICONS.clearFormat" /></button>
-        <template v-if="flatTags.length || specialLinks.length">
+      <template v-if="!collapsed">
+        <div class="vmd-rte-row">
+          <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('bold') }" :title="t('rte.bold')" @click="editor?.chain().focus().toggleBold().run()"><b>B</b></button>
+          <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('italic') }" :title="t('rte.italic')" @click="editor?.chain().focus().toggleItalic().run()"><i>I</i></button>
+          <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('underline') }" :title="t('rte.underline')" @click="editor?.chain().focus().toggleUnderline().run()"><u>U</u></button>
+          <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('strike') }" :title="t('rte.strike')" @click="editor?.chain().focus().toggleStrike().run()"><s>S</s></button>
           <span class="vmd-rte-sep" />
-          <select v-if="flatTags.length" class="vmd-rte-tags" @change="onTagPick">
-            <option value="">{{ t('rte.variable') }}</option>
-            <template v-for="(item, i) in options.mergeTags" :key="i">
-              <optgroup v-if="isMergeTagGroup(item)" :label="item.name">
-                <option v-for="tag in item.tags" :key="tag.value" :value="tag.value">{{ tag.name }}</option>
-              </optgroup>
-              <option v-else :value="item.value">{{ item.name }}</option>
-            </template>
+          <select class="vmd-rte-size" :title="t('rte.fontSize')" :value="currentFontSize" @change="onFontSize">
+            <option value="">{{ t('rte.fontSize') }}</option>
+            <option v-for="s in FONT_SIZES" :key="s" :value="s + 'px'">{{ s }}</option>
           </select>
-          <select v-if="specialLinks.length" class="vmd-rte-tags" @change="onSpecialLink">
-            <option value="">{{ t('rte.specialLink') }}</option>
-            <option v-for="(l, i) in specialLinks" :key="i" :value="i">{{ l.name }}</option>
-          </select>
-        </template>
-      </div>
+          <label class="vmd-mini-btn vmd-rte-color" :title="t('rte.color')">
+            A
+            <input type="color" :value="currentColor" @input="onColor" />
+          </label>
+        </div>
+        <div class="vmd-rte-row">
+          <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive({ textAlign: 'left' }) }" :title="t('rte.alignLeft')" @click="editor?.chain().focus().setTextAlign('left').run()"><span class="vmd-ico" v-html="ICONS.alignLeft" /></button>
+          <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive({ textAlign: 'center' }) }" :title="t('rte.alignCenter')" @click="editor?.chain().focus().setTextAlign('center').run()"><span class="vmd-ico" v-html="ICONS.alignCenter" /></button>
+          <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive({ textAlign: 'right' }) }" :title="t('rte.alignRight')" @click="editor?.chain().focus().setTextAlign('right').run()"><span class="vmd-ico" v-html="ICONS.alignRight" /></button>
+          <span class="vmd-rte-sep" />
+          <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('bulletList') }" :title="t('rte.bulletList')" @click="editor?.chain().focus().toggleBulletList().run()"><span class="vmd-ico" v-html="ICONS.listBullet" /></button>
+          <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('orderedList') }" :title="t('rte.orderedList')" @click="editor?.chain().focus().toggleOrderedList().run()"><span class="vmd-ico" v-html="ICONS.listOrdered" /></button>
+          <span class="vmd-rte-sep" />
+          <button type="button" class="vmd-mini-btn" :title="t('rte.link')" @click="setLink"><span class="vmd-ico" v-html="ICONS.link" /></button>
+          <button type="button" class="vmd-mini-btn" :title="t('rte.clear')" @click="clearFormat"><span class="vmd-ico" v-html="ICONS.clearFormat" /></button>
+          <template v-if="flatTags.length || specialLinks.length">
+            <span class="vmd-rte-sep" />
+            <select v-if="flatTags.length" class="vmd-rte-tags" @change="onTagPick">
+              <option value="">{{ t('rte.variable') }}</option>
+              <template v-for="(item, i) in options.mergeTags" :key="i">
+                <optgroup v-if="isMergeTagGroup(item)" :label="item.name">
+                  <option v-for="tag in item.tags" :key="tag.value" :value="tag.value">{{ tag.name }}</option>
+                </optgroup>
+                <option v-else :value="item.value">{{ item.name }}</option>
+              </template>
+            </select>
+            <select v-if="specialLinks.length" class="vmd-rte-tags" @change="onSpecialLink">
+              <option value="">{{ t('rte.specialLink') }}</option>
+              <option v-for="(l, i) in specialLinks" :key="i" :value="i">{{ l.name }}</option>
+            </select>
+          </template>
+        </div>
+      </template>
     </div>
     <EditorContent :editor="editor" />
   </div>
@@ -63,12 +74,13 @@ import { DEFAULT_SPECIAL_LINKS, flattenMergeTags, isMergeTagGroup, useBuilderOpt
 
 const FONT_SIZES = [12, 14, 16, 18, 20, 24, 28, 32, 40]
 
-const props = defineProps<{ modelValue: string }>()
+const props = withDefaults(defineProps<{ modelValue: string; floating?: boolean }>(), { floating: true })
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 const options = useBuilderOptions()
 const { t } = useI18n()
 const flatTags = computed(() => flattenMergeTags(options.mergeTags))
 const specialLinks = computed(() => options.specialLinks ?? DEFAULT_SPECIAL_LINKS)
+const collapsed = ref(false)
 
 const editor = useEditor({
   extensions: [
@@ -132,13 +144,15 @@ function onSpecialLink(e: Event) {
   select.value = ''
 }
 
-// la barra flota arriba del bloque por defecto; si no hay espacio (bloque cerca del borde
-// superior del canvas) se voltea abajo para no taparse con el contenido de arriba.
+// la barra flotante vive arriba del bloque por defecto; si no hay espacio (bloque cerca del
+// borde superior del canvas) se voltea abajo para no taparse con el contenido de arriba.
+// No aplica al modo no flotante (p.ej. embebido en el inspector).
 const root = ref<HTMLElement | null>(null)
 const flipped = ref(false)
 const TOOLBAR_ESTIMATED_HEIGHT = 100
 
 function updatePlacement() {
+  if (!props.floating) return
   const el = root.value
   if (!el) return
   const top = el.getBoundingClientRect().top
@@ -149,6 +163,7 @@ function updatePlacement() {
 }
 
 onMounted(() => {
+  if (!props.floating) return
   nextTick(updatePlacement)
   window.addEventListener('scroll', updatePlacement, true)
   window.addEventListener('resize', updatePlacement)
