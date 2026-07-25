@@ -23,6 +23,17 @@
         <div class="vmd-media-item-name" :title="item.name ?? ''">{{ item.name ?? '' }}</div>
       </div>
     </div>
+
+    <button
+      v-if="nextCursor"
+      type="button"
+      class="vmd-mini-btn vmd-mini-btn--text vmd-media-loadmore"
+      :disabled="loadingMore"
+      @click="loadMore"
+    >
+      {{ loadingMore ? 'Cargando…' : 'Cargar más' }}
+    </button>
+    <p v-if="loadMoreError" class="vmd-image-error">{{ loadMoreError }}</p>
   </div>
 </template>
 
@@ -44,12 +55,17 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const uploading = ref(false)
 const uploadError = ref<string | null>(null)
 
+const nextCursor = ref<string | undefined>(undefined)
+const loadingMore = ref(false)
+const loadMoreError = ref<string | null>(null)
+
 async function load() {
   if (!options.mediaLibrary) return
   status.value = 'loading'
   try {
     const page = await options.mediaLibrary.list()
     items.value = page.items
+    nextCursor.value = page.nextCursor
     status.value = page.items.length ? 'results' : 'empty'
   } catch {
     status.value = 'error'
@@ -57,6 +73,21 @@ async function load() {
 }
 
 onMounted(load)
+
+async function loadMore() {
+  if (!options.mediaLibrary || !nextCursor.value) return
+  loadingMore.value = true
+  loadMoreError.value = null
+  try {
+    const page = await options.mediaLibrary.list(nextCursor.value)
+    items.value = [...items.value, ...page.items]
+    nextCursor.value = page.nextCursor
+  } catch {
+    loadMoreError.value = 'No se pudo cargar más imágenes.'
+  } finally {
+    loadingMore.value = false
+  }
+}
 
 function insert(item: MediaItem) {
   const selected = store.selectedBlock

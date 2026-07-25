@@ -143,4 +143,41 @@ describe('MediaLibraryTab', () => {
     expect(wrapper.find('.vmd-media-tab .vmd-image-error').text()).toContain('No se pudo subir la imagen')
     expect(wrapper.findAll('.vmd-media-item')).toHaveLength(2)
   })
+
+  it('muestra "Cargar más" solo cuando hay nextCursor y concatena la página siguiente', async () => {
+    const page2: MediaItem[] = [
+      { id: 'c', url: 'https://img.example/c.jpg', thumbnailUrl: 'https://img.example/c-thumb.jpg', name: 'Foto C' },
+    ]
+    const list = vi
+      .fn()
+      .mockResolvedValueOnce({ items, nextCursor: 'cursor-1' })
+      .mockResolvedValueOnce({ items: page2 })
+    const wrapper = mount(EmailBuilder, { props: { mediaLibrary: makeMediaLibrary({ list }) } })
+    await openMediaTab(wrapper)
+
+    expect(wrapper.find('.vmd-media-loadmore').exists()).toBe(true)
+
+    await wrapper.find('.vmd-media-loadmore').trigger('click')
+    await flushPromises()
+
+    expect(list).toHaveBeenNthCalledWith(2, 'cursor-1')
+    expect(wrapper.findAll('.vmd-media-item')).toHaveLength(3)
+    expect(wrapper.find('.vmd-media-loadmore').exists()).toBe(false)
+  })
+
+  it('si falla "Cargar más" conserva los ítems ya cargados y permite reintentar', async () => {
+    const list = vi
+      .fn()
+      .mockResolvedValueOnce({ items, nextCursor: 'cursor-1' })
+      .mockRejectedValueOnce(new Error('boom'))
+    const wrapper = mount(EmailBuilder, { props: { mediaLibrary: makeMediaLibrary({ list }) } })
+    await openMediaTab(wrapper)
+
+    await wrapper.find('.vmd-media-loadmore').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.findAll('.vmd-media-item')).toHaveLength(2)
+    expect(wrapper.find('.vmd-media-tab .vmd-image-error').text()).toContain('No se pudo cargar más imágenes')
+    expect(wrapper.find('.vmd-media-loadmore').exists()).toBe(true)
+  })
 })
