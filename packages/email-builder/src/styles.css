@@ -397,3 +397,7 @@
 }
 .vmd-media-confirm p { margin: 0; font-size: 11px; color: var(--vmd-fg); }
 .vmd-media-confirm-actions { display: flex; gap: 6px; justify-content: flex-end; }
+.vmd-media-item-name-input {
+  width: 100%; box-sizing: border-box; margin-top: 6px; font-size: 11px; padding: 2px 4px;
+  border: 1px solid var(--vmd-accent); border-radius: 4px; background: var(--vmd-bg); color: var(--vmd-fg);
+}

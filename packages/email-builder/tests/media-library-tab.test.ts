@@ -232,4 +232,41 @@ describe('MediaLibraryTab', () => {
     expect(wrapper.findAll('.vmd-media-item')).toHaveLength(2)
     expect(firstItem.find('.vmd-image-error').text()).toContain('No se pudo borrar la imagen')
   })
+
+  it('renombra un ítem con Enter y actualiza el nombre mostrado', async () => {
+    const updated: MediaItem = { ...items[0], name: 'Nuevo nombre' }
+    const rename = vi.fn().mockResolvedValue(updated)
+    const wrapper = mount(EmailBuilder, { props: { mediaLibrary: makeMediaLibrary({ rename }) } })
+    await openMediaTab(wrapper)
+
+    const firstItem = wrapper.findAll('.vmd-media-item')[0]
+    await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
+    await findButtonWithText(firstItem, 'Renombrar').trigger('click')
+
+    const input = firstItem.find('.vmd-media-item-name-input')
+    await input.setValue('Nuevo nombre')
+    await input.trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+
+    expect(rename).toHaveBeenCalledWith('a', 'Nuevo nombre')
+    expect(firstItem.find('.vmd-media-item-name').text()).toBe('Nuevo nombre')
+  })
+
+  it('Escape cancela el renombrado sin llamar a rename', async () => {
+    const rename = vi.fn()
+    const wrapper = mount(EmailBuilder, { props: { mediaLibrary: makeMediaLibrary({ rename }) } })
+    await openMediaTab(wrapper)
+
+    const firstItem = wrapper.findAll('.vmd-media-item')[0]
+    await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
+    await findButtonWithText(firstItem, 'Renombrar').trigger('click')
+
+    const input = firstItem.find('.vmd-media-item-name-input')
+    await input.setValue('Otro nombre')
+    await input.trigger('keydown', { key: 'Escape' })
+    await flushPromises()
+
+    expect(rename).not.toHaveBeenCalled()
+    expect(firstItem.find('.vmd-media-item-name').text()).toBe('Foto A')
+  })
 })

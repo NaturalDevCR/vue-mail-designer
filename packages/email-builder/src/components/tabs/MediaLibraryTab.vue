@@ -20,10 +20,23 @@
         <button type="button" class="vmd-media-item-thumb" @click="insert(item)">
           <img :src="item.thumbnailUrl" :alt="item.name ?? ''" />
         </button>
-        <div class="vmd-media-item-name" :title="item.name ?? ''">{{ item.name ?? '' }}</div>
+
+        <input
+          v-if="renamingId === item.id"
+          ref="renameInputEl"
+          type="text"
+          class="vmd-media-item-name-input"
+          :value="renameValue"
+          @input="renameValue = ($event.target as HTMLInputElement).value"
+          @keydown.enter="confirmRename(item)"
+          @keydown.escape="cancelRename"
+          @blur="confirmRename(item)"
+        />
+        <div v-else class="vmd-media-item-name" :title="item.name ?? ''">{{ item.name ?? '' }}</div>
 
         <button type="button" class="vmd-media-item-menu-btn" @click.stop="toggleMenu(item.id)">⋮</button>
         <div v-if="openMenuId === item.id" class="vmd-media-menu" @click.stop>
+          <button type="button" @click="startRename(item)">Renombrar</button>
           <button type="button" class="vmd-media-menu-danger" @click="startDelete(item.id)">Borrar</button>
         </div>
 
@@ -59,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { nextTick, onMounted, ref } from 'vue'
 import type { MediaItem } from '../../mediaLibrary'
 import { useBuilderOptions } from '../../options'
 import { useDocumentStore } from '../../store/document'
@@ -84,6 +97,10 @@ const openMenuId = ref<string | null>(null)
 const confirmingDeleteId = ref<string | null>(null)
 const deleting = ref(false)
 const deleteError = ref<string | null>(null)
+
+const renamingId = ref<string | null>(null)
+const renameValue = ref('')
+const renameInputEl = ref<HTMLInputElement | null>(null)
 
 async function load() {
   if (!options.mediaLibrary) return
@@ -172,6 +189,36 @@ async function confirmDelete(id: string) {
     deleteError.value = 'No se pudo borrar la imagen.'
   } finally {
     deleting.value = false
+  }
+}
+
+function startRename(item: MediaItem) {
+  openMenuId.value = null
+  renamingId.value = item.id
+  renameValue.value = item.name ?? ''
+  nextTick(() => {
+    const el = Array.isArray(renameInputEl.value) ? renameInputEl.value[0] : renameInputEl.value
+    el?.focus()
+  })
+}
+
+function cancelRename() {
+  renamingId.value = null
+}
+
+async function confirmRename(item: MediaItem) {
+  if (renamingId.value !== item.id) return
+  const value = renameValue.value.trim()
+  if (!value || !options.mediaLibrary) {
+    renamingId.value = null
+    return
+  }
+  try {
+    const updated = await options.mediaLibrary.rename(item.id, value)
+    const idx = items.value.findIndex((i) => i.id === item.id)
+    if (idx !== -1) items.value = [...items.value.slice(0, idx), updated, ...items.value.slice(idx + 1)]
+  } finally {
+    renamingId.value = null
   }
 }
 </script>
