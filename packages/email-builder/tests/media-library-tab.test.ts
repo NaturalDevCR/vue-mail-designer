@@ -289,6 +289,113 @@ describe('MediaLibraryTab', () => {
     expect(firstItem.find('.vmd-media-item-name-input').exists()).toBe(true)
   })
 
+  it('el input de renombrar recibe foco y selecciona el texto al iniciar', async () => {
+    const wrapper = mount(EmailBuilder, {
+      attachTo: document.body,
+      props: { mediaLibrary: makeMediaLibrary() },
+    })
+    await openMediaTab(wrapper)
+
+    const firstItem = wrapper.findAll('.vmd-media-item')[0]
+    await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
+    await findButtonWithText(firstItem, 'Renombrar').trigger('click')
+    await flushPromises()
+
+    const input = firstItem.find('.vmd-media-item-name-input').element as HTMLInputElement
+    expect(document.activeElement).toBe(input)
+    expect(input.selectionStart).toBe(0)
+    expect(input.selectionEnd).toBe(input.value.length)
+    wrapper.unmount()
+  })
+
+  it('tras un fallo de renombrado, el input recupera el foco', async () => {
+    const rename = vi.fn().mockRejectedValue(new Error('boom'))
+    const wrapper = mount(EmailBuilder, {
+      attachTo: document.body,
+      props: { mediaLibrary: makeMediaLibrary({ rename }) },
+    })
+    await openMediaTab(wrapper)
+
+    const firstItem = wrapper.findAll('.vmd-media-item')[0]
+    await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
+    await findButtonWithText(firstItem, 'Renombrar').trigger('click')
+    await flushPromises()
+
+    const input = firstItem.find('.vmd-media-item-name-input')
+    await input.setValue('Nuevo nombre')
+    ;(input.element as HTMLInputElement).blur()
+    await input.trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+
+    expect(rename).toHaveBeenCalledWith('a', 'Nuevo nombre')
+    expect(document.activeElement).toBe(firstItem.find('.vmd-media-item-name-input').element)
+    wrapper.unmount()
+  })
+
+  it('muestra opacidad reducida en el ítem mientras se está borrando', async () => {
+    function deferred<T>() {
+      let resolve!: (v: T) => void
+      const promise = new Promise<T>((r) => (resolve = r))
+      return { promise, resolve }
+    }
+    const pending = deferred<void>()
+    const del = vi.fn().mockReturnValue(pending.promise)
+    const wrapper = mount(EmailBuilder, { props: { mediaLibrary: makeMediaLibrary({ delete: del }) } })
+    await openMediaTab(wrapper)
+
+    const firstItem = wrapper.findAll('.vmd-media-item')[0]
+    await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
+    await findButtonWithText(firstItem, 'Borrar').trigger('click')
+    await findButtonWithText(firstItem, 'Confirmar').trigger('click')
+
+    expect(firstItem.classes()).toContain('vmd-media-item--busy')
+
+    pending.resolve()
+    await flushPromises()
+  })
+
+  it('si la prop mediaLibrary se vuelve undefined con el tab abierto, el tab desaparece sin quedar colgado', async () => {
+    const wrapper = mount(EmailBuilder, { props: { mediaLibrary: makeMediaLibrary() } })
+    await openMediaTab(wrapper)
+    expect(wrapper.find('.vmd-media-tab').exists()).toBe(true)
+
+    await wrapper.setProps({ mediaLibrary: undefined })
+
+    expect(wrapper.find('[data-tab="media"]').exists()).toBe(false)
+    expect(wrapper.find('.vmd-media-tab').exists()).toBe(false)
+  })
+
+  it('tras subir con éxito después de un error de list, se puede recargar la galería completa', async () => {
+    const list = vi.fn().mockRejectedValueOnce(new Error('boom')).mockResolvedValueOnce({ items })
+    const newItem: MediaItem = {
+      id: 'c',
+      url: 'https://img.example/c.jpg',
+      thumbnailUrl: 'https://img.example/c-thumb.jpg',
+      name: 'Foto C',
+    }
+    const upload = vi.fn().mockResolvedValue(newItem)
+    const wrapper = mount(EmailBuilder, { props: { mediaLibrary: makeMediaLibrary({ list, upload }) } })
+    await openMediaTab(wrapper)
+    expect(wrapper.find('.vmd-media-tab .vmd-image-error').exists()).toBe(true)
+
+    const input = wrapper.find('.vmd-media-tab input[type="file"]')
+    const file = new File(['x'], 'c.jpg', { type: 'image/jpeg' })
+    Object.defineProperty(input.element, 'files', { value: [file], configurable: true })
+    await input.trigger('change')
+    await flushPromises()
+
+    expect(wrapper.findAll('.vmd-media-item')).toHaveLength(1)
+    const reloadBtn = wrapper.findAll('button').find((b) => b.text().trim() === 'Recargar galería completa')
+    expect(reloadBtn).toBeTruthy()
+
+    await reloadBtn!.trigger('click')
+    await flushPromises()
+
+    expect(list).toHaveBeenCalledTimes(2)
+    expect(wrapper.findAll('.vmd-media-item')).toHaveLength(2)
+    expect(wrapper.findAll('button').some((b) => b.text().trim() === 'Recargar galería completa')).toBe(false)
+  })
+
   it('deshabilita el input de renombrado mientras rename está en curso', async () => {
     function deferred<T>() {
       let resolve!: (v: T) => void

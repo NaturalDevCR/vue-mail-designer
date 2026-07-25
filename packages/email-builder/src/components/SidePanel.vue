@@ -9,7 +9,7 @@
             <BlocksTab v-else-if="ui.sidebarTab === 'blocks'" />
             <BodyTab v-else-if="ui.sidebarTab === 'body'" />
             <ImagesTab v-else-if="ui.sidebarTab === 'images'" />
-            <MediaLibraryTab v-else-if="ui.sidebarTab === 'media'" />
+            <MediaLibraryTab v-else-if="ui.sidebarTab === 'media' && options.mediaLibrary" />
           </template>
         </div>
       </Transition>

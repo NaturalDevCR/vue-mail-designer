@@ -7,6 +7,14 @@
       <input ref="fileInput" type="file" accept="image/*" class="vmd-visually-hidden" @change="onUpload" />
     </div>
     <p v-if="uploadError" class="vmd-image-error">{{ uploadError }}</p>
+    <button
+      v-if="listFailed && status === 'results'"
+      type="button"
+      class="vmd-mini-btn vmd-mini-btn--text"
+      @click="load()"
+    >
+      Recargar galería completa
+    </button>
 
     <p v-if="status === 'loading'" class="vmd-tab-placeholder">Cargando…</p>
     <template v-else-if="status === 'error'">
@@ -16,7 +24,12 @@
     <p v-else-if="status === 'empty'" class="vmd-tab-placeholder">Todavía no subiste imágenes.</p>
 
     <div v-else-if="status === 'results'" class="vmd-media-grid">
-      <div v-for="item in items" :key="item.id" class="vmd-media-item">
+      <div
+        v-for="item in items"
+        :key="item.id"
+        class="vmd-media-item"
+        :class="{ 'vmd-media-item--busy': deleting && confirmingDeleteId === item.id }"
+      >
         <button type="button" class="vmd-media-item-thumb" @click="insert(item)">
           <img :src="item.thumbnailUrl" :alt="item.name ?? ''" />
         </button>
@@ -87,6 +100,7 @@ const options = useBuilderOptions()
 
 const items = ref<MediaItem[]>([])
 const status = ref<'loading' | 'error' | 'empty' | 'results'>('loading')
+const listFailed = ref(false)
 
 const fileInput = ref<HTMLInputElement | null>(null)
 const uploading = ref(false)
@@ -115,8 +129,10 @@ async function load() {
     items.value = page.items
     nextCursor.value = page.nextCursor
     status.value = page.items.length ? 'results' : 'empty'
+    listFailed.value = false
   } catch {
     status.value = 'error'
+    listFailed.value = true
   }
 }
 
@@ -197,19 +213,25 @@ async function confirmDelete(id: string) {
   }
 }
 
+function focusRenameInput() {
+  nextTick(() => {
+    const el = Array.isArray(renameInputEl.value) ? renameInputEl.value[0] : renameInputEl.value
+    el?.focus()
+    el?.select()
+  })
+}
+
 function startRename(item: MediaItem) {
   openMenuId.value = null
   renamingId.value = item.id
   renameValue.value = item.name ?? ''
   renameError.value = null
-  nextTick(() => {
-    const el = Array.isArray(renameInputEl.value) ? renameInputEl.value[0] : renameInputEl.value
-    el?.focus()
-  })
+  focusRenameInput()
 }
 
 function cancelRename() {
   renamingId.value = null
+  renameError.value = null
 }
 
 async function confirmRename(item: MediaItem) {
@@ -230,6 +252,7 @@ async function confirmRename(item: MediaItem) {
     renameError.value = 'No se pudo renombrar la imagen.'
   } finally {
     renaming.value = false
+    if (renamingId.value === item.id) focusRenameInput()
   }
 }
 </script>
