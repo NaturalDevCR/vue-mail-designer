@@ -136,3 +136,37 @@ export function useDragMonitor(opts: {
   })
   onBeforeUnmount(() => cleanup())
 }
+
+/**
+ * Zona de drop de "reemplazo" para imágenes arrastradas desde los tabs (kind `media-image`):
+ * a diferencia de `useDropTarget`, no calcula borde de inserción — solo expone `isOver` para
+ * resaltar visualmente el destino mientras el arrastre está encima.
+ */
+export function useMediaDropTarget(opts: {
+  el: Ref<HTMLElement | null>
+  onDrop: (drag: Extract<DragData, { kind: 'media-image' }>) => void
+}): { isOver: Ref<boolean> } {
+  const isOver = ref(false)
+  let cleanup = () => {}
+  onMounted(() => {
+    const element = opts.el.value
+    if (!element) return
+    cleanup = dropTargetForElements({
+      element,
+      canDrop: ({ source }) => readDrag(source.data as Record<string, unknown>)?.kind === 'media-image',
+      onDragEnter: () => {
+        isOver.value = true
+      },
+      onDragLeave: () => {
+        isOver.value = false
+      },
+      onDrop: ({ source }) => {
+        isOver.value = false
+        const d = readDrag(source.data as Record<string, unknown>)
+        if (d?.kind === 'media-image') opts.onDrop(d)
+      },
+    })
+  })
+  onBeforeUnmount(() => cleanup())
+  return { isOver }
+}

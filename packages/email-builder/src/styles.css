@@ -137,6 +137,13 @@
   border-color: var(--vmd-accent); color: var(--vmd-accent);
   background: color-mix(in srgb, var(--vmd-accent) 8%, transparent);
 }
+/* resaltado de bloque imagen / ítem de galería al recibir un arrastre de media-image */
+.vmd-b-image-placeholder.vmd-media-drop-active,
+.vmd-b-gallery-placeholder.vmd-media-drop-active {
+  border-color: var(--vmd-accent); color: var(--vmd-accent);
+  background: color-mix(in srgb, var(--vmd-accent) 8%, transparent);
+}
+img.vmd-media-drop-active { outline: 2px solid var(--vmd-accent); outline-offset: 2px; }
 .vmd-drag-handle { cursor: grab; }
 .vmd-root.vmd-is-dragging { user-select: none; -webkit-user-select: none; }
 .vmd-root.vmd-is-dragging .vmd-column-blocks { min-height: 36px; }

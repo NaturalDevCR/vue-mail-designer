@@ -46,15 +46,17 @@
     <div v-else-if="block.type === 'image'" :style="{ padding: padCss(block.style.padding), textAlign: block.align }">
       <img
         v-if="block.src"
+        ref="imageDropEl"
         :src="block.src"
         :alt="block.alt"
+        :class="{ 'vmd-media-drop-active': isImageOver }"
         :style="{
           ...(block.widthAuto ? { width: 'auto', maxWidth: '100%' } : { width: block.widthPct + '%' }),
           display: 'inline-block',
           ...(block.borderRadius ? { borderRadius: block.borderRadius + 'px' } : {}),
         }"
       />
-      <div v-else class="vmd-b-image-placeholder"><span class="vmd-ico" v-html="ICONS.image" />Selecciona una imagen en el inspector</div>
+      <div v-else ref="imageDropEl" class="vmd-b-image-placeholder" :class="{ 'vmd-media-drop-active': isImageOver }"><span class="vmd-ico" v-html="ICONS.image" />Selecciona una imagen en el inspector</div>
     </div>
 
     <!-- button -->
@@ -193,8 +195,8 @@ import { useBuilderPinia } from '../store/keys'
 import { useUiStore } from '../store/ui'
 import { useBuilderOptions } from '../options'
 import { useI18n } from '../i18n/useI18n'
-import { useDraggableItem, useDropTarget } from '../dnd/usePragmatic'
-import { dropBlock } from '../dnd/applyDrop'
+import { useDraggableItem, useDropTarget, useMediaDropTarget } from '../dnd/usePragmatic'
+import { dropBlock, dropMediaImageOnImageBlock } from '../dnd/applyDrop'
 import { ICONS } from './icons'
 
 const props = withDefaults(defineProps<{ block: Block; columnId?: string }>(), { columnId: '' })
@@ -218,6 +220,12 @@ const { edge: blockEdge } = useDropTarget({
   getData: () => ({ vmdBlockId: props.block.id }),
   accept: (d) => d.kind === 'palette-block' || d.kind === 'canvas-block',
   onDrop: (drag, e) => dropBlock(store, drag, props.columnId, props.block.id, e),
+})
+
+const imageDropEl = ref<HTMLElement | null>(null)
+const { isOver: isImageOver } = useMediaDropTarget({
+  el: imageDropEl,
+  onDrop: (drag) => dropMediaImageOnImageBlock(store, props.block.id, drag),
 })
 
 const customHtml = computed<string | null>(() => {
