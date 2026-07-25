@@ -9,6 +9,12 @@
       </div>
       <template v-if="!collapsed">
         <div class="vmd-rte-row">
+          <select class="vmd-rte-font" :title="t('rte.fontFamily')" :value="currentFontFamily" @change="onFontFamily">
+            <option value="">{{ t('rte.fontFamily') }}</option>
+            <option v-for="f in fontOptions" :key="f.value" :value="f.value">{{ f.label }}</option>
+          </select>
+        </div>
+        <div class="vmd-rte-row">
           <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('bold') }" :title="t('rte.bold')" @click="editor?.chain().focus().toggleBold().run()"><b>B</b></button>
           <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('italic') }" :title="t('rte.italic')" @click="editor?.chain().focus().toggleItalic().run()"><i>I</i></button>
           <button type="button" class="vmd-mini-btn" :class="{ 'vmd-active': editor?.isActive('underline') }" :title="t('rte.underline')" @click="editor?.chain().focus().toggleUnderline().run()"><u>U</u></button>
@@ -65,6 +71,7 @@ import { EditorContent, useEditor } from '@tiptap/vue-3'
 import { computed, ref, watch } from 'vue'
 import { MergeTag, insertMergeTag } from '../editor/mergeTag'
 import { InlineStyle } from '../editor/inlineStyle'
+import { DEFAULT_FONTS } from '../fonts'
 import { useI18n } from '../i18n/useI18n'
 import { ICONS } from './icons'
 import { DEFAULT_SPECIAL_LINKS, flattenMergeTags, isMergeTagGroup, useBuilderOptions } from '../options'
@@ -77,6 +84,7 @@ const options = useBuilderOptions()
 const { t } = useI18n()
 const flatTags = computed(() => flattenMergeTags(options.mergeTags))
 const specialLinks = computed(() => options.specialLinks ?? DEFAULT_SPECIAL_LINKS)
+const fontOptions = computed(() => options.fonts ?? DEFAULT_FONTS)
 const collapsed = ref(false)
 
 const editor = useEditor({
@@ -105,6 +113,7 @@ watch(
 
 const currentColor = computed(() => (editor.value?.getAttributes('inlineStyle').color as string) || '#000000')
 const currentFontSize = computed(() => (editor.value?.getAttributes('inlineStyle').fontSize as string) || '')
+const currentFontFamily = computed(() => (editor.value?.getAttributes('inlineStyle').fontFamily as string) || '')
 
 function onColor(e: Event) {
   const color = (e.target as HTMLInputElement).value
@@ -113,6 +122,10 @@ function onColor(e: Event) {
 function onFontSize(e: Event) {
   const size = (e.target as HTMLSelectElement).value
   if (size) editor.value?.chain().focus().setInlineFontSize(size).run()
+}
+function onFontFamily(e: Event) {
+  const family = (e.target as HTMLSelectElement).value
+  if (family) editor.value?.chain().focus().setInlineFontFamily(family).run()
 }
 function clearFormat() {
   editor.value?.chain().focus().unsetAllMarks().clearNodes().run()

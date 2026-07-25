@@ -57,6 +57,7 @@ export const es: LocaleDict = {
   'rte.alignRight': 'Derecha',
   'rte.color': 'Color de texto',
   'rte.fontSize': 'Tamaño',
+  'rte.fontFamily': 'Fuente',
   'rte.link': 'Enlace',
   'rte.clear': 'Limpiar formato',
   'rte.variable': 'Variable…',
