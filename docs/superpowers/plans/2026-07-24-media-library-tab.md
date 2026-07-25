@@ -342,12 +342,12 @@ import EmailBuilder from '../src/components/EmailBuilder.vue'
 import type { MediaItem } from '../src/mediaLibrary'
 import { createBlock, createDocument, createRow } from '../src/schema'
 
-export const items: MediaItem[] = [
+const items: MediaItem[] = [
   { id: 'a', url: 'https://img.example/a.jpg', thumbnailUrl: 'https://img.example/a-thumb.jpg', name: 'Foto A' },
   { id: 'b', url: 'https://img.example/b.jpg', thumbnailUrl: 'https://img.example/b-thumb.jpg', name: 'Foto B' },
 ]
 
-export function makeMediaLibrary(
+function makeMediaLibrary(
   overrides: Partial<{
     list: ReturnType<typeof vi.fn>
     upload: ReturnType<typeof vi.fn>
@@ -363,7 +363,7 @@ export function makeMediaLibrary(
   }
 }
 
-export async function openMediaTab(wrapper: ReturnType<typeof mount>) {
+async function openMediaTab(wrapper: ReturnType<typeof mount>) {
   await wrapper.find('[data-tab="media"]').trigger('click')
   await flushPromises()
 }
@@ -806,10 +806,16 @@ git commit -m "feat: paginación con cargar más en la galería de medios"
 
 - [ ] **Step 1: Escribir los tests de borrado (deben fallar primero)**
 
+Cambiar la línea de import de `@vue/test-utils` para incluir el tipo `DOMWrapper`:
+
+```ts
+import { type DOMWrapper, flushPromises, mount } from '@vue/test-utils'
+```
+
 Agregar este helper antes del `describe`, y los tres `it` dentro del `describe`, después del test "si falla 'Cargar más'...":
 
 ```ts
-function findButtonWithText(root: ReturnType<typeof mount>, text: string) {
+function findButtonWithText(root: DOMWrapper<Element>, text: string) {
   const btn = root.findAll('button').find((b) => b.text().trim() === text)
   if (!btn) throw new Error(`No se encontró el botón "${text}"`)
   return btn
@@ -824,10 +830,10 @@ function findButtonWithText(root: ReturnType<typeof mount>, text: string) {
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem as unknown as ReturnType<typeof mount>, 'Borrar').trigger('click')
+    await findButtonWithText(firstItem, 'Borrar').trigger('click')
     expect(del).not.toHaveBeenCalled()
 
-    await findButtonWithText(firstItem as unknown as ReturnType<typeof mount>, 'Confirmar').trigger('click')
+    await findButtonWithText(firstItem, 'Confirmar').trigger('click')
     await flushPromises()
 
     expect(del).toHaveBeenCalledWith('a')
@@ -841,8 +847,8 @@ function findButtonWithText(root: ReturnType<typeof mount>, text: string) {
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem as unknown as ReturnType<typeof mount>, 'Borrar').trigger('click')
-    await findButtonWithText(firstItem as unknown as ReturnType<typeof mount>, 'Cancelar').trigger('click')
+    await findButtonWithText(firstItem, 'Borrar').trigger('click')
+    await findButtonWithText(firstItem, 'Cancelar').trigger('click')
 
     expect(del).not.toHaveBeenCalled()
     expect(wrapper.findAll('.vmd-media-item')).toHaveLength(2)
@@ -855,8 +861,8 @@ function findButtonWithText(root: ReturnType<typeof mount>, text: string) {
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem as unknown as ReturnType<typeof mount>, 'Borrar').trigger('click')
-    await findButtonWithText(firstItem as unknown as ReturnType<typeof mount>, 'Confirmar').trigger('click')
+    await findButtonWithText(firstItem, 'Borrar').trigger('click')
+    await findButtonWithText(firstItem, 'Confirmar').trigger('click')
     await flushPromises()
 
     expect(wrapper.findAll('.vmd-media-item')).toHaveLength(2)
@@ -864,7 +870,7 @@ function findButtonWithText(root: ReturnType<typeof mount>, text: string) {
   })
 ```
 
-> Nota: `findButtonWithText` recibe un `DOMWrapper`/`VueWrapper` de un elemento (`firstItem`); el cast `as unknown as ReturnType<typeof mount>` es solo para que TypeScript acepte `.findAll('button')` sobre ese wrapper — ambos tipos exponen el mismo método en `@vue/test-utils`.
+> Nota: `firstItem` (resultado de `wrapper.findAll('.vmd-media-item')[0]`) ya es un `DOMWrapper<Element>`, por eso `findButtonWithText` lo tipa directamente sin casts.
 
 - [ ] **Step 2: Correr los tests nuevos para verificar que fallan**
 
@@ -1020,7 +1026,7 @@ Agregar estos dos `it` después del test "si delete falla...":
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem as unknown as ReturnType<typeof mount>, 'Renombrar').trigger('click')
+    await findButtonWithText(firstItem, 'Renombrar').trigger('click')
 
     const input = firstItem.find('.vmd-media-item-name-input')
     await input.setValue('Nuevo nombre')
@@ -1038,7 +1044,7 @@ Agregar estos dos `it` después del test "si delete falla...":
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem as unknown as ReturnType<typeof mount>, 'Renombrar').trigger('click')
+    await findButtonWithText(firstItem, 'Renombrar').trigger('click')
 
     const input = firstItem.find('.vmd-media-item-name-input')
     await input.setValue('Otro nombre')
