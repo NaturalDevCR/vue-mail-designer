@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { DEFAULT_FONTS, usedFontUrls } from '../src/fonts'
 import { renderHtml } from '../src/render/html'
 import { createBlock, createDocument, createRow } from '../src/schema'
-import type { HeadingBlock } from '../src/schema'
+import type { HeadingBlock, TextBlock } from '../src/schema'
 
 describe('fuentes', () => {
   it('DEFAULT_FONTS incluye email-safe y Google Fonts con url', () => {
@@ -33,5 +33,16 @@ describe('fuentes', () => {
   it('sin Google Fonts usadas no emite links', () => {
     const html = renderHtml(createDocument())
     expect(html).not.toContain('<link href="https://fonts.googleapis.com')
+  })
+
+  it('detecta una fuente aplicada por selección dentro del html de un bloque de texto', () => {
+    const doc = createDocument()
+    const row = createRow([100])
+    const t = createBlock('text') as TextBlock
+    t.html = '<p>Normal <span style="font-family:\'Playfair Display\', serif">elegante</span></p>'
+    row.columns[0].blocks.push(t)
+    doc.rows.push(row)
+    const urls = usedFontUrls(doc, DEFAULT_FONTS)
+    expect(urls.some((u) => u.includes('Playfair'))).toBe(true)
   })
 })
