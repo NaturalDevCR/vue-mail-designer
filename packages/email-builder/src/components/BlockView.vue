@@ -165,10 +165,13 @@
         class="vmd-b-gallery"
         :style="{ display: 'grid', gridTemplateColumns: 'repeat(' + block.columns + ', 1fr)', gap: block.gap + 'px' }"
       >
-        <template v-for="(img, i) in block.images" :key="i">
-          <img v-if="img.src" :src="img.src" :alt="img.alt" style="width: 100%; display: block" />
-          <div v-else class="vmd-b-image-placeholder vmd-b-gallery-placeholder"><span class="vmd-ico" v-html="ICONS.image" /></div>
-        </template>
+        <GalleryItemView
+          v-for="(img, i) in block.images"
+          :key="i"
+          :img="img"
+          :index="i"
+          :block-id="block.id"
+        />
       </div>
     </div>
 
@@ -198,6 +201,7 @@ import { useI18n } from '../i18n/useI18n'
 import { useDraggableItem, useDropTarget, useMediaDropTarget } from '../dnd/usePragmatic'
 import { dropBlock, dropMediaImageOnImageBlock } from '../dnd/applyDrop'
 import { ICONS } from './icons'
+import GalleryItemView from './GalleryItemView.vue'
 
 const props = withDefaults(defineProps<{ block: Block; columnId?: string }>(), { columnId: '' })
 const pinia = useBuilderPinia()
