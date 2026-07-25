@@ -33,6 +33,7 @@
     "@tiptap/pm": "^2.26.0",
     "@tiptap/starter-kit": "^2.26.0",
     "@tiptap/vue-3": "^2.26.0",
+    "vue-advanced-cropper": "^2.8.9",
     "zod": "^3.25.0"
   },
   "peerDependencies": {

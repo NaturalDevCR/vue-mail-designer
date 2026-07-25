@@ -59,6 +59,15 @@
           </div>
           <input ref="fileInput" type="file" accept="image/*" class="vmd-visually-hidden" @change="onUpload" />
         </div>
+        <button
+          v-if="options.uploadImage && block.src"
+          type="button"
+          class="vmd-mini-btn vmd-mini-btn--text"
+          data-action="crop-image"
+          @click="ui.imageEditorBlockId = block.id"
+        >
+          Recortar
+        </button>
         <TextField label="URL" :model-value="block.src" @update:model-value="upd({ src: $event })" />
         <CheckboxField label="Ancho automático" :model-value="block.widthAuto" @update:model-value="upd({ widthAuto: $event })" />
         <NumberField v-if="!block.widthAuto" label="Ancho %" :model-value="block.widthPct" :min="10" :max="100" @update:model-value="upd({ widthPct: $event })" />
@@ -315,6 +324,7 @@ import { useBuilderOptions } from '../options'
 import type { Border, Row, SocialNetworkKind } from '../schema'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
+import { useUiStore } from '../store/ui'
 import { ICONS } from './icons'
 import { ROW_LAYOUTS } from './palette-items'
 import RichTextEditor from './RichTextEditor.vue'
@@ -331,6 +341,7 @@ type RowBackgroundImage = NonNullable<Row['style']['backgroundImage']>
 
 const store = useDocumentStore(useBuilderPinia())
 const options = useBuilderOptions()
+const ui = useUiStore(useBuilderPinia())
 const fileInput = ref<HTMLInputElement | null>(null)
 const uploadFileName = ref<string | null>(null)
 const block = computed(() => store.selectedBlock)

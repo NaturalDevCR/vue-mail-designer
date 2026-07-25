@@ -64,4 +64,15 @@ export const ICONS: Record<string, string> = {
   highlight: svg('<path d="M13 4 20 11l-8 8-4 1-2-2 1-4z"/><path d="M4 21h6"/>'),
   clearFormat: svg('<path d="M8 6h12M9 6l-2 12M13 6l-1 6M4 20l6-6"/>'),
   variable: svg('<path d="M8 4C5 8 5 16 8 20M16 4c3 4 3 12 0 16M9.5 9l5 6M14.5 9l-5 6"/>'),
+
+  // --- editor de imagen ---
+  edFilter: svg('<path d="M4 7h10M18 7h2M4 17h2M8 17h12"/><circle cx="16" cy="7" r="2"/><circle cx="6" cy="17" r="2"/>'),
+  edCrop: svg('<path d="M6 2v14a2 2 0 0 0 2 2h14M2 6h14a2 2 0 0 1 2 2v14"/>'),
+  edResize: svg('<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>'),
+  edDraw: svg('<path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>'),
+  edText: svg('<path d="M4 6h16M12 6v14"/>'),
+  rotateLeft: svg('<path d="M4 12a8 8 0 1 1 2.3 5.6M4 12v5h5"/>'),
+  rotateRight: svg('<path d="M20 12a8 8 0 1 0-2.3 5.6M20 12v5h-5"/>'),
+  flipHorizontal: svg('<path d="M12 3v18M7 7l-3 5 3 5M17 7l3 5-3 5"/>'),
+  flipVertical: svg('<path d="M3 12h18M7 7l5-3 5 3M7 17l5 3 5-3"/>'),
 }

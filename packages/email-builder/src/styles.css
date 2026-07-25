@@ -402,3 +402,26 @@
   width: 100%; box-sizing: border-box; margin-top: 6px; font-size: 11px; padding: 2px 4px;
   border: 1px solid var(--vmd-accent); border-radius: 4px; background: var(--vmd-bg); color: var(--vmd-fg);
 }
+
+.vmd-image-editor { width: 92vw; max-width: 1100px; height: 86vh; display: flex; flex-direction: column; }
+.vmd-image-editor-body { display: flex; flex: 1; min-height: 0; }
+.vmd-image-editor-content { flex: 1; min-width: 0; padding: 16px; overflow-y: auto; }
+.vmd-image-editor-rail { width: 96px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 6px; border-left: 1px solid var(--vmd-border); overflow-y: auto; }
+.vmd-image-editor-rail button {
+  width: 100%; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 10px 4px; border: none; background: none; border-radius: 8px; color: var(--vmd-fg);
+  font-size: 11px; cursor: pointer;
+}
+.vmd-image-editor-rail button:disabled { color: var(--vmd-muted); cursor: not-allowed; opacity: 0.5; }
+.vmd-image-editor-rail button:not(:disabled):hover,
+.vmd-image-editor-rail button.vmd-active { background: var(--vmd-bg); }
+.vmd-image-editor-rail .vmd-ico svg { width: 20px; height: 20px; }
+
+.vmd-crop-panel { display: flex; flex-direction: column; gap: 4px; height: 100%; }
+.vmd-crop-viewport { flex: 1; min-height: 240px; background: var(--vmd-bg); border-radius: 8px; overflow: hidden; margin-bottom: 12px; }
+.vmd-cropper { height: 100%; width: 100%; }
+.vmd-crop-ratio-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
+.vmd-crop-ratio-btn { padding: 8px 4px; border: 1px solid var(--vmd-border); border-radius: 8px; background: var(--vmd-panel); color: var(--vmd-fg); font-size: 12px; cursor: pointer; }
+.vmd-crop-ratio-btn.vmd-active { border-color: var(--vmd-accent); color: var(--vmd-accent); }
+.vmd-crop-actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+.vmd-range { width: 100%; accent-color: var(--vmd-accent); }

@@ -12,6 +12,7 @@ export const useUiStore = defineStore('vmd-ui', () => {
   const sidebarTab = ref<'content' | 'blocks' | 'body' | 'images' | 'media'>('content')
   const isDragging = ref(false)
   const panelMode = ref<'tab' | 'props'>('tab')
+  const imageEditorBlockId = ref<string | null>(null)
 
   function toggleTheme() {
     theme.value = theme.value === 'light' ? 'dark' : 'light'
@@ -28,6 +29,7 @@ export const useUiStore = defineStore('vmd-ui', () => {
     isDragging,
     panelMode,
     versionsOpen,
+    imageEditorBlockId,
     toggleTheme,
   }
 })

@@ -10,6 +10,7 @@
       <SidePanel />
     </div>
     <TemplateGallery v-if="ui.galleryOpen" />
+    <ImageEditorModal v-if="ui.imageEditorBlockId" />
   </div>
 </template>
 
@@ -36,6 +37,7 @@ import type { EmailTemplate } from '../templates'
 import BuilderCanvas from './BuilderCanvas.vue'
 import BuilderHeader from './BuilderHeader.vue'
 import CanvasBar from './CanvasBar.vue'
+import ImageEditorModal from './ImageEditorModal.vue'
 import PreviewDialog from './PreviewDialog.vue'
 import SidePanel from './SidePanel.vue'
 import TemplateGallery from './TemplateGallery.vue'
