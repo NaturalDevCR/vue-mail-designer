@@ -5,6 +5,7 @@
     :special-links="specialLinks"
     :custom-blocks="customBlocks"
     :upload-image="uploadImage"
+    :media-library="mediaLibrary"
     :unlayer-fetch="unlayerFetch"
     style="height: 100vh"
     @export-html="onExportHtml"
@@ -14,6 +15,7 @@
 <script setup lang="ts">
 import { EmailBuilder, escapeHtml, type CustomBlockDef, type EmailDocument, type MergeTagItem, type SpecialLink } from '@vue-mail-designer/builder'
 import { ref, watch } from 'vue'
+import { createDemoMediaLibrary } from './mediaLibrary'
 
 const STORAGE_KEY = 'vmd-demo-design'
 const saved = localStorage.getItem(STORAGE_KEY)
@@ -64,6 +66,9 @@ async function uploadImage(file: File): Promise<string> {
     reader.readAsDataURL(file)
   })
 }
+
+// demo: galería en memoria con latencia artificial (un backend real usaría, ej., Firebase Storage)
+const mediaLibrary = createDemoMediaLibrary()
 
 function onExportHtml(html: string) {
   console.log('HTML exportado:', html.length, 'caracteres')
