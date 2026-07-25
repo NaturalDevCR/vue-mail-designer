@@ -1,11 +1,11 @@
 <!-- packages/email-builder/src/components/ImageEditorModal.vue -->
 <template>
-  <div class="vmd-modal" @click.self="cancel">
+  <div class="vmd-modal" @click.self="!saving && cancel()">
     <div class="vmd-modal-box vmd-image-editor">
       <div class="vmd-preview-bar">
         <h3 class="vmd-inspector-title" style="margin: 0">Editar imagen</h3>
         <div class="vmd-toolbar-group">
-          <button type="button" class="vmd-btn" @click="cancel">Cancelar</button>
+          <button type="button" class="vmd-btn" :disabled="saving" @click="cancel">Cancelar</button>
           <button type="button" class="vmd-btn vmd-btn--primary" :disabled="saving" @click="triggerSave">
             {{ saving ? 'Guardando…' : 'Guardar' }}
           </button>

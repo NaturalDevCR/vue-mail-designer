@@ -8,6 +8,7 @@
         :src="block.src"
         :stencil-props="{ aspectRatio: selectedRatio }"
         @change="onCropperChange"
+        @error="onCropperError"
       />
     </div>
 
@@ -99,6 +100,9 @@ function onCropperChange(result: { image?: { width: number; height: number } }) 
   if (result.image && !naturalRatio.value) {
     naturalRatio.value = result.image.width / result.image.height
   }
+}
+function onCropperError() {
+  errorMsg.value = 'No se pudo cargar esta imagen en el editor (¿es de otro origen sin CORS habilitado?).'
 }
 
 type RatioOption = { key: string; label: string; ratio: number | undefined }

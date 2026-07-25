@@ -15,7 +15,10 @@ function fakeCanvas(shouldFailToBlob = false) {
 }
 
 function makeCropperStub(options: { throwOnGetResult?: boolean; failToBlob?: boolean } = {}) {
-  return defineComponent({
+  const rotate = vi.fn()
+  const flip = vi.fn()
+  const reset = vi.fn()
+  const component = defineComponent({
     name: 'Cropper',
     props: ['src', 'stencilProps'],
     emits: ['change'],
@@ -25,13 +28,14 @@ function makeCropperStub(options: { throwOnGetResult?: boolean; failToBlob?: boo
           if (options.throwOnGetResult) throw new Error('tainted canvas')
           return { canvas: fakeCanvas(options.failToBlob) }
         },
-        rotate: () => {},
-        flip: () => {},
-        reset: () => {},
+        rotate,
+        flip,
+        reset,
       })
       return () => h('div', { class: 'cropper-stub' })
     },
   })
+  return Object.assign(component, { spies: { rotate, flip, reset } })
 }
 
 function designWithImage() {
@@ -185,5 +189,51 @@ describe('ImageEditorModal — Crop', () => {
     expect(uploadImage).not.toHaveBeenCalled()
     expect(wrapper.find('.vmd-image-editor').exists()).toBe(true)
     expect(wrapper.find('.vmd-image-editor .vmd-image-error').text()).toContain('No se pudo procesar')
+  })
+
+  it('si toBlob devuelve null, se muestra el error sin llamar a uploadImage', async () => {
+    const { design } = designWithImage()
+    const uploadImage = vi.fn()
+    const wrapper = mount(EmailBuilder, {
+      props: { design, uploadImage },
+      global: { stubs: { Cropper: makeCropperStub({ failToBlob: true }) } },
+    })
+    await openEditor(wrapper)
+
+    const saveBtn = wrapper.findAll('.vmd-image-editor .vmd-btn').find((b) => b.text().includes('Guardar'))
+    await saveBtn!.trigger('click')
+    await flushPromises()
+
+    expect(uploadImage).not.toHaveBeenCalled()
+    expect(wrapper.find('.vmd-image-editor').exists()).toBe(true)
+    expect(wrapper.find('.vmd-image-editor .vmd-image-error').text()).toContain('No se pudo procesar')
+  })
+
+  it('los botones de rotar/flip/restablecer llaman a los métodos del cropper con los argumentos esperados', async () => {
+    const { design } = designWithImage()
+    const cropperStub = makeCropperStub()
+    const wrapper = mount(EmailBuilder, {
+      props: { design, uploadImage: vi.fn() },
+      global: { stubs: { Cropper: cropperStub } },
+    })
+    await openEditor(wrapper)
+
+    const buttons = wrapper.findAll('.vmd-crop-panel .vmd-mini-btn')
+    const findByText = (text: string) => buttons.find((b) => b.text().includes(text))
+
+    await findByText('Rotar izquierda')!.trigger('click')
+    expect(cropperStub.spies.rotate).toHaveBeenLastCalledWith(-90)
+
+    await findByText('Rotar derecha')!.trigger('click')
+    expect(cropperStub.spies.rotate).toHaveBeenLastCalledWith(90)
+
+    await findByText('Flip horizontal')!.trigger('click')
+    expect(cropperStub.spies.flip).toHaveBeenLastCalledWith(true, false)
+
+    await findByText('Flip vertical')!.trigger('click')
+    expect(cropperStub.spies.flip).toHaveBeenLastCalledWith(false, true)
+
+    await findByText('Restablecer')!.trigger('click')
+    expect(cropperStub.spies.reset).toHaveBeenCalledTimes(1)
   })
 })

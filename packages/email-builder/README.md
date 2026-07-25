@@ -125,6 +125,7 @@ Título, Texto (editor enriquecido), Imagen, Botón, Divisor, Espacio, Redes, Me
 - **Imagen de fondo** por fila (`url`, `repeat`, `size`, `position`).
 - **Fuente propia** por bloque de título/texto (además de la fuente del documento).
 - Borde y radio por columna (soportados en el modelo y el HTML; sin control dedicado en el inspector todavía).
+- **Recorte de imagen** (botón "Recortar" en el inspector de un bloque imagen, visible solo con `uploadImage` configurado) — aspect ratio, rotar/flip, enderezar y radio de esquinas (`borderRadius`); el resultado se sube vía `uploadImage`.
 
 ## Compatibilidad de email
 
@@ -138,3 +139,4 @@ El HTML usa tablas con estilos inline, ghost tables para Outlook y una media que
 - No se pueden reordenar columnas dentro de una fila (sí filas y bloques).
 - `theme` solo acepta `'light' | 'dark'` (sin `'auto'`).
 - Borde/radio de columna sin control dedicado en el inspector; el timer no anima sin un servicio de imagen del integrador.
+- El radio de esquinas (`borderRadius`) del bloque imagen se renderiza con CSS `border-radius`; Outlook de escritorio (motor Word) lo ignora, así que las esquinas redondeadas se ven bien en el builder y en la mayoría de los clientes pero no en Outlook desktop.

@@ -14,7 +14,9 @@ export default defineConfig({
       cssFileName: 'vue-mail-designer',
     },
     commonjsOptions: { esmExternals: ['vue', 'pinia'] },
-    rollupOptions: { external: ['vue', 'pinia', 'vuedraggable', 'zod', /^@tiptap\//] },
+    rollupOptions: {
+      external: ['vue', 'pinia', 'vuedraggable', 'zod', /^@tiptap\//, /^vue-advanced-cropper/],
+    },
   },
   test: {
     environment: 'jsdom',
