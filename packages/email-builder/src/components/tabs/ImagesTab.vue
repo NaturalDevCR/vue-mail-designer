@@ -16,15 +16,15 @@
     <p v-else-if="status === 'empty'" class="vmd-tab-placeholder">Sin resultados</p>
 
     <div v-else-if="status === 'results'" class="vmd-image-grid">
-      <button
+      <DraggableImageThumb
         v-for="(result, i) in results"
         :key="i"
-        type="button"
-        class="vmd-image-result"
+        :src="result.url"
+        :thumbnail-url="result.thumbnailUrl"
+        :alt="result.title ?? ''"
+        thumb-class="vmd-image-result"
         @click="selectImage(result)"
-      >
-        <img :src="result.thumbnailUrl" :alt="result.title ?? ''" />
-      </button>
+      />
     </div>
 
     <p class="vmd-image-credit">Imágenes de Openverse (CC)</p>
@@ -37,6 +37,7 @@ import { openverseSearch, type ImageResult } from '../../imageSearch'
 import { useBuilderOptions } from '../../options'
 import { useDocumentStore } from '../../store/document'
 import { useBuilderPinia } from '../../store/keys'
+import DraggableImageThumb from './DraggableImageThumb.vue'
 
 const DEBOUNCE_MS = 400
 

@@ -30,9 +30,13 @@
         class="vmd-media-item"
         :class="{ 'vmd-media-item--busy': deleting && confirmingDeleteId === item.id }"
       >
-        <button type="button" class="vmd-media-item-thumb" @click="insert(item)">
-          <img :src="item.thumbnailUrl" :alt="item.name ?? ''" />
-        </button>
+        <DraggableImageThumb
+          :src="item.url"
+          :thumbnail-url="item.thumbnailUrl"
+          :alt="item.name ?? ''"
+          thumb-class="vmd-media-item-thumb"
+          @click="insert(item)"
+        />
 
         <template v-if="renamingId === item.id">
           <input
@@ -94,6 +98,7 @@ import { useBuilderOptions } from '../../options'
 import { useDocumentStore } from '../../store/document'
 import { useBuilderPinia } from '../../store/keys'
 import { ICONS } from '../icons'
+import DraggableImageThumb from './DraggableImageThumb.vue'
 
 const store = useDocumentStore(useBuilderPinia())
 const options = useBuilderOptions()
