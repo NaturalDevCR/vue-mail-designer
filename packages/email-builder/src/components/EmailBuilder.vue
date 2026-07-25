@@ -23,6 +23,7 @@ import { es } from '../i18n/es'
 import type { LocaleDict } from '../i18n/keys'
 import { provideI18n } from '../i18n/useI18n'
 import type { UnlayerFetch } from '../import/unlayerUrl'
+import type { MediaLibraryOptions } from '../mediaLibrary'
 import { BUILDER_OPTIONS_KEY, type Appearance, type CustomBlockDef, type MergeTagItem, type SpecialLink, type ToolConfig } from '../options'
 import type { BlockType } from '../schema'
 import { renderHtml } from '../render/html'
@@ -54,6 +55,7 @@ const props = defineProps<{
   tools?: Partial<Record<BlockType, ToolConfig>>
   fonts?: FontDef[]
   customBlocks?: CustomBlockDef[]
+  mediaLibrary?: MediaLibraryOptions
 }>()
 
 const APPEARANCE_VARS: Record<keyof Appearance, string> = {
@@ -126,6 +128,9 @@ provide(
     },
     get customBlocks() {
       return props.customBlocks
+    },
+    get mediaLibrary() {
+      return props.mediaLibrary
     },
   }),
 )

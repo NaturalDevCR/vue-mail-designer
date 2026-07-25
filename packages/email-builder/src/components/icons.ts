@@ -26,6 +26,7 @@ export const ICONS: Record<string, string> = {
   tabBlocks: svg('<rect x="4" y="5" width="16" height="5" rx="1"/><rect x="4" y="14" width="7" height="5" rx="1"/><rect x="13" y="14" width="7" height="5" rx="1"/>'),
   tabBody: svg('<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 9v11"/>'),
   tabImages: svg('<rect x="3" y="6" width="14" height="11" rx="2"/><path d="m5 15 3-3 2 2 3-3 2 2"/><path d="M19 8h2v11H8v-2"/>'),
+  tabMedia: svg('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/>'),
 
   // --- acciones ---
   undo: svg('<path d="M9 7 4 12l5 5M4 12h11a5 5 0 0 1 0 10h-3"/>'),

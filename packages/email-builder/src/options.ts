@@ -3,6 +3,7 @@ import { inject } from 'vue'
 import type { ImageResult } from './imageSearch'
 import type { FontDef } from './fonts'
 import type { UnlayerFetch } from './import/unlayerUrl'
+import type { MediaLibraryOptions } from './mediaLibrary'
 import type { BlockType } from './schema'
 import type { EmailTemplate } from './templates'
 
@@ -63,6 +64,7 @@ export type BuilderOptions = {
   fonts?: FontDef[]
   specialLinks?: SpecialLink[]
   customBlocks?: CustomBlockDef[]
+  mediaLibrary?: MediaLibraryOptions
 }
 
 export const BUILDER_OPTIONS_KEY: InjectionKey<BuilderOptions> = Symbol('vmd-options')

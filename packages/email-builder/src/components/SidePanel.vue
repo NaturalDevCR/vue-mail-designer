@@ -9,6 +9,7 @@
             <BlocksTab v-else-if="ui.sidebarTab === 'blocks'" />
             <BodyTab v-else-if="ui.sidebarTab === 'body'" />
             <ImagesTab v-else-if="ui.sidebarTab === 'images'" />
+            <MediaLibraryTab v-else-if="ui.sidebarTab === 'media'" />
           </template>
         </div>
       </Transition>
@@ -32,6 +33,7 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
 import { useI18n } from '../i18n/useI18n'
+import { useBuilderOptions } from '../options'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
 import { useUiStore } from '../store/ui'
@@ -41,10 +43,12 @@ import BlocksTab from './tabs/BlocksTab.vue'
 import BodyTab from './tabs/BodyTab.vue'
 import ContentTab from './tabs/ContentTab.vue'
 import ImagesTab from './tabs/ImagesTab.vue'
+import MediaLibraryTab from './tabs/MediaLibraryTab.vue'
 
 const pinia = useBuilderPinia()
 const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
+const options = useBuilderOptions()
 const { t } = useI18n()
 
 // clave de vista: cambia al alternar tab o al entrar/salir del modo propiedades.
@@ -53,12 +57,18 @@ const viewKey = computed(() =>
   store.selection && ui.panelMode === 'props' ? 'props' : ui.sidebarTab,
 )
 
-const TABS: { key: 'content' | 'blocks' | 'body' | 'images'; labelKey: string; icon: string }[] = [
-  { key: 'content', labelKey: 'rail.content', icon: 'tabContent' },
-  { key: 'blocks', labelKey: 'rail.blocks', icon: 'tabBlocks' },
-  { key: 'body', labelKey: 'rail.body', icon: 'tabBody' },
-  { key: 'images', labelKey: 'rail.images', icon: 'tabImages' },
-]
+type TabKey = 'content' | 'blocks' | 'body' | 'images' | 'media'
+
+const TABS = computed<{ key: TabKey; labelKey: string; icon: string }[]>(() => {
+  const tabs: { key: TabKey; labelKey: string; icon: string }[] = [
+    { key: 'content', labelKey: 'rail.content', icon: 'tabContent' },
+    { key: 'blocks', labelKey: 'rail.blocks', icon: 'tabBlocks' },
+    { key: 'body', labelKey: 'rail.body', icon: 'tabBody' },
+    { key: 'images', labelKey: 'rail.images', icon: 'tabImages' },
+  ]
+  if (options.mediaLibrary) tabs.push({ key: 'media', labelKey: 'rail.media', icon: 'tabMedia' })
+  return tabs
+})
 
 watch(
   () => store.selection,

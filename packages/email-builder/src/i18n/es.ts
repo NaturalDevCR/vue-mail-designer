@@ -21,6 +21,7 @@ export const es: LocaleDict = {
   'rail.blocks': 'Bloques',
   'rail.body': 'Cuerpo',
   'rail.images': 'Imágenes',
+  'rail.media': 'Galería',
 
   'palette.heading': 'Título',
   'palette.text': 'Texto',
