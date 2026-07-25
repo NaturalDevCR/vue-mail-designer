@@ -98,11 +98,11 @@ export function dropMediaImageOnEmptyCanvas(store: Store, drag: Extract<DragData
   const before = store.past.length
   const block = store.addBlockToColumn(row.columns[0].id, 'image')
   store.updateBlock(block.id, { src: drag.src, alt: drag.alt })
-  while (store.past.length > before + 1) store.past.pop()
+  while (store.past.length > before) store.past.pop()
 }
 ```
 
-Mismo truco de fusión de historial que `dropBlockOnEmptyCanvas` (aquí son 2 commits post-`addRow` a fusionar: `addBlockToColumn` + `updateBlock`), para que un solo undo revierta fila+bloque+src.
+Mismo truco de fusión de historial que `dropBlockOnEmptyCanvas`, generalizado a 3 commits en vez de 2: `before` se captura **después** de `addRow` (ya incluye su commit), y el `while` descarta *todos* los commits posteriores (`addBlockToColumn` + `updateBlock`) hasta volver exactamente a `before` — no a `before + 1`. `dropBlockOnEmptyCanvas` usa `if (... === before + 1) pop()` porque ahí solo hay un commit posterior a fusionar (un `if` y un `while` con la misma condición de fondo: volver a `before`); acá, al ser dos commits posteriores, hace falta el `while` para descartarlos ambos. El commit que sobrevive es el de `addRow` — el único que representa "estado antes de todo esto" — para que un solo `undo()` revierta fila+bloque+src completos.
 
 **Nota de comportamiento (no position-aware):** como el `rowsEl` es ancestro de todo bloque/columna/fila existentes y ninguno de esos targets internos acepta `media-image`, soltar una miniatura *sobre* un bloque no-imagen (texto, botón, etc.) también cae en este fallback y agrega una fila nueva al final — no reemplaza nada del bloque sobre el que se soltó. Es la misma falta de awareness de posición que ya tiene el click-to-insert hoy (siempre `addRow` al final); se documenta explícitamente para no sorprender en review.
 
