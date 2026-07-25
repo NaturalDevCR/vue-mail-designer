@@ -30,7 +30,7 @@
         <div class="vmd-props-section-title">Texto</div>
         <div class="vmd-field">
           <span class="vmd-field-label">Contenido</span>
-          <RichTextEditor :model-value="block.html" :floating="false" @update:model-value="upd({ html: $event })" />
+          <RichTextEditor :model-value="block.html" @update:model-value="upd({ html: $event })" />
         </div>
         <SelectField label="Fuente" :model-value="block.fontFamily ?? ''" :options="FONT_OPTIONS" @update:model-value="updFont" />
         <ColorField label="Color" :model-value="block.style.color" @update:model-value="upd({ style: { color: $event } })" />
