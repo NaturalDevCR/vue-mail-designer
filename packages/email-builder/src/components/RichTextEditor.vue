@@ -1,9 +1,6 @@
 <template>
-  <div ref="root" class="vmd-rte" :class="{ 'vmd-rte--static': !floating }" @click.stop>
-    <div
-      class="vmd-rte-toolbar"
-      :class="{ 'vmd-rte-toolbar--floating': floating, 'vmd-rte-toolbar--below': floating && flipped }"
-    >
+  <div class="vmd-rte" @click.stop>
+    <div class="vmd-rte-toolbar">
       <div class="vmd-rte-bar">
         <span class="vmd-rte-bar-label">{{ t('rte.format') }}</span>
         <button type="button" class="vmd-mini-btn" :title="collapsed ? t('rte.expand') : t('rte.collapse')" @click="collapsed = !collapsed">
@@ -65,7 +62,7 @@ import TextAlign from '@tiptap/extension-text-align'
 import Underline from '@tiptap/extension-underline'
 import StarterKit from '@tiptap/starter-kit'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { MergeTag, insertMergeTag } from '../editor/mergeTag'
 import { InlineStyle } from '../editor/inlineStyle'
 import { useI18n } from '../i18n/useI18n'
@@ -74,7 +71,7 @@ import { DEFAULT_SPECIAL_LINKS, flattenMergeTags, isMergeTagGroup, useBuilderOpt
 
 const FONT_SIZES = [12, 14, 16, 18, 20, 24, 28, 32, 40]
 
-const props = withDefaults(defineProps<{ modelValue: string; floating?: boolean }>(), { floating: true })
+const props = defineProps<{ modelValue: string }>()
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 const options = useBuilderOptions()
 const { t } = useI18n()
@@ -143,33 +140,4 @@ function onSpecialLink(e: Event) {
   if (link && editor.value) editor.value.chain().focus().setLink({ href: link.href }).run()
   select.value = ''
 }
-
-// la barra flotante vive arriba del bloque por defecto; si no hay espacio (bloque cerca del
-// borde superior del canvas) se voltea abajo para no taparse con el contenido de arriba.
-// No aplica al modo no flotante (p.ej. embebido en el inspector).
-const root = ref<HTMLElement | null>(null)
-const flipped = ref(false)
-const TOOLBAR_ESTIMATED_HEIGHT = 100
-
-function updatePlacement() {
-  if (!props.floating) return
-  const el = root.value
-  if (!el) return
-  const top = el.getBoundingClientRect().top
-  // el espacio disponible es contra el borde superior del canvas (no el del viewport):
-  // arriba del canvas vive la barra de herramientas + el header, que también ocupan lugar.
-  const canvasTop = el.closest('.vmd-canvas')?.getBoundingClientRect().top ?? 0
-  flipped.value = top - canvasTop < TOOLBAR_ESTIMATED_HEIGHT
-}
-
-onMounted(() => {
-  if (!props.floating) return
-  nextTick(updatePlacement)
-  window.addEventListener('scroll', updatePlacement, true)
-  window.addEventListener('resize', updatePlacement)
-})
-onBeforeUnmount(() => {
-  window.removeEventListener('scroll', updatePlacement, true)
-  window.removeEventListener('resize', updatePlacement)
-})
 </script>

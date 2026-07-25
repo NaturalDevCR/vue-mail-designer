@@ -39,12 +39,7 @@
         fontFamily: block.fontFamily || fontFamily,
       }"
     >
-      <RichTextEditor
-        v-if="isSelected"
-        :model-value="block.html"
-        @update:model-value="store.updateBlock(block.id, { html: $event })"
-      />
-      <div v-else class="vmd-b-text" v-html="block.html" />
+      <div class="vmd-b-text" v-html="block.html" />
     </div>
 
     <!-- image -->
@@ -196,7 +191,6 @@ import { useBuilderOptions } from '../options'
 import { useI18n } from '../i18n/useI18n'
 import { useDraggableItem, useDropTarget } from '../dnd/usePragmatic'
 import { dropBlock } from '../dnd/applyDrop'
-import RichTextEditor from './RichTextEditor.vue'
 import { ICONS } from './icons'
 
 const props = withDefaults(defineProps<{ block: Block; columnId?: string }>(), { columnId: '' })

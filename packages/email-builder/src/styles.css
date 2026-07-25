@@ -193,8 +193,8 @@
 }
 .vmd-mt { background: color-mix(in srgb, var(--vmd-accent) 15%, transparent); border-radius: 3px; padding: 0 3px; }
 .vmd-rte { position: relative; }
-.vmd-rte .ProseMirror { outline: none; min-height: 24px; cursor: text; }
-.vmd-rte--static .ProseMirror {
+.vmd-rte .ProseMirror {
+  outline: none; min-height: 24px; cursor: text;
   border: 1px solid var(--vmd-border); border-radius: 6px; padding: 6px 8px;
   background: var(--vmd-bg); color: var(--vmd-fg); font-size: 13px;
 }
@@ -203,16 +203,6 @@
   background: var(--vmd-panel); border: 1px solid var(--vmd-border); border-radius: 10px;
   margin-bottom: 6px;
 }
-/* modo flotante (canvas): flota arriba del bloque, como Unlayer; --below la voltea cuando
-   no hay espacio arriba, para no taparse con el contenido anterior. Modo no flotante
-   (embebida en el inspector): caja estática, parte normal del flujo del panel. */
-.vmd-rte-toolbar--floating {
-  position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(100% + 8px); z-index: 20;
-  width: max-content; max-width: min(480px, 90vw);
-  margin-bottom: 0;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
-}
-.vmd-rte-toolbar--below { bottom: auto; top: calc(100% + 8px); }
 .vmd-rte-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .vmd-rte-bar-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .02em; color: var(--vmd-muted); }
 .vmd-ico--flip { transform: rotate(180deg); }
