@@ -33,6 +33,24 @@ async function uploadImage(file: File): Promise<string> {
   return 'https://cdn.tu-dominio.com/...'
 }
 
+const mediaLibrary = {
+  async list(cursor?: string) {
+    // listá tu bucket (ej. Firebase Storage) paginado por cursor
+    return { items: [], nextCursor: undefined }
+  },
+  async upload(file: File) {
+    // subí el archivo y devolvé el MediaItem completo (id, url, thumbnailUrl, name)
+    return { id: 'x', url: '...', thumbnailUrl: '...', name: file.name }
+  },
+  async delete(id: string) {
+    // borrá el archivo de tu bucket
+  },
+  async rename(id: string, name: string) {
+    // renombrá el archivo y devolvé el MediaItem actualizado
+    return { id, url: '...', thumbnailUrl: '...', name }
+  },
+}
+
 function onHtml(html: string) {
   // guardá o enviá el HTML
 }
@@ -48,6 +66,7 @@ function onHtml(html: string) {
 | `templates` | `EmailTemplate[]` | Plantillas extra además de las incluidas. |
 | `uploadImage` | `(file: File) => Promise<string>` | Handler de subida; devuelve la URL final. |
 | `imageSearch` | `(query: string) => Promise<ImageResult[]>` | Handler de búsqueda para la pestaña Imágenes; por defecto usa `openverseSearch`. |
+| `mediaLibrary` | `MediaLibraryOptions` | Habilita la pestaña "Galería": `{ list: (cursor?) => Promise<{ items: MediaItem[], nextCursor? }>, upload: (file) => Promise<MediaItem>, delete: (id) => Promise<void>, rename: (id, name) => Promise<MediaItem> }`. Sin esta prop, la pestaña no aparece. Todas las funciones las implementa el integrador contra su propio storage (ej. Firebase Storage); la librería no asume ningún backend. |
 | `unlayerFetch` | `(slug: string) => Promise<unknown>` | Handler para cargar una plantilla de Unlayer por URL/slug; devuelve el JSON de diseño. Por defecto pega a su API (falla por CORS sin proxy). |
 | `theme` | `'light' \| 'dark'` | Tema de la UI del builder. |
 | `locale` | `'es' \| 'en' \| LocaleDict` | Idioma de la UI. Objeto = diccionario de claves que se fusiona sobre el español (traduce solo lo que quieras). |
