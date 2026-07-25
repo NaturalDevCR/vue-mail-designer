@@ -102,4 +102,45 @@ describe('MediaLibraryTab', () => {
     await openMediaTab(wrapper)
     expect(wrapper.find('.vmd-tab-placeholder').text()).toContain('Todavía no subiste imágenes')
   })
+
+  it('sube un archivo y antepone el ítem al grid sin volver a listar', async () => {
+    const newItem: MediaItem = {
+      id: 'c',
+      url: 'https://img.example/c.jpg',
+      thumbnailUrl: 'https://img.example/c-thumb.jpg',
+      name: 'Foto C',
+    }
+    const upload = vi.fn().mockResolvedValue(newItem)
+    const list = vi.fn().mockResolvedValue({ items })
+    const wrapper = mount(EmailBuilder, { props: { mediaLibrary: makeMediaLibrary({ list, upload }) } })
+    await openMediaTab(wrapper)
+
+    const input = wrapper.find('.vmd-media-tab input[type="file"]')
+    const file = new File(['x'], 'c.jpg', { type: 'image/jpeg' })
+    Object.defineProperty(input.element, 'files', { value: [file], configurable: true })
+    await input.trigger('change')
+    await flushPromises()
+
+    expect(upload).toHaveBeenCalledWith(file)
+    expect(list).toHaveBeenCalledTimes(1)
+    expect(wrapper.findAll('.vmd-media-item')).toHaveLength(3)
+    expect(wrapper.findAll('.vmd-media-item-thumb')[0].find('img').attributes('src')).toBe(
+      'https://img.example/c-thumb.jpg',
+    )
+  })
+
+  it('muestra error inline si falla la subida', async () => {
+    const upload = vi.fn().mockRejectedValue(new Error('boom'))
+    const wrapper = mount(EmailBuilder, { props: { mediaLibrary: makeMediaLibrary({ upload }) } })
+    await openMediaTab(wrapper)
+
+    const input = wrapper.find('.vmd-media-tab input[type="file"]')
+    const file = new File(['x'], 'c.jpg', { type: 'image/jpeg' })
+    Object.defineProperty(input.element, 'files', { value: [file], configurable: true })
+    await input.trigger('change')
+    await flushPromises()
+
+    expect(wrapper.find('.vmd-media-tab .vmd-image-error').text()).toContain('No se pudo subir la imagen')
+    expect(wrapper.findAll('.vmd-media-item')).toHaveLength(2)
+  })
 })

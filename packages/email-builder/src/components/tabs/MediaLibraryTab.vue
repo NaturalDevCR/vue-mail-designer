@@ -1,5 +1,13 @@
 <template>
   <div class="vmd-media-tab">
+    <div class="vmd-media-upload-row">
+      <button type="button" class="vmd-btn" :disabled="uploading" @click="fileInput?.click()">
+        <span class="vmd-ico" v-html="ICONS.upload" />{{ uploading ? 'Subiendo…' : 'Subir imagen' }}
+      </button>
+      <input ref="fileInput" type="file" accept="image/*" class="vmd-visually-hidden" @change="onUpload" />
+    </div>
+    <p v-if="uploadError" class="vmd-image-error">{{ uploadError }}</p>
+
     <p v-if="status === 'loading'" class="vmd-tab-placeholder">Cargando…</p>
     <template v-else-if="status === 'error'">
       <p class="vmd-image-error">No se pudo cargar la galería.</p>
@@ -24,12 +32,17 @@ import type { MediaItem } from '../../mediaLibrary'
 import { useBuilderOptions } from '../../options'
 import { useDocumentStore } from '../../store/document'
 import { useBuilderPinia } from '../../store/keys'
+import { ICONS } from '../icons'
 
 const store = useDocumentStore(useBuilderPinia())
 const options = useBuilderOptions()
 
 const items = ref<MediaItem[]>([])
 const status = ref<'loading' | 'error' | 'empty' | 'results'>('loading')
+
+const fileInput = ref<HTMLInputElement | null>(null)
+const uploading = ref(false)
+const uploadError = ref<string | null>(null)
 
 async function load() {
   if (!options.mediaLibrary) return
@@ -54,5 +67,23 @@ function insert(item: MediaItem) {
   const row = store.addRow([100])
   const block = store.addBlockToColumn(row.columns[0].id, 'image')
   store.updateBlock(block.id, { src: item.url, alt: item.name ?? '' })
+}
+
+async function onUpload(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file || !options.mediaLibrary) return
+  uploading.value = true
+  uploadError.value = null
+  try {
+    const item = await options.mediaLibrary.upload(file)
+    items.value = [item, ...items.value]
+    status.value = 'results'
+  } catch {
+    uploadError.value = 'No se pudo subir la imagen.'
+  } finally {
+    uploading.value = false
+    input.value = ''
+  }
 }
 </script>
