@@ -7,6 +7,7 @@ export type DragData =
   | { kind: 'palette-row'; widths: number[] }
   | { kind: 'canvas-row'; rowId: string }
   | { kind: 'canvas-block'; blockId: string; columnId: string }
+  | { kind: 'media-image'; src: string; alt: string }
 
 const KEY = 'vmd-drag'
 

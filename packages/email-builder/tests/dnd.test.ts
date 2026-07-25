@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
 import EmailBuilder from '../src/components/EmailBuilder.vue'
-import { dropBlock, dropBlockOnEmptyCanvas, dropRow } from '../src/dnd/applyDrop'
+import { dropBlock, dropBlockOnEmptyCanvas, dropRow, dropMediaImageOnImageBlock, dropMediaImageOnGalleryItem, dropMediaImageOnEmptyCanvas } from '../src/dnd/applyDrop'
 import { createBlock } from '../src/schema'
 import { useDocumentStore } from '../src/store/document'
 
@@ -117,5 +117,85 @@ describe('canvas DnD (montaje)', () => {
     await wrapper.find('.vmd-canvas-empty button').trigger('click')
     await wrapper.find('.vmd-row').trigger('click')
     expect(wrapper.find('.vmd-row .vmd-drag-handle').exists()).toBe(true)
+  })
+})
+
+describe('applyDrop — media-image (arrastre desde los tabs de imágenes)', () => {
+  beforeEach(() => setActivePinia(createPinia()))
+
+  it('reemplaza el src de un bloque imagen existente sin pisar un alt ya escrito', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([100])
+    const block = store.addBlockToColumn(row.columns[0].id, 'image')
+    store.updateBlock(block.id, { alt: 'Foto original' })
+    dropMediaImageOnImageBlock(store, block.id, { kind: 'media-image', src: 'https://example.com/nueva.png', alt: 'Nueva' })
+    const found = store.findBlock(block.id)!.block
+    if (found.type !== 'image') throw new Error()
+    expect(found.src).toBe('https://example.com/nueva.png')
+    expect(found.alt).toBe('Foto original')
+  })
+
+  it('toma el alt del drag si el bloque imagen no tenía uno', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([100])
+    const block = store.addBlockToColumn(row.columns[0].id, 'image')
+    dropMediaImageOnImageBlock(store, block.id, { kind: 'media-image', src: 'https://example.com/a.png', alt: 'Un gato' })
+    const found = store.findBlock(block.id)!.block
+    if (found.type !== 'image') throw new Error()
+    expect(found.alt).toBe('Un gato')
+  })
+
+  it('no hace nada si el bloque destino no es de tipo imagen', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([100])
+    const block = store.addBlockToColumn(row.columns[0].id, 'text')
+    dropMediaImageOnImageBlock(store, block.id, { kind: 'media-image', src: 'x', alt: 'y' })
+    const found = store.findBlock(block.id)!.block
+    expect(found.type).toBe('text')
+  })
+
+  it('fija la imagen solo en el índice soltado de una galería, sin afectar los demás ítems', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([100])
+    const block = store.addBlockToColumn(row.columns[0].id, 'gallery')
+    dropMediaImageOnGalleryItem(store, block.id, 1, { kind: 'media-image', src: 'https://example.com/b.png', alt: 'B' })
+    const found = store.findBlock(block.id)!.block
+    if (found.type !== 'gallery') throw new Error()
+    expect(found.images[0]).toEqual({ src: '', alt: '' })
+    expect(found.images[1]).toMatchObject({ src: 'https://example.com/b.png', alt: 'B' })
+  })
+
+  it('no pisa el alt de un ítem de galería que ya tenía uno', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([100])
+    const block = store.addBlockToColumn(row.columns[0].id, 'gallery')
+    store.updateBlock(block.id, { images: [{ src: '', alt: 'Alt original' }, { src: '', alt: '' }] })
+    dropMediaImageOnGalleryItem(store, block.id, 0, { kind: 'media-image', src: 'https://example.com/c.png', alt: 'Nuevo alt' })
+    const found = store.findBlock(block.id)!.block
+    if (found.type !== 'gallery') throw new Error()
+    expect(found.images[0]).toEqual({ src: 'https://example.com/c.png', alt: 'Alt original' })
+  })
+
+  it('no hace nada si el bloque destino no es de tipo galería', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([100])
+    const block = store.addBlockToColumn(row.columns[0].id, 'text')
+    dropMediaImageOnGalleryItem(store, block.id, 0, { kind: 'media-image', src: 'x', alt: 'y' })
+    const found = store.findBlock(block.id)!.block
+    expect(found.type).toBe('text')
+  })
+
+  it('crea fila + bloque imagen en el canvas vacío, deshacible en un solo undo', () => {
+    const store = useDocumentStore()
+    const base = store.past.length
+    dropMediaImageOnEmptyCanvas(store, { kind: 'media-image', src: 'https://example.com/d.png', alt: 'D' })
+    expect(store.doc.rows).toHaveLength(1)
+    const b = store.doc.rows[0].columns[0].blocks[0]
+    if (b.type !== 'image') throw new Error()
+    expect(b.src).toBe('https://example.com/d.png')
+    expect(b.alt).toBe('D')
+    expect(store.past.length).toBe(base + 1)
+    store.undo()
+    expect(store.doc.rows).toHaveLength(0)
   })
 })
