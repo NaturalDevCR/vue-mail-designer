@@ -21,6 +21,27 @@
           <img :src="item.thumbnailUrl" :alt="item.name ?? ''" />
         </button>
         <div class="vmd-media-item-name" :title="item.name ?? ''">{{ item.name ?? '' }}</div>
+
+        <button type="button" class="vmd-media-item-menu-btn" @click.stop="toggleMenu(item.id)">⋮</button>
+        <div v-if="openMenuId === item.id" class="vmd-media-menu" @click.stop>
+          <button type="button" class="vmd-media-menu-danger" @click="startDelete(item.id)">Borrar</button>
+        </div>
+
+        <div v-if="confirmingDeleteId === item.id" class="vmd-media-confirm" @click.stop>
+          <p>¿Borrar esta imagen?</p>
+          <p v-if="deleteError" class="vmd-image-error">{{ deleteError }}</p>
+          <div class="vmd-media-confirm-actions">
+            <button type="button" class="vmd-mini-btn vmd-mini-btn--text" @click="cancelDelete">Cancelar</button>
+            <button
+              type="button"
+              class="vmd-mini-btn vmd-mini-btn--text vmd-mini-btn--danger"
+              :disabled="deleting"
+              @click="confirmDelete(item.id)"
+            >
+              Confirmar
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -58,6 +79,11 @@ const uploadError = ref<string | null>(null)
 const nextCursor = ref<string | undefined>(undefined)
 const loadingMore = ref(false)
 const loadMoreError = ref<string | null>(null)
+
+const openMenuId = ref<string | null>(null)
+const confirmingDeleteId = ref<string | null>(null)
+const deleting = ref(false)
+const deleteError = ref<string | null>(null)
 
 async function load() {
   if (!options.mediaLibrary) return
@@ -115,6 +141,37 @@ async function onUpload(e: Event) {
   } finally {
     uploading.value = false
     input.value = ''
+  }
+}
+
+function toggleMenu(id: string) {
+  openMenuId.value = openMenuId.value === id ? null : id
+  confirmingDeleteId.value = null
+}
+
+function startDelete(id: string) {
+  openMenuId.value = null
+  confirmingDeleteId.value = id
+  deleteError.value = null
+}
+
+function cancelDelete() {
+  confirmingDeleteId.value = null
+}
+
+async function confirmDelete(id: string) {
+  if (!options.mediaLibrary) return
+  deleting.value = true
+  deleteError.value = null
+  try {
+    await options.mediaLibrary.delete(id)
+    items.value = items.value.filter((i) => i.id !== id)
+    confirmingDeleteId.value = null
+    if (items.value.length === 0) status.value = 'empty'
+  } catch {
+    deleteError.value = 'No se pudo borrar la imagen.'
+  } finally {
+    deleting.value = false
   }
 }
 </script>

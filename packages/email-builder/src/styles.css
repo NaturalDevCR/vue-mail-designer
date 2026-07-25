@@ -374,3 +374,26 @@
 .vmd-media-item-name { margin-top: 6px; font-size: 11px; color: var(--vmd-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .vmd-media-upload-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .vmd-media-loadmore { display: block; margin: 12px auto 0; }
+.vmd-media-item-menu-btn {
+  position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border-radius: 6px;
+  border: 1px solid var(--vmd-border); background: var(--vmd-panel); color: var(--vmd-fg);
+  opacity: 0; cursor: pointer; line-height: 1; font-size: 14px; padding: 0;
+}
+.vmd-media-item:hover .vmd-media-item-menu-btn,
+.vmd-media-item-menu-btn:focus {
+  opacity: 1;
+}
+.vmd-media-menu {
+  position: absolute; top: 28px; right: 4px; z-index: 5; display: flex; flex-direction: column;
+  min-width: 110px; border: 1px solid var(--vmd-border); border-radius: 8px; background: var(--vmd-panel);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); overflow: hidden;
+}
+.vmd-media-menu button { padding: 8px 10px; text-align: left; border: none; background: none; color: var(--vmd-fg); font-size: 12px; cursor: pointer; }
+.vmd-media-menu button:hover { background: var(--vmd-bg); }
+.vmd-media-menu-danger { color: var(--vmd-danger); }
+.vmd-media-confirm {
+  position: absolute; inset: 0; z-index: 6; display: flex; flex-direction: column; justify-content: center; gap: 6px;
+  padding: 8px; border-radius: 8px; background: var(--vmd-panel); border: 1px solid var(--vmd-border);
+}
+.vmd-media-confirm p { margin: 0; font-size: 11px; color: var(--vmd-fg); }
+.vmd-media-confirm-actions { display: flex; gap: 6px; justify-content: flex-end; }

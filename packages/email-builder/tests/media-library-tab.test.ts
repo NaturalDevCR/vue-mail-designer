@@ -1,4 +1,4 @@
-import { flushPromises, mount } from '@vue/test-utils'
+import { type DOMWrapper, flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import EmailBuilder from '../src/components/EmailBuilder.vue'
 import type { MediaItem } from '../src/mediaLibrary'
@@ -28,6 +28,12 @@ function makeMediaLibrary(
 async function openMediaTab(wrapper: ReturnType<typeof mount>) {
   await wrapper.find('[data-tab="media"]').trigger('click')
   await flushPromises()
+}
+
+function findButtonWithText(root: DOMWrapper<Element>, text: string) {
+  const btn = root.findAll('button').find((b) => b.text().trim() === text)
+  if (!btn) throw new Error(`No se encontró el botón "${text}"`)
+  return btn
 }
 
 describe('MediaLibraryTab', () => {
@@ -179,5 +185,51 @@ describe('MediaLibraryTab', () => {
     expect(wrapper.findAll('.vmd-media-item')).toHaveLength(2)
     expect(wrapper.find('.vmd-media-tab .vmd-image-error').text()).toContain('No se pudo cargar más imágenes')
     expect(wrapper.find('.vmd-media-loadmore').exists()).toBe(true)
+  })
+
+  it('borra un ítem tras confirmar', async () => {
+    const del = vi.fn().mockResolvedValue(undefined)
+    const wrapper = mount(EmailBuilder, { props: { mediaLibrary: makeMediaLibrary({ delete: del }) } })
+    await openMediaTab(wrapper)
+
+    const firstItem = wrapper.findAll('.vmd-media-item')[0]
+    await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
+    await findButtonWithText(firstItem, 'Borrar').trigger('click')
+    expect(del).not.toHaveBeenCalled()
+
+    await findButtonWithText(firstItem, 'Confirmar').trigger('click')
+    await flushPromises()
+
+    expect(del).toHaveBeenCalledWith('a')
+    expect(wrapper.findAll('.vmd-media-item')).toHaveLength(1)
+  })
+
+  it('cancelar el popover de borrado no llama a delete', async () => {
+    const del = vi.fn()
+    const wrapper = mount(EmailBuilder, { props: { mediaLibrary: makeMediaLibrary({ delete: del }) } })
+    await openMediaTab(wrapper)
+
+    const firstItem = wrapper.findAll('.vmd-media-item')[0]
+    await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
+    await findButtonWithText(firstItem, 'Borrar').trigger('click')
+    await findButtonWithText(firstItem, 'Cancelar').trigger('click')
+
+    expect(del).not.toHaveBeenCalled()
+    expect(wrapper.findAll('.vmd-media-item')).toHaveLength(2)
+  })
+
+  it('si delete falla, el ítem permanece y se ve el error', async () => {
+    const del = vi.fn().mockRejectedValue(new Error('boom'))
+    const wrapper = mount(EmailBuilder, { props: { mediaLibrary: makeMediaLibrary({ delete: del }) } })
+    await openMediaTab(wrapper)
+
+    const firstItem = wrapper.findAll('.vmd-media-item')[0]
+    await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
+    await findButtonWithText(firstItem, 'Borrar').trigger('click')
+    await findButtonWithText(firstItem, 'Confirmar').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.findAll('.vmd-media-item')).toHaveLength(2)
+    expect(firstItem.find('.vmd-image-error').text()).toContain('No se pudo borrar la imagen')
   })
 })
