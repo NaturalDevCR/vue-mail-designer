@@ -23,7 +23,7 @@ import { useBuilderPinia } from '../store/keys'
 import { useUiStore } from '../store/ui'
 import { useI18n } from '../i18n/useI18n'
 import { useDragMonitor, useDropTarget } from '../dnd/usePragmatic'
-import { dropBlockOnEmptyCanvas, dropRow } from '../dnd/applyDrop'
+import { dropBlockOnEmptyCanvas, dropMediaImageOnEmptyCanvas, dropRow } from '../dnd/applyDrop'
 import RowView from './RowView.vue'
 
 const pinia = useBuilderPinia()
@@ -55,9 +55,14 @@ const bodyBgStyle = computed(() => {
 const { edge: containerEdge } = useDropTarget({
   el: rowsEl,
   getData: () => ({ vmdRowsContainer: true }),
-  accept: (d) => d.kind === 'palette-row' || d.kind === 'canvas-row' || (store.doc.rows.length === 0 && (d.kind === 'palette-block' || d.kind === 'canvas-block')),
+  accept: (d) =>
+    d.kind === 'palette-row' ||
+    d.kind === 'canvas-row' ||
+    d.kind === 'media-image' ||
+    (store.doc.rows.length === 0 && (d.kind === 'palette-block' || d.kind === 'canvas-block')),
   onDrop: (drag) => {
     if (drag.kind === 'palette-row' || drag.kind === 'canvas-row') dropRow(store, drag, null, null)
+    else if (drag.kind === 'media-image') dropMediaImageOnEmptyCanvas(store, drag)
     else if (store.doc.rows.length === 0) dropBlockOnEmptyCanvas(store, drag)
   },
 })
