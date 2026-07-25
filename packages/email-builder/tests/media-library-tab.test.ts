@@ -269,4 +269,52 @@ describe('MediaLibraryTab', () => {
     expect(rename).not.toHaveBeenCalled()
     expect(firstItem.find('.vmd-media-item-name').text()).toBe('Foto A')
   })
+
+  it('si falla el renombrado muestra un error inline y no sale del modo edición', async () => {
+    const rename = vi.fn().mockRejectedValue(new Error('boom'))
+    const wrapper = mount(EmailBuilder, { props: { mediaLibrary: makeMediaLibrary({ rename }) } })
+    await openMediaTab(wrapper)
+
+    const firstItem = wrapper.findAll('.vmd-media-item')[0]
+    await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
+    await findButtonWithText(firstItem, 'Renombrar').trigger('click')
+
+    const input = firstItem.find('.vmd-media-item-name-input')
+    await input.setValue('Nuevo nombre')
+    await input.trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+
+    expect(rename).toHaveBeenCalledWith('a', 'Nuevo nombre')
+    expect(firstItem.find('.vmd-image-error').text()).toContain('No se pudo renombrar la imagen')
+    expect(firstItem.find('.vmd-media-item-name-input').exists()).toBe(true)
+  })
+
+  it('deshabilita el input de renombrado mientras rename está en curso', async () => {
+    function deferred<T>() {
+      let resolve!: (v: T) => void
+      const promise = new Promise<T>((r) => (resolve = r))
+      return { promise, resolve }
+    }
+    const pending = deferred<MediaItem>()
+    const rename = vi.fn().mockReturnValue(pending.promise)
+    const wrapper = mount(EmailBuilder, { props: { mediaLibrary: makeMediaLibrary({ rename }) } })
+    await openMediaTab(wrapper)
+
+    const firstItem = wrapper.findAll('.vmd-media-item')[0]
+    await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
+    await findButtonWithText(firstItem, 'Renombrar').trigger('click')
+
+    const input = firstItem.find('.vmd-media-item-name-input')
+    await input.setValue('Nuevo nombre')
+    await input.trigger('keydown', { key: 'Enter' })
+
+    expect(firstItem.find('.vmd-media-item-name-input').attributes('disabled')).toBeDefined()
+    expect(rename).toHaveBeenCalledTimes(1)
+
+    pending.resolve({ ...items[0], name: 'Nuevo nombre' })
+    await flushPromises()
+
+    expect(firstItem.find('.vmd-media-item-name-input').exists()).toBe(false)
+    expect(firstItem.find('.vmd-media-item-name').text()).toBe('Nuevo nombre')
+  })
 })

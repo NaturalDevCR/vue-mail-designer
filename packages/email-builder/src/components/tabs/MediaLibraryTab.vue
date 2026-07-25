@@ -21,17 +21,20 @@
           <img :src="item.thumbnailUrl" :alt="item.name ?? ''" />
         </button>
 
-        <input
-          v-if="renamingId === item.id"
-          ref="renameInputEl"
-          type="text"
-          class="vmd-media-item-name-input"
-          :value="renameValue"
-          @input="renameValue = ($event.target as HTMLInputElement).value"
-          @keydown.enter="confirmRename(item)"
-          @keydown.escape="cancelRename"
-          @blur="confirmRename(item)"
-        />
+        <template v-if="renamingId === item.id">
+          <input
+            ref="renameInputEl"
+            type="text"
+            class="vmd-media-item-name-input"
+            :value="renameValue"
+            :disabled="renaming"
+            @input="renameValue = ($event.target as HTMLInputElement).value"
+            @keydown.enter="confirmRename(item)"
+            @keydown.escape="cancelRename"
+            @blur="confirmRename(item)"
+          />
+          <p v-if="renameError" class="vmd-image-error">{{ renameError }}</p>
+        </template>
         <div v-else class="vmd-media-item-name" :title="item.name ?? ''">{{ item.name ?? '' }}</div>
 
         <button type="button" class="vmd-media-item-menu-btn" @click.stop="toggleMenu(item.id)">⋮</button>
@@ -101,6 +104,8 @@ const deleteError = ref<string | null>(null)
 const renamingId = ref<string | null>(null)
 const renameValue = ref('')
 const renameInputEl = ref<HTMLInputElement | null>(null)
+const renaming = ref(false)
+const renameError = ref<string | null>(null)
 
 async function load() {
   if (!options.mediaLibrary) return
@@ -196,6 +201,7 @@ function startRename(item: MediaItem) {
   openMenuId.value = null
   renamingId.value = item.id
   renameValue.value = item.name ?? ''
+  renameError.value = null
   nextTick(() => {
     const el = Array.isArray(renameInputEl.value) ? renameInputEl.value[0] : renameInputEl.value
     el?.focus()
@@ -207,18 +213,23 @@ function cancelRename() {
 }
 
 async function confirmRename(item: MediaItem) {
-  if (renamingId.value !== item.id) return
+  if (renaming.value || renamingId.value !== item.id) return
   const value = renameValue.value.trim()
   if (!value || !options.mediaLibrary) {
     renamingId.value = null
     return
   }
+  renaming.value = true
+  renameError.value = null
   try {
     const updated = await options.mediaLibrary.rename(item.id, value)
     const idx = items.value.findIndex((i) => i.id === item.id)
     if (idx !== -1) items.value = [...items.value.slice(0, idx), updated, ...items.value.slice(idx + 1)]
-  } finally {
     renamingId.value = null
+  } catch {
+    renameError.value = 'No se pudo renombrar la imagen.'
+  } finally {
+    renaming.value = false
   }
 }
 </script>

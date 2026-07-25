@@ -16,6 +16,7 @@ pnpm add @vue-mail-designer/builder vue pinia
     v-model:design="design"
     :merge-tags="mergeTags"
     :upload-image="uploadImage"
+    :media-library="mediaLibrary"
     @export-html="onHtml"
   />
 </template>
