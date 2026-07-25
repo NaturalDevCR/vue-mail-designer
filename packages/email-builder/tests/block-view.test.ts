@@ -34,6 +34,16 @@ describe('BlockView', () => {
     expect(wrapper.find('.vmd-b-image-placeholder').exists()).toBe(true)
   })
 
+  it('image aplica border-radius cuando el bloque lo tiene seteado', () => {
+    const block = createBlock('image')
+    if (block.type !== 'image') throw new Error()
+    block.src = 'https://cdn.example.com/a.png'
+    block.borderRadius = 8
+    const { wrapper } = mountBlock(block)
+    expect(wrapper.find('.vmd-b-image-placeholder').exists()).toBe(false)
+    expect(wrapper.find('img').attributes('style')).toContain('border-radius: 8px')
+  })
+
   it('social renderiza un círculo por red', () => {
     const block = createBlock('social')
     const { wrapper } = mountBlock(block)

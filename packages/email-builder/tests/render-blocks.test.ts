@@ -29,6 +29,14 @@ describe('renderBlock — bloques básicos', () => {
     expect(html).not.toContain('<img')
   })
 
+  it('image: aplica border-radius al <img> cuando está definido', () => {
+    const img = createBlock('image') as ImageBlock
+    img.src = 'https://cdn.example.com/a.png'
+    img.borderRadius = 12
+    const html = render(img)
+    expect(html).toContain('border-radius:12px')
+  })
+
   it('button: tabla anidada bulletproof con estilos inline', () => {
     const btn = createBlock('button') as ButtonBlock
     btn.label = 'Comprar <ya>'

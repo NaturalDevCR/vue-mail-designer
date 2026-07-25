@@ -78,6 +78,7 @@ export const zImageBlock = z.object({
   widthAuto: z.boolean().default(false),
   align: zAlign,
   style: z.object({ padding: zPadding }),
+  borderRadius: z.number().min(0).optional(),
   hideDesktop: z.boolean().optional(),
   hideMobile: z.boolean().optional(),
 })

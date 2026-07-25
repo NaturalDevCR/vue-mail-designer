@@ -48,7 +48,11 @@
         v-if="block.src"
         :src="block.src"
         :alt="block.alt"
-        :style="block.widthAuto ? { width: 'auto', maxWidth: '100%', display: 'inline-block' } : { width: block.widthPct + '%', display: 'inline-block' }"
+        :style="{
+          ...(block.widthAuto ? { width: 'auto', maxWidth: '100%' } : { width: block.widthPct + '%' }),
+          display: 'inline-block',
+          ...(block.borderRadius ? { borderRadius: block.borderRadius + 'px' } : {}),
+        }"
       />
       <div v-else class="vmd-b-image-placeholder"><span class="vmd-ico" v-html="ICONS.image" />Selecciona una imagen en el inspector</div>
     </div>

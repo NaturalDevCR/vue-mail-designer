@@ -104,9 +104,11 @@ function renderBlockInner(block: Block, ctx: RenderCtx): string {
       if (!block.src) {
         return cellTable(`<tr><td style="padding:${paddingCss(s.padding)};"></td></tr>`)
       }
-      const imgStyle = block.widthAuto
-        ? 'display:block;width:auto;max-width:100%;height:auto;border:0;'
-        : 'display:block;width:100%;max-width:100%;height:auto;border:0;'
+      const radius = block.borderRadius ? `border-radius:${block.borderRadius}px;` : ''
+      const imgStyle =
+        (block.widthAuto
+          ? 'display:block;width:auto;max-width:100%;height:auto;border:0;'
+          : 'display:block;width:100%;max-width:100%;height:auto;border:0;') + radius
       const img = `<img src="${escapeHtml(block.src)}" alt="${escapeHtml(block.alt)}" ${block.widthAuto ? '' : 'width="100%" '}style="${imgStyle}">`
       const content = block.href ? `<a href="${escapeHtml(block.href)}" target="${block.target}">${img}</a>` : img
       const tableWidth = block.widthAuto ? '' : ` width="${block.widthPct}%"`
