@@ -3,7 +3,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { defineComponent, h, nextTick, ref } from 'vue'
 import EmailBuilder from '../src/components/EmailBuilder.vue'
-import { dropBlock, dropBlockOnEmptyCanvas, dropRow, dropMediaImageOnImageBlock, dropMediaImageOnGalleryItem, dropMediaImageOnEmptyCanvas } from '../src/dnd/applyDrop'
+import { dropBlock, dropBlockOnEmptyCanvas, dropRow, dropMediaImageOnImageBlock, dropMediaImageOnGalleryItem, dropMediaImageOnEmptyCanvas, dropCanvasImage } from '../src/dnd/applyDrop'
 import { useDraggableItem } from '../src/dnd/usePragmatic'
 import { createBlock } from '../src/schema'
 import { useDocumentStore } from '../src/store/document'
@@ -199,6 +199,222 @@ describe('applyDrop — media-image (arrastre desde los tabs de imágenes)', () 
     expect(store.past.length).toBe(base + 1)
     store.undo()
     expect(store.doc.rows).toHaveLength(0)
+  })
+})
+
+describe('applyDrop — canvas-image (mover imágenes dentro del canvas)', () => {
+  beforeEach(() => setActivePinia(createPinia()))
+
+  /** Bloque imagen con src/alt ya puestos. */
+  function imageBlock(store: ReturnType<typeof useDocumentStore>, columnId: string, src: string, alt: string) {
+    const b = store.addBlockToColumn(columnId, 'image')
+    store.updateBlock(b.id, { src, alt })
+    return b
+  }
+
+  it('mueve la imagen de un bloque imagen a otro y vacía el origen', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([100])
+    const col = row.columns[0].id
+    const origen = imageBlock(store, col, 'https://example.com/a.png', 'A')
+    const destino = store.addBlockToColumn(col, 'image')
+
+    dropCanvasImage(
+      store,
+      { kind: 'canvas-image', src: 'https://example.com/a.png', alt: 'A', from: { blockId: origen.id } },
+      { blockId: destino.id },
+    )
+
+    const d = store.findBlock(destino.id)!.block
+    const o = store.findBlock(origen.id)!.block
+    if (d.type !== 'image' || o.type !== 'image') throw new Error()
+    expect(d.src).toBe('https://example.com/a.png')
+    expect(d.alt).toBe('A')
+    expect(o.src).toBe('')
+    expect(o.alt).toBe('')
+  })
+
+  it('mueve de un bloque imagen a un ítem de galería sin tocar los demás ítems', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([100])
+    const col = row.columns[0].id
+    const origen = imageBlock(store, col, 'https://example.com/b.png', 'B')
+    const galeria = store.addBlockToColumn(col, 'gallery')
+
+    dropCanvasImage(
+      store,
+      { kind: 'canvas-image', src: 'https://example.com/b.png', alt: 'B', from: { blockId: origen.id } },
+      { blockId: galeria.id, index: 1 },
+    )
+
+    const g = store.findBlock(galeria.id)!.block
+    if (g.type !== 'gallery') throw new Error()
+    expect(g.images[0]).toEqual({ src: '', alt: '' })
+    expect(g.images[1]).toMatchObject({ src: 'https://example.com/b.png', alt: 'B' })
+  })
+
+  it('mueve de un ítem de galería a un bloque imagen: el ítem se vacía pero sigue en el array', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([100])
+    const col = row.columns[0].id
+    const galeria = store.addBlockToColumn(col, 'gallery')
+    store.updateBlock(galeria.id, { images: [{ src: 'https://example.com/c.png', alt: 'C' }, { src: '', alt: '' }] })
+    const destino = store.addBlockToColumn(col, 'image')
+    const g0 = store.findBlock(galeria.id)!.block
+    if (g0.type !== 'gallery') throw new Error()
+    const total = g0.images.length
+
+    dropCanvasImage(
+      store,
+      { kind: 'canvas-image', src: 'https://example.com/c.png', alt: 'C', from: { blockId: galeria.id, index: 0 } },
+      { blockId: destino.id },
+    )
+
+    const g = store.findBlock(galeria.id)!.block
+    const d = store.findBlock(destino.id)!.block
+    if (g.type !== 'gallery' || d.type !== 'image') throw new Error()
+    expect(g.images).toHaveLength(total)
+    expect(g.images[0]).toEqual({ src: '', alt: '' })
+    expect(d.src).toBe('https://example.com/c.png')
+  })
+
+  it('mover entre dos ítems del mismo bloque galería es un solo paso de historial', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([100])
+    const galeria = store.addBlockToColumn(row.columns[0].id, 'gallery')
+    store.updateBlock(galeria.id, { images: [{ src: 'https://example.com/d.png', alt: 'D' }, { src: '', alt: '' }] })
+    const base = store.past.length
+
+    dropCanvasImage(
+      store,
+      { kind: 'canvas-image', src: 'https://example.com/d.png', alt: 'D', from: { blockId: galeria.id, index: 0 } },
+      { blockId: galeria.id, index: 1 },
+    )
+
+    const g = store.findBlock(galeria.id)!.block
+    if (g.type !== 'gallery') throw new Error()
+    expect(g.images[0]).toEqual({ src: '', alt: '' })
+    expect(g.images[1]).toMatchObject({ src: 'https://example.com/d.png', alt: 'D' })
+    expect(store.past.length).toBe(base + 1)
+  })
+
+  it('conserva el alt del destino si ya tenía uno', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([100])
+    const col = row.columns[0].id
+    const origen = imageBlock(store, col, 'https://example.com/e.png', 'Alt del origen')
+    const destino = imageBlock(store, col, '', 'Alt del destino')
+
+    dropCanvasImage(
+      store,
+      { kind: 'canvas-image', src: 'https://example.com/e.png', alt: 'Alt del origen', from: { blockId: origen.id } },
+      { blockId: destino.id },
+    )
+
+    const d = store.findBlock(destino.id)!.block
+    if (d.type !== 'image') throw new Error()
+    expect(d.alt).toBe('Alt del destino')
+  })
+
+  it('no toca el href del origen ni el del destino', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([100])
+    const col = row.columns[0].id
+    const origen = imageBlock(store, col, 'https://example.com/f.png', 'F')
+    store.updateBlock(origen.id, { href: 'https://origen.example' })
+    const destino = store.addBlockToColumn(col, 'image')
+    store.updateBlock(destino.id, { href: 'https://destino.example' })
+
+    dropCanvasImage(
+      store,
+      { kind: 'canvas-image', src: 'https://example.com/f.png', alt: 'F', from: { blockId: origen.id } },
+      { blockId: destino.id },
+    )
+
+    const o = store.findBlock(origen.id)!.block
+    const d = store.findBlock(destino.id)!.block
+    if (o.type !== 'image' || d.type !== 'image') throw new Error()
+    expect(o.href).toBe('https://origen.example')
+    expect(d.href).toBe('https://destino.example')
+  })
+
+  it('soltar sobre el mismo hueco no cambia nada ni agrega historial', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([100])
+    const origen = imageBlock(store, row.columns[0].id, 'https://example.com/g.png', 'G')
+    const base = store.past.length
+
+    dropCanvasImage(
+      store,
+      { kind: 'canvas-image', src: 'https://example.com/g.png', alt: 'G', from: { blockId: origen.id } },
+      { blockId: origen.id },
+    )
+
+    const o = store.findBlock(origen.id)!.block
+    if (o.type !== 'image') throw new Error()
+    expect(o.src).toBe('https://example.com/g.png')
+    expect(store.past.length).toBe(base)
+  })
+
+  it('destino de tipo inválido: no-op, el origen queda intacto', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([100])
+    const col = row.columns[0].id
+    const origen = imageBlock(store, col, 'https://example.com/h.png', 'H')
+    const texto = store.addBlockToColumn(col, 'text')
+
+    dropCanvasImage(
+      store,
+      { kind: 'canvas-image', src: 'https://example.com/h.png', alt: 'H', from: { blockId: origen.id } },
+      { blockId: texto.id },
+    )
+
+    const o = store.findBlock(origen.id)!.block
+    if (o.type !== 'image') throw new Error()
+    expect(o.src).toBe('https://example.com/h.png')
+    expect(store.findBlock(texto.id)!.block.type).toBe('text')
+  })
+
+  it('índice de galería fuera de rango: no-op, el origen queda intacto', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([100])
+    const col = row.columns[0].id
+    const origen = imageBlock(store, col, 'https://example.com/i.png', 'I')
+    const galeria = store.addBlockToColumn(col, 'gallery')
+
+    dropCanvasImage(
+      store,
+      { kind: 'canvas-image', src: 'https://example.com/i.png', alt: 'I', from: { blockId: origen.id } },
+      { blockId: galeria.id, index: 99 },
+    )
+
+    const o = store.findBlock(origen.id)!.block
+    if (o.type !== 'image') throw new Error()
+    expect(o.src).toBe('https://example.com/i.png')
+  })
+
+  it('un solo undo revierte origen y destino a la vez', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([100])
+    const col = row.columns[0].id
+    const origen = imageBlock(store, col, 'https://example.com/j.png', 'J')
+    const destino = store.addBlockToColumn(col, 'image')
+    const base = store.past.length
+
+    dropCanvasImage(
+      store,
+      { kind: 'canvas-image', src: 'https://example.com/j.png', alt: 'J', from: { blockId: origen.id } },
+      { blockId: destino.id },
+    )
+    expect(store.past.length).toBe(base + 1)
+
+    store.undo()
+
+    const o = store.findBlock(origen.id)!.block
+    const d = store.findBlock(destino.id)!.block
+    if (o.type !== 'image' || d.type !== 'image') throw new Error()
+    expect(o.src).toBe('https://example.com/j.png')
+    expect(d.src).toBe('')
   })
 })
 

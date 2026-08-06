@@ -1,5 +1,5 @@
 import type { useDocumentStore } from '../store/document'
-import type { DragData, Edge } from './dragData'
+import type { DragData, Edge, ImageSlot } from './dragData'
 
 type Store = ReturnType<typeof useDocumentStore>
 
@@ -90,5 +90,76 @@ export function dropMediaImageOnEmptyCanvas(store: Store, drag: Extract<DragData
   const before = store.past.length
   const block = store.addBlockToColumn(row.columns[0].id, 'image')
   store.updateBlock(block.id, { src: drag.src, alt: drag.alt })
+  while (store.past.length > before) store.past.pop()
+}
+
+/** Lee el `src`/`alt` de un hueco, o `null` si el bloque no existe o el tipo/índice no corresponde. */
+function readSlot(store: Store, slot: ImageSlot): { src: string; alt: string } | null {
+  const found = store.findBlock(slot.blockId)
+  if (!found) return null
+  const b = found.block
+  if (slot.index === undefined) {
+    return b.type === 'image' ? { src: b.src, alt: b.alt } : null
+  }
+  if (b.type !== 'gallery') return null
+  const im = b.images[slot.index]
+  return im ? { src: im.src, alt: im.alt } : null
+}
+
+/** Escribe `src`/`alt` en un hueco ya validado por `readSlot`. Un `updateBlock` = un commit. */
+function writeSlot(store: Store, slot: ImageSlot, src: string, alt: string): void {
+  const found = store.findBlock(slot.blockId)
+  if (!found) return
+  const b = found.block
+  if (slot.index === undefined) {
+    if (b.type !== 'image') return
+    store.updateBlock(b.id, { src, alt })
+    return
+  }
+  if (b.type !== 'gallery') return
+  store.updateBlock(b.id, { images: b.images.map((im, j) => (j === slot.index ? { ...im, src, alt } : im)) })
+}
+
+/**
+ * Mueve una imagen que ya está en el canvas desde `drag.from` hacia el hueco `to`: el destino
+ * recibe `src` (y el `alt` del origen solo si no tenía uno propio) y el origen queda vacío.
+ * Solo viajan `src`/`alt` — `href`, `widthPct`, `align`, etc. son del bloque, no de la imagen.
+ * Es no-op si el destino es el mismo hueco, o si origen o destino no son huecos válidos: nunca
+ * se vacía un origen sin haber escrito el destino.
+ */
+export function dropCanvasImage(
+  store: Store,
+  drag: Extract<DragData, { kind: 'canvas-image' }>,
+  to: ImageSlot,
+): void {
+  const from = drag.from
+  if (from.blockId === to.blockId && from.index === to.index) return
+
+  const target = readSlot(store, to)
+  if (!target || !readSlot(store, from)) return
+  const alt = target.alt || drag.alt
+
+  // Mismo bloque galería, índices distintos: las dos escrituras caen sobre el mismo array
+  // `images`, así que van en un solo updateBlock (un solo commit, sin fusión de historial).
+  if (from.blockId === to.blockId) {
+    const b = store.findBlock(to.blockId)!.block
+    if (b.type !== 'gallery') return
+    store.sealHistory()
+    store.updateBlock(b.id, {
+      images: b.images.map((im, j) =>
+        j === to.index ? { ...im, src: drag.src, alt } : j === from.index ? { ...im, src: '', alt: '' } : im,
+      ),
+    })
+    return
+  }
+
+  // Bloques distintos: dos updateBlock con coalesceKey distinta = dos commits. Se conserva el
+  // primer snapshot (estado previo completo) y se descarta el intermedio, para que un solo undo
+  // revierta origen y destino a la vez. `sealHistory` evita que el primer commit se fusione con
+  // una edición reciente del mismo bloque hecha desde el inspector.
+  store.sealHistory()
+  writeSlot(store, to, drag.src, alt)
+  const before = store.past.length
+  writeSlot(store, from, '', '')
   while (store.past.length > before) store.past.pop()
 }

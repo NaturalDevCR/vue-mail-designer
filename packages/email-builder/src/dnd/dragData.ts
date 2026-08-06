@@ -1,5 +1,8 @@
 import type { Block } from '../schema'
 
+/** Hueco de imagen del canvas: un bloque `image`, o el ítem `index` de un bloque `gallery`. */
+export type ImageSlot = { blockId: string; index?: number }
+
 // Datos que viajan con cada arrastre (Pragmatic Drag and Drop; se mantienen en memoria,
 // así que pueden incluir funciones/objetos, no solo strings serializables).
 export type DragData =
@@ -8,6 +11,7 @@ export type DragData =
   | { kind: 'canvas-row'; rowId: string }
   | { kind: 'canvas-block'; blockId: string; columnId: string }
   | { kind: 'media-image'; src: string; alt: string }
+  | { kind: 'canvas-image'; src: string; alt: string; from: ImageSlot }
 
 const KEY = 'vmd-drag'
 
