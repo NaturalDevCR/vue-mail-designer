@@ -198,8 +198,8 @@ import { useBuilderPinia } from '../store/keys'
 import { useUiStore } from '../store/ui'
 import { useBuilderOptions } from '../options'
 import { useI18n } from '../i18n/useI18n'
-import { useDraggableItem, useDropTarget, useMediaDropTarget } from '../dnd/usePragmatic'
-import { dropBlock, dropMediaImageOnImageBlock } from '../dnd/applyDrop'
+import { useCanvasImageDrag, useDraggableItem, useDropTarget, useMediaDropTarget } from '../dnd/usePragmatic'
+import { dropBlock, dropCanvasImage, dropMediaImageOnImageBlock } from '../dnd/applyDrop'
 import { ICONS } from './icons'
 import GalleryItemView from './GalleryItemView.vue'
 
@@ -229,9 +229,18 @@ const { edge: blockEdge } = useDropTarget({
 const imageDropEl = ref<HTMLElement | null>(null)
 const { isOver: isImageOver } = useMediaDropTarget({
   el: imageDropEl,
-  // TODO(Tarea 4): manejar también el kind 'canvas-image' (mover) con dropCanvasImage.
   onDrop: (drag) => {
     if (drag.kind === 'media-image') dropMediaImageOnImageBlock(store, props.block.id, drag)
+    else dropCanvasImage(store, drag, { blockId: props.block.id })
+  },
+})
+useCanvasImageDrag({
+  el: imageDropEl,
+  getData: () => {
+    const b = props.block
+    return b.type === 'image'
+      ? { src: b.src, alt: b.alt, from: { blockId: b.id } }
+      : { src: '', alt: '', from: { blockId: b.id } }
   },
 })
 

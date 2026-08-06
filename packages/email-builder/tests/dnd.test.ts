@@ -1,12 +1,14 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { defineComponent, h, nextTick, ref } from 'vue'
+import { defineComponent, h, nextTick, provide, reactive, ref } from 'vue'
+import BlockView from '../src/components/BlockView.vue'
 import EmailBuilder from '../src/components/EmailBuilder.vue'
 import { dropBlock, dropBlockOnEmptyCanvas, dropRow, dropMediaImageOnImageBlock, dropMediaImageOnGalleryItem, dropMediaImageOnEmptyCanvas, dropCanvasImage } from '../src/dnd/applyDrop'
 import { useDraggableItem } from '../src/dnd/usePragmatic'
 import { createBlock } from '../src/schema'
 import { useDocumentStore } from '../src/store/document'
+import { BUILDER_PINIA_KEY } from '../src/store/keys'
 
 describe('applyDrop — filas', () => {
   beforeEach(() => setActivePinia(createPinia()))
@@ -450,5 +452,35 @@ describe('usePragmatic — re-atado al cambiar el elemento del ref', () => {
     await nextTick()
     await nextTick()
     expect((wrapper.find('.swap-img').element as HTMLElement).getAttribute('draggable')).toBe('true')
+  })
+})
+
+describe('BlockView — la imagen del canvas es arrastrable', () => {
+  it('el <img> con src queda draggable tras reemplazar al placeholder', async () => {
+    const pinia = createPinia()
+    const base = createBlock('image')
+    if (base.type !== 'image') throw new Error()
+    const block = reactive(base)
+    const Host = defineComponent({
+      setup() {
+        provide(BUILDER_PINIA_KEY, pinia)
+        return () => h(BlockView, { block })
+      },
+    })
+    const wrapper = mount(Host)
+
+    // sin src se monta el placeholder; el <img> aparece recién al setear src
+    expect(wrapper.find('.vmd-b-image-placeholder').exists()).toBe(true)
+
+    block.src = 'https://example.com/k.png'
+    await nextTick()
+    await nextTick()
+
+    const img = wrapper.find('img')
+    expect(img.exists()).toBe(true)
+    // OJO: la propiedad IDL `.draggable` vale true por defecto en <img> (spec HTML, y jsdom la
+    // replica), así que no discrimina nada. Pragmatic DnD setea el ATRIBUTO — eso es lo que hay
+    // que assertar. Mismo aprendizaje que en el test de re-atado de la Tarea 1.
+    expect(img.attributes('draggable')).toBe('true')
   })
 })
