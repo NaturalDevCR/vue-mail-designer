@@ -1,4 +1,4 @@
-import { onBeforeUnmount, onMounted, ref, type Ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
 import { combine } from '@atlaskit/pragmatic-drag-and-drop/combine'
 import {
   draggable,
@@ -11,6 +11,28 @@ import { autoScrollForElements } from '@atlaskit/pragmatic-drag-and-drop-auto-sc
 import { attachClosestEdge, extractClosestEdge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge'
 import { packDrag, readDrag, type DragData, type Edge } from './dragData'
 
+/**
+ * Ata `bind(element)` al elemento actual de `el` y lo re-ata si el ref pasa a apuntar a otro nodo.
+ * Necesario porque varias plantillas ponen el mismo ref en las dos ramas de un v-if/v-else
+ * (p. ej. <img> con src vs. placeholder sin src): con un `onMounted` a secas el binding quedaría
+ * pegado al nodo descartado. `flush: 'post'` garantiza que el DOM ya se actualizó al re-atar.
+ */
+function bindToElement(el: Ref<HTMLElement | null>, bind: (element: HTMLElement) => () => void): void {
+  let cleanup = () => {}
+  const stop = watch(
+    el,
+    (element) => {
+      cleanup()
+      cleanup = element ? bind(element) : () => {}
+    },
+    { immediate: true, flush: 'post' },
+  )
+  onBeforeUnmount(() => {
+    stop()
+    cleanup()
+  })
+}
+
 /** Hace `el` arrastrable con un preview propio (chip) que no se desplaza ni se transparenta. */
 export function useDraggableItem(opts: {
   el: Ref<HTMLElement | null>
@@ -21,11 +43,8 @@ export function useDraggableItem(opts: {
   onStart?: () => void
   onDrop?: () => void
 }): void {
-  let cleanup = () => {}
-  onMounted(() => {
-    const element = opts.el.value
-    if (!element) return
-    cleanup = draggable({
+  bindToElement(opts.el, (element) =>
+    draggable({
       element,
       dragHandle: opts.handle?.value ?? undefined,
       canDrag: () => (opts.canDrag ? opts.canDrag() : true),
@@ -58,9 +77,8 @@ export function useDraggableItem(opts: {
       },
       onDragStart: () => opts.onStart?.(),
       onDrop: () => opts.onDrop?.(),
-    })
-  })
-  onBeforeUnmount(() => cleanup())
+    }),
+  )
 }
 
 /**
@@ -75,16 +93,13 @@ export function useDropTarget(opts: {
   onDrop: (drag: DragData, edge: Edge | null) => void
 }): { edge: Ref<Edge | null> } {
   const edge = ref<Edge | null>(null)
-  let cleanup = () => {}
-  onMounted(() => {
-    const element = opts.el.value
-    if (!element) return
+  bindToElement(opts.el, (element) => {
     // los drop targets anidados (bloque dentro de columna dentro de fila) burbujean el
     // evento a TODOS los targets ancestros compatibles — sin este chequeo, soltar sobre un
     // bloque dispara también el onDrop de su columna y duplica la inserción.
     const isInnermost = (location: { current: { dropTargets: { element: Element }[] } }) =>
       location.current.dropTargets[0]?.element === element
-    cleanup = dropTargetForElements({
+    return dropTargetForElements({
       element,
       canDrop: ({ source }) => {
         const d = readDrag(source.data as Record<string, unknown>)
@@ -113,7 +128,6 @@ export function useDropTarget(opts: {
       },
     })
   })
-  onBeforeUnmount(() => cleanup())
   return { edge }
 }
 
@@ -147,11 +161,8 @@ export function useMediaDropTarget(opts: {
   onDrop: (drag: Extract<DragData, { kind: 'media-image' }>) => void
 }): { isOver: Ref<boolean> } {
   const isOver = ref(false)
-  let cleanup = () => {}
-  onMounted(() => {
-    const element = opts.el.value
-    if (!element) return
-    cleanup = dropTargetForElements({
+  bindToElement(opts.el, (element) =>
+    dropTargetForElements({
       element,
       canDrop: ({ source }) => readDrag(source.data as Record<string, unknown>)?.kind === 'media-image',
       onDragEnter: () => {
@@ -165,8 +176,7 @@ export function useMediaDropTarget(opts: {
         const d = readDrag(source.data as Record<string, unknown>)
         if (d?.kind === 'media-image') opts.onDrop(d)
       },
-    })
-  })
-  onBeforeUnmount(() => cleanup())
+    }),
+  )
   return { isOver }
 }

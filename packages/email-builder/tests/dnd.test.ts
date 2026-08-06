@@ -1,8 +1,10 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { defineComponent, h, nextTick, ref } from 'vue'
 import EmailBuilder from '../src/components/EmailBuilder.vue'
 import { dropBlock, dropBlockOnEmptyCanvas, dropRow, dropMediaImageOnImageBlock, dropMediaImageOnGalleryItem, dropMediaImageOnEmptyCanvas } from '../src/dnd/applyDrop'
+import { useDraggableItem } from '../src/dnd/usePragmatic'
 import { createBlock } from '../src/schema'
 import { useDocumentStore } from '../src/store/document'
 
@@ -197,5 +199,40 @@ describe('applyDrop — media-image (arrastre desde los tabs de imágenes)', () 
     expect(store.past.length).toBe(base + 1)
     store.undo()
     expect(store.doc.rows).toHaveLength(0)
+  })
+})
+
+describe('usePragmatic — re-atado al cambiar el elemento del ref', () => {
+  // BlockView/GalleryItemView ponen el mismo ref en las dos ramas de un v-if/v-else
+  // (<img> con src, placeholder sin src). El binding debe seguir al elemento vivo.
+  const SwapItem = defineComponent({
+    setup() {
+      const el = ref<HTMLElement | null>(null)
+      const showImg = ref(false)
+      useDraggableItem({
+        el,
+        getData: () => ({ kind: 'canvas-image', src: 'x', alt: '', from: { blockId: 'b' } }),
+        previewLabel: () => 'x',
+      })
+      return { el, showImg }
+    },
+    render() {
+      return this.showImg ? h('img', { ref: 'el', class: 'swap-img' }) : h('div', { ref: 'el', class: 'swap-div' })
+    },
+  })
+
+  it('el draggable se mueve al elemento nuevo cuando el v-if intercambia el nodo', async () => {
+    const wrapper = mount(SwapItem)
+    // bindToElement usa flush:'post': el ató inicial no queda listo hasta el próximo tick,
+    // a diferencia de onMounted (que corría en el mismo mount() síncrono).
+    await nextTick()
+    // usamos getAttribute en vez de la propiedad IDL `.draggable`: pragmatic-dnd ata
+    // fijando el atributo `draggable="true"`, mientras que la propiedad IDL de <img>
+    // ya es `true` por defecto en el DOM (sin atributo), lo que enmascararía el bug.
+    expect((wrapper.find('.swap-div').element as HTMLElement).getAttribute('draggable')).toBe('true')
+    wrapper.vm.showImg = true
+    await nextTick()
+    await nextTick()
+    expect((wrapper.find('.swap-img').element as HTMLElement).getAttribute('draggable')).toBe('true')
   })
 })
