@@ -35,6 +35,9 @@ const el = ref<HTMLElement | null>(null)
 
 const { isOver } = useMediaDropTarget({
   el,
-  onDrop: (drag) => dropMediaImageOnGalleryItem(store, props.blockId, props.index, drag),
+  // TODO(Tarea 4): manejar también el kind 'canvas-image' (mover) con dropCanvasImage.
+  onDrop: (drag) => {
+    if (drag.kind === 'media-image') dropMediaImageOnGalleryItem(store, props.blockId, props.index, drag)
+  },
 })
 </script>

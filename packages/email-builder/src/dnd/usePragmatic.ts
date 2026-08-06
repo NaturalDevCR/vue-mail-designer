@@ -9,7 +9,7 @@ import { setCustomNativeDragPreview } from '@atlaskit/pragmatic-drag-and-drop/el
 import { pointerOutsideOfPreview } from '@atlaskit/pragmatic-drag-and-drop/element/pointer-outside-of-preview'
 import { autoScrollForElements } from '@atlaskit/pragmatic-drag-and-drop-auto-scroll/element'
 import { attachClosestEdge, extractClosestEdge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge'
-import { packDrag, readDrag, type DragData, type Edge } from './dragData'
+import { packDrag, readDrag, type DragData, type Edge, type ImageSlot } from './dragData'
 
 /**
  * Ata `bind(element)` al elemento actual de `el` y lo re-ata si el ref pasa a apuntar a otro nodo.
@@ -151,20 +151,28 @@ export function useDragMonitor(opts: {
   onBeforeUnmount(() => cleanup())
 }
 
+/** Los dos arrastres que llevan una imagen: desde los tabs (copia) y desde el canvas (mueve). */
+export type ImageDrag = Extract<DragData, { kind: 'media-image' | 'canvas-image' }>
+
+function isImageDrag(d: DragData | null): d is ImageDrag {
+  return d?.kind === 'media-image' || d?.kind === 'canvas-image'
+}
+
 /**
- * Zona de drop de "reemplazo" para imágenes arrastradas desde los tabs (kind `media-image`):
- * a diferencia de `useDropTarget`, no calcula borde de inserción — solo expone `isOver` para
- * resaltar visualmente el destino mientras el arrastre está encima.
+ * Zona de drop de "reemplazo" para imágenes (kinds `media-image` y `canvas-image`): a diferencia
+ * de `useDropTarget`, no calcula borde de inserción — solo expone `isOver` para resaltar el
+ * destino. No necesita el chequeo `isInnermost` de `useDropTarget`: el drop target de bloque
+ * acepta solo `palette-block`/`canvas-block`, así que nunca hay dos targets compatibles anidados.
  */
 export function useMediaDropTarget(opts: {
   el: Ref<HTMLElement | null>
-  onDrop: (drag: Extract<DragData, { kind: 'media-image' }>) => void
+  onDrop: (drag: ImageDrag) => void
 }): { isOver: Ref<boolean> } {
   const isOver = ref(false)
   bindToElement(opts.el, (element) =>
     dropTargetForElements({
       element,
-      canDrop: ({ source }) => readDrag(source.data as Record<string, unknown>)?.kind === 'media-image',
+      canDrop: ({ source }) => isImageDrag(readDrag(source.data as Record<string, unknown>)),
       onDragEnter: () => {
         isOver.value = true
       },
@@ -174,9 +182,26 @@ export function useMediaDropTarget(opts: {
       onDrop: ({ source }) => {
         isOver.value = false
         const d = readDrag(source.data as Record<string, unknown>)
-        if (d?.kind === 'media-image') opts.onDrop(d)
+        if (isImageDrag(d)) opts.onDrop(d)
       },
     }),
   )
   return { isOver }
+}
+
+/**
+ * Hace arrastrable una imagen que ya está en el canvas (el <img> de un bloque `image` o de un
+ * ítem de galería). Sin `handle`: arrastra el elemento entero — no choca con el arrastre del
+ * bloque, que está restringido a su handle de mover. Un hueco vacío no arrastra nada.
+ */
+export function useCanvasImageDrag(opts: {
+  el: Ref<HTMLElement | null>
+  getData: () => { src: string; alt: string; from: ImageSlot }
+}): void {
+  useDraggableItem({
+    el: opts.el,
+    getData: () => ({ kind: 'canvas-image', ...opts.getData() }),
+    previewLabel: () => opts.getData().alt || 'Imagen',
+    canDrag: () => !!opts.getData().src,
+  })
 }

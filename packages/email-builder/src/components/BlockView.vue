@@ -229,7 +229,10 @@ const { edge: blockEdge } = useDropTarget({
 const imageDropEl = ref<HTMLElement | null>(null)
 const { isOver: isImageOver } = useMediaDropTarget({
   el: imageDropEl,
-  onDrop: (drag) => dropMediaImageOnImageBlock(store, props.block.id, drag),
+  // TODO(Tarea 4): manejar también el kind 'canvas-image' (mover) con dropCanvasImage.
+  onDrop: (drag) => {
+    if (drag.kind === 'media-image') dropMediaImageOnImageBlock(store, props.block.id, drag)
+  },
 })
 
 const customHtml = computed<string | null>(() => {
