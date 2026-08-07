@@ -687,7 +687,10 @@ describe('BlockView — la imagen del canvas es arrastrable', () => {
 
     const img = wrapper.find('img')
     expect(img.exists()).toBe(true)
-    expect((img.element as HTMLElement).draggable).toBe(true)
+    // OJO: la propiedad IDL `.draggable` vale true por defecto en <img> (spec HTML, y jsdom la
+    // replica), así que no discrimina nada. Pragmatic DnD setea el ATRIBUTO — eso es lo que hay
+    // que assertar. Mismo aprendizaje que en el test de re-atado de la Tarea 1.
+    expect(img.attributes('draggable')).toBe('true')
   })
 })
 ```
