@@ -11,22 +11,45 @@ import { createBlock } from '../src/schema'
 import { HISTORY_LIMIT, useDocumentStore } from '../src/store/document'
 import { BUILDER_PINIA_KEY } from '../src/store/keys'
 
+// Hosts montados por los helpers de abajo. Se desmontan tras cada test para no dejar nodos
+// pegados en document.body ni bindings de Pragmatic vivos entre tests. Los helpers registran
+// solos: si el registro quedara a cargo de cada test, un olvido filtraría en silencio.
+const mountedHosts: { unmount: () => void }[] = []
+afterEach(() => {
+  while (mountedHosts.length) mountedHosts.pop()!.unmount()
+})
+
 /**
- * Monta `block` dentro de un host que provee el pinia del builder, como en block-view.test.ts.
+ * Monta `render()` dentro de un host que provee el pinia del builder, como en block-view.test.ts.
  * `attachTo: document.body` es necesario para los tests de `canDrag`: Pragmatic escucha
- * `dragstart` a nivel de `document` (delegación de eventos), así que un nodo desmontado del
- * árbol del documento nunca hace burbujear el evento hasta ese listener.
+ * `dragstart` a nivel de `document` (delegación de eventos), así que un nodo fuera del árbol del
+ * documento nunca hace burbujear el evento hasta ese listener.
  */
-function mountBlockHost(block: ReturnType<typeof createBlock>) {
+function mountWithPinia(render: () => ReturnType<typeof h>) {
   const pinia = createPinia()
-  const reactiveBlock = reactive(block)
   const Host = defineComponent({
     setup() {
       provide(BUILDER_PINIA_KEY, pinia)
-      return () => h(BlockView, { block: reactiveBlock })
+      return render
     },
   })
-  return { wrapper: mount(Host, { attachTo: document.body }), store: useDocumentStore(pinia) }
+  const wrapper = mount(Host, { attachTo: document.body })
+  mountedHosts.push(wrapper)
+  return { wrapper, store: useDocumentStore(pinia) }
+}
+
+/** Monta un `BlockView` sobre una copia reactiva de `block`, mutable desde el test. */
+function mountBlock<B extends ReturnType<typeof createBlock>>(block: B) {
+  // el cast conserva el estrechamiento que hizo el llamador (p. ej. a un bloque `image`), que
+  // `reactive` pierde al devolver UnwrapNestedRefs<B>.
+  const reactiveBlock = reactive(block) as B
+  const { wrapper } = mountWithPinia(() => h(BlockView, { block: reactiveBlock }))
+  return { wrapper, block: reactiveBlock }
+}
+
+/** Monta un ítem suelto de galería (índice 0 de un bloque ficticio). */
+function mountGalleryItem(img: { src: string; alt: string }) {
+  return mountWithPinia(() => h(GalleryItemView, { img, index: 0, blockId: 'blk-galeria' })).wrapper
 }
 
 /** Bloque imagen con src/alt ya puestos, agregado a `columnId`. */
@@ -438,6 +461,63 @@ describe('applyDrop — canvas-image (mover imágenes dentro del canvas)', () =>
     expect(d.src).toBe('')
   })
 
+  it('destino con un blockId inexistente: no-op, el origen queda intacto', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([100])
+    const origen = imageBlockWithSrc(store, row.columns[0].id, 'https://example.com/k.png', 'K')
+    const base = store.past.length
+
+    dropCanvasImage(
+      store,
+      { kind: 'canvas-image', src: 'https://example.com/k.png', alt: 'K', from: { blockId: origen.id } },
+      { blockId: 'blk-que-no-existe' },
+    )
+
+    const o = store.findBlock(origen.id)!.block
+    if (o.type !== 'image') throw new Error()
+    expect(o.src).toBe('https://example.com/k.png')
+    expect(store.past.length).toBe(base)
+  })
+
+  it('origen con un blockId inexistente: no-op, el destino no se escribe', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([100])
+    const destino = store.addBlockToColumn(row.columns[0].id, 'image')
+    const base = store.past.length
+
+    dropCanvasImage(
+      store,
+      { kind: 'canvas-image', src: 'https://example.com/l.png', alt: 'L', from: { blockId: 'blk-que-no-existe' } },
+      { blockId: destino.id },
+    )
+
+    const d = store.findBlock(destino.id)!.block
+    if (d.type !== 'image') throw new Error()
+    expect(d.src).toBe('')
+    expect(store.past.length).toBe(base)
+  })
+
+  it('mueve lo que el origen tiene ahora, no lo que el payload capturó al iniciar el arrastre', () => {
+    const store = useDocumentStore()
+    const row = store.addRow([100])
+    const col = row.columns[0].id
+    const origen = imageBlockWithSrc(store, col, 'https://example.com/vieja.png', 'Vieja')
+    const destino = store.addBlockToColumn(col, 'image')
+    // algo cambió la imagen del origen mientras el arrastre estaba en curso
+    store.updateBlock(origen.id, { src: 'https://example.com/nueva.png', alt: 'Nueva' })
+
+    dropCanvasImage(
+      store,
+      { kind: 'canvas-image', src: 'https://example.com/vieja.png', alt: 'Vieja', from: { blockId: origen.id } },
+      { blockId: destino.id },
+    )
+
+    const d = store.findBlock(destino.id)!.block
+    if (d.type !== 'image') throw new Error()
+    expect(d.src).toBe('https://example.com/nueva.png')
+    expect(d.alt).toBe('Nueva')
+  })
+
   it('mueve una imagen hacia el índice 0 de una galería (Hallazgo 3: destino índice 0)', () => {
     const store = useDocumentStore()
     const row = store.addRow([100])
@@ -497,17 +577,9 @@ describe('usePragmatic — re-atado al cambiar el elemento del ref', () => {
 
 describe('BlockView — la imagen del canvas es arrastrable', () => {
   it('el <img> con src queda draggable tras reemplazar al placeholder', async () => {
-    const pinia = createPinia()
     const base = createBlock('image')
     if (base.type !== 'image') throw new Error()
-    const block = reactive(base)
-    const Host = defineComponent({
-      setup() {
-        provide(BUILDER_PINIA_KEY, pinia)
-        return () => h(BlockView, { block })
-      },
-    })
-    const wrapper = mount(Host)
+    const { wrapper, block } = mountBlock(base)
 
     // sin src se monta el placeholder; el <img> aparece recién al setear src
     expect(wrapper.find('.vmd-b-image-placeholder').exists()).toBe(true)
@@ -640,30 +712,6 @@ describe('useCanvasImageDrag — canDrag rechaza huecos vacíos (Hallazgo 2)', (
     expect(el.getAttribute('draggable')).toBe('true')
   }
 
-  // Se desmontan tras cada test (ver afterEach) para no acumular nodos en document.body.
-  const mounted: { unmount: () => void }[] = []
-  afterEach(() => {
-    while (mounted.length) mounted.pop()!.unmount()
-  })
-
-  /**
-   * `attachTo: document.body` es necesario aquí: Pragmatic escucha `dragstart` a nivel de
-   * `document` (delegación de eventos), así que un nodo desmontado del árbol del documento
-   * nunca hace burbujear el evento hasta ese listener y `canDrag` jamás llega a evaluarse.
-   */
-  function mountGalleryItem(img: { src: string; alt: string }) {
-    const pinia = createPinia()
-    const Host = defineComponent({
-      setup() {
-        provide(BUILDER_PINIA_KEY, pinia)
-        return () => h(GalleryItemView, { img, index: 0, blockId: 'blk-galeria' })
-      },
-    })
-    const wrapper = mount(Host, { attachTo: document.body })
-    mounted.push(wrapper)
-    return wrapper
-  }
-
   it('GalleryItemView: ítem sin imagen rechaza el drag', async () => {
     const wrapper = mountGalleryItem({ src: '', alt: '' })
     // bindToElement usa flush:'post': hay que esperar el próximo tick para que el draggable
@@ -682,8 +730,7 @@ describe('useCanvasImageDrag — canDrag rechaza huecos vacíos (Hallazgo 2)', (
   })
 
   it('BlockView: bloque imagen vacío rechaza el drag', async () => {
-    const { wrapper } = mountBlockHost(createBlock('image'))
-    mounted.push(wrapper)
+    const { wrapper } = mountBlock(createBlock('image'))
     await nextTick()
     const el = wrapper.find('.vmd-b-image-placeholder').element
     expect(fireDragStart(el)).toBe(true)
@@ -693,8 +740,7 @@ describe('useCanvasImageDrag — canDrag rechaza huecos vacíos (Hallazgo 2)', (
     const base = createBlock('image')
     if (base.type !== 'image') throw new Error()
     base.src = 'https://example.com/bloque.png'
-    const { wrapper } = mountBlockHost(base)
-    mounted.push(wrapper)
+    const { wrapper } = mountBlock(base)
     await nextTick()
     const el = wrapper.find('img').element
     expectBound(el)

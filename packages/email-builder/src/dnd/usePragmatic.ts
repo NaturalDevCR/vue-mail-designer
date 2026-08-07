@@ -10,6 +10,7 @@ import { pointerOutsideOfPreview } from '@atlaskit/pragmatic-drag-and-drop/eleme
 import { autoScrollForElements } from '@atlaskit/pragmatic-drag-and-drop-auto-scroll/element'
 import { attachClosestEdge, extractClosestEdge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge'
 import { packDrag, readDrag, type DragData, type Edge, type ImageSlot } from './dragData'
+import { useI18n } from '../i18n/useI18n'
 
 /**
  * Ata `bind(element)` al elemento actual de `el` y lo re-ata si el ref pasa a apuntar a otro nodo.
@@ -198,10 +199,11 @@ export function useCanvasImageDrag(opts: {
   el: Ref<HTMLElement | null>
   getData: () => { src: string; alt: string; from: ImageSlot }
 }): void {
+  const { t } = useI18n()
   useDraggableItem({
     el: opts.el,
     getData: () => ({ kind: 'canvas-image', ...opts.getData() }),
-    previewLabel: () => opts.getData().alt || 'Imagen',
+    previewLabel: () => opts.getData().alt || t('palette.image'),
     canDrag: () => !!opts.getData().src,
   })
 }

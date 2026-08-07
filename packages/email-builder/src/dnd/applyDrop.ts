@@ -135,8 +135,11 @@ export function dropCanvasImage(
   if (from.blockId === to.blockId && from.index === to.index) return
 
   const target = readSlot(store, to)
-  if (!target || !readSlot(store, from)) return
-  const alt = target.alt || drag.alt
+  const source = readSlot(store, from)
+  if (!target || !source) return
+  // Se usa lo que el hueco origen tiene AHORA, no lo que el payload capturó al iniciar el
+  // arrastre: si algo cambió la imagen mientras el drag estaba en curso, se mueve la actual.
+  const alt = target.alt || source.alt
 
   // Mismo bloque galería, índices distintos: las dos escrituras caen sobre el mismo array
   // `images`, así que van en un solo updateBlock (un solo commit, sin fusión de historial).
@@ -149,7 +152,7 @@ export function dropCanvasImage(
     store.sealHistory()
     store.updateBlock(b.id, {
       images: b.images.map((im, j) =>
-        j === to.index ? { ...im, src: drag.src, alt } : j === from.index ? { ...im, src: '', alt: '' } : im,
+        j === to.index ? { ...im, src: source.src, alt } : j === from.index ? { ...im, src: '', alt: '' } : im,
       ),
     })
     return
@@ -160,7 +163,7 @@ export function dropCanvasImage(
   // revierta origen y destino a la vez. `sealHistory` evita que el primer commit se fusione con
   // una edición reciente del mismo bloque hecha desde el inspector.
   store.sealHistory()
-  writeSlot(store, to, drag.src, alt)
+  writeSlot(store, to, source.src, alt)
   const mark = store.historyMark()
   writeSlot(store, from, '', '')
   store.mergeCommitsSince(mark)
