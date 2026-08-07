@@ -45,9 +45,9 @@ export function dropBlock(
 export function dropBlockOnEmptyCanvas(store: Store, drag: DragData): void {
   if (drag.kind !== 'palette-block' && drag.kind !== 'canvas-block') return
   const row = store.addRow([100])
-  const before = store.past.length
+  const mark = store.historyMark()
   dropBlock(store, drag, row.columns[0].id, null, null)
-  if (store.past.length === before + 1) store.past.pop()
+  store.mergeCommitsSince(mark)
 }
 
 /** Reemplaza el src de un bloque `image` existente; conserva el alt si ya tenía uno. */
@@ -79,18 +79,17 @@ export function dropMediaImageOnGalleryItem(
 
 /**
  * Suelta una imagen en el canvas vacío (o fuera de cualquier bloque imagen/galería existente):
- * crea una fila de 1 columna + un bloque imagen con ese src/alt. Mismo truco de fusión de
- * historial que `dropBlockOnEmptyCanvas`, generalizado a 3 commits (addRow + addBlockToColumn +
- * updateBlock): `before` se captura después de `addRow` (que ya empujó su propio commit), y el
- * `while` descarta todos los commits posteriores para que sobreviva únicamente el de `addRow`
- * — así un solo undo revierte fila+bloque+src completos.
+ * crea una fila de 1 columna + un bloque imagen con ese src/alt. Misma fusión de historial que
+ * `dropBlockOnEmptyCanvas`, acá sobre 3 commits (addRow + addBlockToColumn + updateBlock): la
+ * marca se toma después de `addRow` —el commit que debe sobrevivir— y `mergeCommitsSince`
+ * descarta los dos posteriores, así un solo undo revierte fila+bloque+src completos.
  */
 export function dropMediaImageOnEmptyCanvas(store: Store, drag: Extract<DragData, { kind: 'media-image' }>): void {
   const row = store.addRow([100])
-  const before = store.past.length
+  const mark = store.historyMark()
   const block = store.addBlockToColumn(row.columns[0].id, 'image')
   store.updateBlock(block.id, { src: drag.src, alt: drag.alt })
-  while (store.past.length > before) store.past.pop()
+  store.mergeCommitsSince(mark)
 }
 
 /** Lee el `src`/`alt` de un hueco, o `null` si el bloque no existe o el tipo/índice no corresponde. */
@@ -143,6 +142,9 @@ export function dropCanvasImage(
   // `images`, así que van en un solo updateBlock (un solo commit, sin fusión de historial).
   if (from.blockId === to.blockId) {
     const b = store.findBlock(to.blockId)!.block
+    // Defensivo e inalcanzable: para un mismo blockId, el hueco con `index` exige `gallery` y el
+    // que no lo tiene exige `image`, y un bloque tiene un solo tipo — así que si ambos pasaron
+    // `readSlot`, es galería. Se conserva porque TypeScript lo necesita para estrechar `b.images`.
     if (b.type !== 'gallery') return
     store.sealHistory()
     store.updateBlock(b.id, {
@@ -159,7 +161,7 @@ export function dropCanvasImage(
   // una edición reciente del mismo bloque hecha desde el inspector.
   store.sealHistory()
   writeSlot(store, to, drag.src, alt)
-  const before = store.past.length
+  const mark = store.historyMark()
   writeSlot(store, from, '', '')
-  while (store.past.length > before) store.past.pop()
+  store.mergeCommitsSince(mark)
 }

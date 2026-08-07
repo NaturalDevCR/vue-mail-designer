@@ -5,7 +5,7 @@ import { createBlock, createColumn, createId, createDocument, createRow, zEmailD
 
 export type Selection = { kind: 'row' | 'block'; id: string }
 
-const HISTORY_LIMIT = 50
+export const HISTORY_LIMIT = 50
 const COALESCE_MS = 600
 
 function clone<T>(v: T): T {
@@ -20,6 +20,9 @@ export const useDocumentStore = defineStore('vmd-document', () => {
 
   let lastCommitKey: string | null = null
   let lastCommitAt = 0
+  // commits acumulados desde que arrancó el store. Solo lo leen historyMark/mergeCommitsSince:
+  // a diferencia de past.length, no se estanca al llegar a HISTORY_LIMIT.
+  let commitCount = 0
 
   /** Guarda snapshot ANTES de mutar. `coalesceKey` agrupa ráfagas (p.ej. tipeo). */
   function commit(coalesceKey?: string) {
@@ -30,6 +33,7 @@ export const useDocumentStore = defineStore('vmd-document', () => {
     }
     past.value.push(JSON.stringify(doc.value))
     if (past.value.length > HISTORY_LIMIT) past.value.shift()
+    commitCount++
     future.value = []
     lastCommitKey = coalesceKey ?? null
     lastCommitAt = now
@@ -289,6 +293,40 @@ export const useDocumentStore = defineStore('vmd-document', () => {
     lastCommitKey = null
   }
 
+  /**
+   * Marca el estado actual del historial. Se llama JUSTO DESPUÉS del `commit()` cuyo snapshot
+   * debe sobrevivir; `mergeCommitsSince(marca)` descarta después todo lo que se haya apilado
+   * a partir de ahí. Ver `mergeCommitsSince`.
+   */
+  function historyMark(): number {
+    return commitCount
+  }
+
+  /**
+   * Descarta de `past` todos los commits apilados después de `marca`, de modo que la operación
+   * completa se deshaga con un solo undo. Se usa cuando un drop dispara varios `commit()`
+   * internos (crear fila + insertar bloque; o escribir destino + vaciar origen al mover una
+   * imagen) y el usuario espera revertirlo de una sola vez.
+   *
+   * Contamos commits en vez de comparar longitudes de `past`: al llegar a `HISTORY_LIMIT`,
+   * cada `commit()` hace `push` e inmediatamente `shift`, así que la longitud DEJA DE CRECER
+   * y cualquier truco basado en "cuántas entradas había antes" nunca vuelve a cumplirse — el
+   * recorte no se ejecuta, sobrevive un snapshot intermedio y el primer undo deja el documento
+   * a mitad de la operación (p. ej. la imagen visible en origen y destino a la vez). Tampoco
+   * comparamos el CONTENIDO del snapshot: dos entradas pueden ser iguales si el documento pasó
+   * dos veces por el mismo estado, y ahí la búsqueda por valor recortaría de menos.
+   *
+   * La marca solo vale dentro de una misma operación síncrona: un `undo()` intercalado la
+   * invalidaría. Ningún llamador hace eso — todos marcan y fusionan dentro de la misma función.
+   */
+  function mergeCommitsSince(mark: number) {
+    // acotado por past.length: si los commits intermedios empujaron las entradas viejas fuera
+    // del límite, se descarta lo que quede en vez de vaciar el array de más.
+    let extra = Math.min(commitCount - mark, past.value.length)
+    while (extra-- > 0) past.value.pop()
+    commitCount = mark
+  }
+
   function exportJson(): string {
     return JSON.stringify(doc.value, null, 2)
   }
@@ -320,7 +358,7 @@ export const useDocumentStore = defineStore('vmd-document', () => {
     addBlockToColumn, insertBlockAt, removeBlock, duplicateBlock, replaceColumnBlocks, moveBlock,
     updateBlock, updateRowStyle, updateRow, updateColumn, updateSettings,
     select, loadDesign,
-    canUndo, canRedo, undo, redo, resetHistory, sealHistory, exportJson, importJson,
+    canUndo, canRedo, undo, redo, resetHistory, sealHistory, historyMark, mergeCommitsSince, exportJson, importJson,
     versions, saveVersion, loadVersion, deleteVersion,
   }
 })
