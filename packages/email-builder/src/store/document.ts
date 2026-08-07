@@ -316,8 +316,11 @@ export const useDocumentStore = defineStore('vmd-document', () => {
    * comparamos el CONTENIDO del snapshot: dos entradas pueden ser iguales si el documento pasó
    * dos veces por el mismo estado, y ahí la búsqueda por valor recortaría de menos.
    *
-   * La marca solo vale dentro de una misma operación síncrona: un `undo()` intercalado la
-   * invalidaría. Ningún llamador hace eso — todos marcan y fusionan dentro de la misma función.
+   * La marca solo vale dentro de una misma operación síncrona, y se consume una sola vez: la
+   * invalidan tanto un `undo()`/`redo()` intercalado (no tocan el contador, así que el recorte
+   * se pasaría o se quedaría corto) como otro `mergeCommitsSince` intermedio (que rebobina el
+   * contador y deja a la marca externa contando de menos). Ningún llamador hace ninguna de las
+   * dos cosas: todos marcan y fusionan dentro de la misma función, sin anidar.
    */
   function mergeCommitsSince(mark: number) {
     // acotado por past.length: si los commits intermedios empujaron las entradas viejas fuera

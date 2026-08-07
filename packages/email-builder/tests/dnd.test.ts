@@ -607,6 +607,11 @@ describe('useCanvasImageDrag — canDrag rechaza huecos vacíos (Hallazgo 2)', (
    * real). Por eso disparamos `dragend` para cerrar la sesión y no filtrar estado entre tests.
    */
   function fireDragStart(el: Element): boolean {
+    // Cierre preventivo: si un test anterior dejó una sesión de drag abierta, este `dragend`
+    // la cierra. Es no-op cuando no hay ninguna activa (Pragmatic desata el listener al
+    // terminar), así que vuelve la limpieza estructural en vez de depender de que cada test
+    // futuro se acuerde de cerrarla — un olvido haría pasar VACUAMENTE los tests de "permite".
+    endDragSession()
     const ev = new Event('dragstart', { bubbles: true, cancelable: true })
     Object.defineProperty(ev, 'dataTransfer', {
       value: { types: [], items: [], setData: () => {}, getData: () => '', setDragImage: () => {} },
@@ -615,13 +620,24 @@ describe('useCanvasImageDrag — canDrag rechaza huecos vacíos (Hallazgo 2)', (
     Object.defineProperty(ev, 'clientY', { value: 1 })
     el.dispatchEvent(ev)
     const rejected = ev.defaultPrevented
-    if (!rejected) {
-      const end = new Event('dragend', { bubbles: true, cancelable: true })
-      Object.defineProperty(end, 'clientX', { value: 1 })
-      Object.defineProperty(end, 'clientY', { value: 1 })
-      window.dispatchEvent(end)
-    }
+    if (!rejected) endDragSession()
     return rejected
+  }
+
+  function endDragSession() {
+    const end = new Event('dragend', { bubbles: true, cancelable: true })
+    Object.defineProperty(end, 'clientX', { value: 1 })
+    Object.defineProperty(end, 'clientY', { value: 1 })
+    window.dispatchEvent(end)
+  }
+
+  /**
+   * `defaultPrevented === false` significa "canDrag permitió", pero también es lo que devuelve
+   * un elemento que Pragmatic ni siquiera tiene registrado (su listener retorna sin llamar a
+   * preventDefault). Antes de assertar que permite, hay que probar que el draggable está atado.
+   */
+  function expectBound(el: Element) {
+    expect(el.getAttribute('draggable')).toBe('true')
   }
 
   // Se desmontan tras cada test (ver afterEach) para no acumular nodos en document.body.
@@ -661,6 +677,7 @@ describe('useCanvasImageDrag — canDrag rechaza huecos vacíos (Hallazgo 2)', (
     const wrapper = mountGalleryItem({ src: 'https://example.com/gal.png', alt: 'Galería' })
     await nextTick()
     const el = wrapper.find('img').element
+    expectBound(el)
     expect(fireDragStart(el)).toBe(false)
   })
 
@@ -680,6 +697,7 @@ describe('useCanvasImageDrag — canDrag rechaza huecos vacíos (Hallazgo 2)', (
     mounted.push(wrapper)
     await nextTick()
     const el = wrapper.find('img').element
+    expectBound(el)
     expect(fireDragStart(el)).toBe(false)
   })
 })
