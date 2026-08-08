@@ -4,7 +4,10 @@
   "license": "MIT",
   "description": "Monorepo de vue-mail-designer: email builder visual drag & drop para Vue 3.",
   "homepage": "https://naturaldevcr.github.io/vue-mail-designer/",
-  "repository": { "type": "git", "url": "https://github.com/NaturalDevCR/vue-mail-designer.git" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NaturalDevCR/vue-mail-designer.git"
+  },
   "bugs": "https://github.com/NaturalDevCR/vue-mail-designer/issues",
   "private": true,
   "type": "module",
@@ -19,7 +22,12 @@
     "docs:build": "pnpm --filter docs build"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "vue-demi"]
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "vue-demi"
+    ]
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  }
 }

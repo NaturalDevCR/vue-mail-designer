@@ -5,7 +5,11 @@
   "license": "MIT",
   "author": "Josue <josue@symphonycr.com>",
   "homepage": "https://naturaldevcr.github.io/vue-mail-designer/",
-  "repository": { "type": "git", "url": "https://github.com/NaturalDevCR/vue-mail-designer.git", "directory": "packages/email-builder" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NaturalDevCR/vue-mail-designer.git",
+    "directory": "packages/email-builder"
+  },
   "bugs": "https://github.com/NaturalDevCR/vue-mail-designer/issues",
   "keywords": [
     "vue",
