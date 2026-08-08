@@ -29,6 +29,31 @@ describe('BlockView', () => {
     expect(wrapper.find('.vmd-b-button').attributes('style')).toContain('background')
   })
 
+  it('text hereda el color de link del body en el lienzo cuando el bloque no tiene el suyo', () => {
+    const block = createBlock('text')
+    if (block.type !== 'text') throw new Error()
+    block.html = '<p>Hola <a href="https://x.com">link</a></p>'
+    const { wrapper, store } = mountBlock(block)
+    store.updateSettings({ linkColor: '#f0dc00' })
+    return wrapper.vm.$nextTick().then(() => {
+      const a = wrapper.find('.vmd-b-text a')
+      expect(a.attributes('style')).toContain('color:#f0dc00')
+    })
+  })
+
+  it('text usa su propio linkColor en el lienzo si lo tiene, ignorando el del body', () => {
+    const block = createBlock('text')
+    if (block.type !== 'text') throw new Error()
+    block.html = '<p>Hola <a href="https://x.com">link</a></p>'
+    block.linkColor = '#ff0000'
+    const { wrapper, store } = mountBlock(block)
+    store.updateSettings({ linkColor: '#f0dc00' })
+    return wrapper.vm.$nextTick().then(() => {
+      const a = wrapper.find('.vmd-b-text a')
+      expect(a.attributes('style')).toContain('color:#ff0000')
+    })
+  })
+
   it('text respeta style.align en el lienzo, no solo en el HTML exportado', () => {
     const block = createBlock('text')
     if (block.type !== 'text') throw new Error()

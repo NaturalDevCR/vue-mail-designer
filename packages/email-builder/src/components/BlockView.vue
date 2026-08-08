@@ -40,7 +40,7 @@
         fontFamily: block.fontFamily || fontFamily,
       }"
     >
-      <div class="vmd-b-text" v-html="block.html" />
+      <div class="vmd-b-text" v-html="textHtml" />
     </div>
 
     <!-- image -->
@@ -192,7 +192,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { SOCIAL_BRANDS, socialSvg } from '../render/html'
+import { SOCIAL_BRANDS, socialSvg, styleLinks } from '../render/html'
 import type { Block, Padding, SocialNetworkKind } from '../schema'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
@@ -253,6 +253,16 @@ const customHtml = computed<string | null>(() => {
 })
 const isSelected = computed(() => store.selection?.kind === 'block' && store.selection.id === props.block.id)
 const fontFamily = computed(() => store.doc.settings.fontFamily)
+
+// El lienzo debe reflejar el mismo color/subrayado de link que ve el HTML exportado: el
+// bloque hereda del body si no tiene los suyos propios (mismo criterio que renderHtml).
+const textHtml = computed(() => {
+  const b = props.block
+  if (b.type !== 'text') return ''
+  const color = b.linkColor ?? store.doc.settings.linkColor
+  const underline = b.linkUnderline ?? store.doc.settings.linkUnderline
+  return styleLinks(b.html, color, underline)
+})
 
 function socialGlyphHtml(kind: SocialNetworkKind, size: number): string {
   const g = Math.round(size * 0.62)

@@ -54,7 +54,10 @@ function convertMergeTags(html: string): string {
   return html.replace(MERGE_TAG_RE, (_m, value: string) => `{{${value}}}`)
 }
 
-function styleLinks(html: string, color: string, underline: boolean): string {
+/** Inyecta color/subrayado inline en cada `<a>` del HTML de un bloque texto. Se usa tanto al
+ * exportar como en el lienzo en vivo (BlockView.vue), para que ambos apliquen el mismo criterio
+ * de herencia: linkColor/linkUnderline del bloque si los tiene, si no los del body. */
+export function styleLinks(html: string, color: string, underline: boolean): string {
   return html.replace(
     /<a\s/g,
     `<a style="color:${color};text-decoration:${underline ? 'underline' : 'none'};" `,
