@@ -1,25 +1,25 @@
-# Introducción
+# Introduction
 
-**Vue Mail Designer** (`@naturaldevcr/vue-mail-designer`) es un componente Vue 3 de edición visual de emails, estilo Unlayer: arrastrás bloques a un lienzo, los editás con un inspector de propiedades, y obtenés HTML compatible con clientes de correo (Outlook incluido) además de un JSON de diseño reeditable.
+**Vue Mail Designer** (`@naturaldevcr/vue-mail-designer`) is a Vue 3 component for visual email editing, Unlayer-style: drag blocks onto a canvas, edit them with a properties inspector, and get email-client-compatible HTML (Outlook included) plus a re-editable design JSON.
 
-## ¿Para quién es esto?
+## Who is this for?
 
-Para integrar un editor de emails dentro de tu propia aplicación (un SaaS de marketing, un CRM, un builder de campañas) sin depender de un servicio externo. Vos controlás:
+For embedding an email editor inside your own application (a marketing SaaS, a CRM, a campaign builder) without depending on an external service. You control:
 
-- **Dónde se guardan las imágenes** — implementás `uploadImage` y opcionalmente `mediaLibrary` contra tu propio storage.
-- **Qué variables se pueden insertar** — `mergeTags` define las variables disponibles en el editor de texto.
-- **Qué bloques aparecen** — la prop `tools` oculta, reordena o limita bloques de la paleta.
-- **El look del editor** — `theme`, `appearance` y `locale` (español o inglés, o un diccionario propio).
+- **Where images are stored** — you implement `uploadImage` and optionally `mediaLibrary` against your own storage.
+- **Which variables can be inserted** — `mergeTags` defines the variables available in the text editor.
+- **Which blocks appear** — the `tools` prop hides, reorders, or limits blocks in the palette.
+- **The editor's look** — `theme`, `appearance`, and `locale` (Spanish or English, or your own dictionary).
 
-## ¿Qué genera?
+## What does it generate?
 
-Dos salidas, ambas bajo tu control:
+Two outputs, both under your control:
 
-1. **HTML de email** (`exportHtml()` o el evento `export-html`) — tablas con estilos inline, ghost tables MSO para Outlook, media query para apilar columnas en mobile. Pensado para pegar directo en tu proveedor de envío (SES, SendGrid, Postmark, etc.).
-2. **JSON de diseño** (`EmailDocument`, vía `getDesign()`/`loadDesign()` o `v-model:design`) — el modelo editable completo, para guardarlo en tu base de datos y volver a abrirlo en el editor.
+1. **Email HTML** (`exportHtml()` or the `export-html` event) — tables with inline styles, MSO ghost tables for Outlook, a media query to stack columns on mobile. Meant to be pasted straight into your sending provider (SES, SendGrid, Postmark, etc.).
+2. **Design JSON** (`EmailDocument`, via `getDesign()`/`loadDesign()` or `v-model:design`) — the full editable model, to save in your database and reopen in the editor later.
 
-## Próximos pasos
+## Next steps
 
-- [Instalación](/guide/installation)
-- [Inicio rápido](/guide/quickstart)
-- [Referencia de props](/reference/props)
+- [Installation](/guide/installation)
+- [Quickstart](/guide/quickstart)
+- [Props reference](/reference/props)

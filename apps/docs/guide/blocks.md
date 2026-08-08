@@ -1,31 +1,31 @@
-# Bloques
+# Blocks
 
-La paleta incluye: **Título**, **Texto** (editor enriquecido), **Imagen**, **Botón**, **Divisor**, **Espacio**, **Redes**, **Menú**, **HTML**, **Video**, **Tabla**, **Galería** y **Timer** (cuenta regresiva).
+The palette includes: **Heading**, **Text** (rich editor), **Image**, **Button**, **Divider**, **Spacer**, **Social**, **Menu**, **HTML**, **Video**, **Table**, **Gallery**, and **Timer** (countdown).
 
-## Propiedades comunes
+## Common properties
 
-La mayoría de los bloques comparten, en su inspector:
+Most blocks share, in their inspector:
 
-- **Padding** — vinculado por defecto (un solo valor para los 4 lados); un botón de cadena lo desvincula para editar cada lado por separado.
-- **Alineación** — izquierda/centro/derecha, donde aplica.
-- **Ocultar por dispositivo** — `hideDesktop`/`hideMobile`, por bloque y por fila. El HTML exportado usa clases + media query, no JS.
+- **Padding** — linked by default (a single value for all 4 sides); a link-icon button unlinks it to edit each side separately.
+- **Alignment** — left/center/right, where applicable.
+- **Hide per device** — `hideDesktop`/`hideMobile`, per block and per row. The exported HTML uses classes + a media query, no JS.
 
 ## Timer
 
-Cuenta regresiva a una fecha. Dos modos:
+Countdown to a date. Two modes:
 
-- **Imagen dinámica del integrador**: le pasás una función que genera la imagen del contador (típicamente un servicio externo tipo countdownmail).
-- **Caja estática**: sin esa función, muestra los días restantes en texto plano — funciona en cualquier cliente, sin animación.
+- **Integrator-provided dynamic image**: you pass a function that generates the counter image (typically an external service like countdownmail).
+- **Static box**: without that function, it shows the days remaining as plain text — works in any client, no animation.
 
-## Tabla y Galería
+## Table and Gallery
 
-- **Tabla** — filas/columnas de celdas de texto simple, con padding y tamaño de fuente configurables.
-- **Galería** — grilla de 2 a 4 imágenes; cada ítem acepta arrastrar una imagen encima (desde la pestaña Imágenes/Galería, o moviendo una imagen ya puesta en el lienzo) para reemplazarla.
+- **Table** — rows/columns of simple text cells, with configurable padding and font size.
+- **Gallery** — a grid of 2 to 4 images; each item accepts dragging an image onto it (from the Images/Gallery tab, or by moving an image already placed on the canvas) to replace it.
 
-## Bloques personalizados
+## Custom blocks
 
-Además de los bloques built-in, podés registrar los tuyos — ver [Bloques personalizados](/guide/custom-blocks).
+Besides the built-in blocks, you can register your own — see [Custom blocks](/guide/custom-blocks).
 
-## Radio de esquinas en Outlook
+## Corner radius in Outlook
 
-El `borderRadius` del bloque Imagen se renderiza con CSS `border-radius` y además con VML `<v:roundrect>` para Outlook de escritorio en botones con ancho fijo — ver [Compatibilidad de email](/guide/email-compatibility).
+The Image block's `borderRadius` renders with CSS `border-radius`, and additionally with VML `<v:roundrect>` for Outlook desktop on fixed-width buttons — see [Email compatibility](/guide/email-compatibility).

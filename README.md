@@ -4,17 +4,17 @@
 [![CI](https://github.com/NaturalDevCR/vue-mail-designer/actions/workflows/ci.yml/badge.svg)](https://github.com/NaturalDevCR/vue-mail-designer/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-Email builder visual drag & drop para Vue 3, estilo Unlayer. Arrastrá bloques a un lienzo, editalos con un inspector de propiedades, y exportá HTML compatible con clientes de correo (Outlook incluido) más un JSON de diseño reeditable.
+Visual drag & drop email builder for Vue 3, Unlayer-style. Drag blocks onto a canvas, edit them with a properties inspector, and export email-client-compatible HTML (Outlook included) plus a re-editable design JSON.
 
-📖 **[Documentación completa](https://naturaldevcr.github.io/vue-mail-designer/)**
+📖 **[Full documentation](https://naturaldevcr.github.io/vue-mail-designer/)**
 
-## Instalación
+## Install
 
 ```bash
 pnpm add @naturaldevcr/vue-mail-designer vue pinia
 ```
 
-## Uso básico
+## Basic usage
 
 ```vue
 <template>
@@ -29,40 +29,40 @@ import { ref } from 'vue'
 const design = ref<EmailDocument>()
 
 async function uploadImage(file: File): Promise<string> {
-  return 'https://cdn.tu-dominio.com/...'
+  return 'https://cdn.your-domain.com/...'
 }
 
 function onHtml(html: string) {
-  // guardá o enviá el HTML
+  // save or send the HTML
 }
 </script>
 ```
 
-Ver la [guía de inicio rápido](https://naturaldevcr.github.io/vue-mail-designer/guide/quickstart) para más.
+See the [quickstart guide](https://naturaldevcr.github.io/vue-mail-designer/guide/quickstart) for more.
 
-## Este repo
+## This repo
 
-Monorepo pnpm:
+pnpm monorepo:
 
-- **[`packages/email-builder`](./packages/email-builder)** — la librería publicada (`@naturaldevcr/vue-mail-designer`).
-- **[`apps/demo`](./apps/demo)** — demo de consumo, editor de punta a punta.
-- **[`apps/docs`](./apps/docs)** — sitio de documentación ([VitePress](https://vitepress.dev)), desplegado a GitHub Pages.
+- **[`packages/email-builder`](./packages/email-builder)** — the published library (`@naturaldevcr/vue-mail-designer`).
+- **[`apps/demo`](./apps/demo)** — a consuming demo app, end-to-end editor.
+- **[`apps/docs`](./apps/docs)** — documentation site ([VitePress](https://vitepress.dev)), deployed to GitHub Pages.
 
-## Desarrollo
+## Development
 
-Requisitos: Node ≥ 20, pnpm.
+Requirements: Node ≥ 20, pnpm.
 
 ```bash
 pnpm install
-pnpm dev          # demo en modo desarrollo
-pnpm build        # compila librería + demo
-pnpm test         # tests de la librería (Vitest)
-pnpm typecheck    # tipos en todo el workspace
+pnpm dev          # run the demo in dev mode
+pnpm build        # build the library + demo
+pnpm test         # library tests (Vitest)
+pnpm typecheck    # typecheck the whole workspace
 pnpm check        # typecheck + test
-pnpm docs:dev      # sitio de docs en modo desarrollo
-pnpm docs:build    # build del sitio de docs
+pnpm docs:dev      # docs site in dev mode
+pnpm docs:build    # build the docs site
 ```
 
-## Licencia
+## License
 
 [MIT](./LICENSE)

@@ -1,6 +1,6 @@
-# Inicio rápido
+# Quickstart
 
-Un componente mínimo con subida de imágenes y export de HTML:
+A minimal component with image upload and HTML export:
 
 ```vue
 <template>
@@ -19,26 +19,26 @@ import { ref } from 'vue'
 
 const design = ref<EmailDocument>()
 
-const mergeTags: MergeTagDef[] = [{ name: 'Nombre', value: 'first_name' }]
+const mergeTags: MergeTagDef[] = [{ name: 'First name', value: 'first_name' }]
 
 async function uploadImage(file: File): Promise<string> {
-  // subí el archivo a tu CDN/storage y devolvé la URL pública
-  return 'https://cdn.tu-dominio.com/...'
+  // upload the file to your CDN/storage and return the public URL
+  return 'https://cdn.your-domain.com/...'
 }
 
 function onHtml(html: string) {
-  // guardá o enviá el HTML
+  // save or send the HTML
 }
 </script>
 ```
 
-- `design` es un `v-model`: arrancá con `undefined` (el editor crea un documento en blanco) o cargá uno guardado.
-- `uploadImage` es la única prop de storage estrictamente necesaria — sin ella, el bloque Imagen no puede subir archivos nuevos (podés igual pegar una URL a mano).
-- Llamá a `exportHtml()`/`exportJson()` por `ref`, o escuchá `export-html`/`update:design` — ver la [referencia de eventos y métodos](/reference/events).
+- `design` is a `v-model`: start with `undefined` (the editor creates a blank document) or load a saved one.
+- `uploadImage` is the only strictly necessary storage prop — without it, the Image block can't upload new files (you can still paste a URL by hand).
+- Call `exportHtml()`/`exportJson()` via `ref`, or listen for `export-html`/`update:design` — see the [events and methods reference](/reference/events).
 
-## Con galería de medios
+## With a media library
 
-Si además querés una pestaña "Galería" que liste, suba, borre y renombre archivos de tu propio bucket:
+If you also want a "Gallery" tab that lists, uploads, deletes, and renames files from your own bucket:
 
 ```ts
 const mediaLibrary = {
@@ -59,4 +59,4 @@ const mediaLibrary = {
 <EmailBuilder ... :media-library="mediaLibrary" />
 ```
 
-Sin esta prop, la pestaña "Galería" no aparece. Ver [Bloques](/guide/blocks) y la [referencia de props](/reference/props) completa.
+Without this prop, the "Gallery" tab doesn't appear. See [Blocks](/guide/blocks) and the full [props reference](/reference/props).

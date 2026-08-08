@@ -1,10 +1,10 @@
-# Eventos
+# Events
 
-| Evento | Payload | Cuándo |
+| Event | Payload | When |
 |---|---|---|
-| `update:design` | `EmailDocument` | En cada cambio del diseño — es el evento que hace funcionar `v-model:design`. |
-| `change` | `EmailDocument` | Igual que `update:design`, para cuando preferís no usar `v-model`. |
-| `export-html` | `string` | Al llamar a `exportHtml()` por `ref` — entrega el HTML generado. |
+| `update:design` | `EmailDocument` | On every design change — the event that powers `v-model:design`. |
+| `change` | `EmailDocument` | Same as `update:design`, for when you'd rather not use `v-model`. |
+| `export-html` | `string` | When calling `exportHtml()` via `ref` — delivers the generated HTML. |
 
 ```vue
 <template>
@@ -17,13 +17,13 @@
 
 <script setup lang="ts">
 function onChange(doc: EmailDocument) {
-  // guardado automático, por ejemplo
+  // e.g. autosave
 }
 
 function onHtml(html: string) {
-  // enviar o previsualizar
+  // send or preview
 }
 </script>
 ```
 
-Ver también [Métodos](/reference/methods) para disparar el export desde tu propio botón.
+See also [Methods](/reference/methods) for triggering the export from your own button.

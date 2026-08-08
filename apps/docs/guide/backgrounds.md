@@ -1,25 +1,25 @@
-# Fondos
+# Backgrounds
 
-## Fondo del cuerpo
+## Body background
 
-El **color y la imagen de fondo del cuerpo del email** se editan en la pestaña **Cuerpo** del inspector (`settings.backgroundColor` / `settings.backgroundImage`). Es el fondo que se ve detrás de todo el documento.
+The **email body's background color and image** are edited in the inspector's **Body** tab (`settings.backgroundColor` / `settings.backgroundImage`). It's the background shown behind the entire document.
 
-## Fondo por fila y columna
+## Row and column background
 
-Las **filas son transparentes por defecto** para que el fondo del cuerpo se vea a través. Cada fila y cada columna puede tener su propio color e imagen de fondo, independientes del cuerpo.
+**Rows are transparent by default** so the body background shows through. Each row and each column can have its own background color and image, independent of the body.
 
-Para una imagen de fondo de fila:
+For a row background image:
 
-- **`url`** — la imagen.
+- **`url`** — the image.
 - **`repeat`** — `no-repeat` / `repeat` / `repeat-x` / `repeat-y`.
-- **`size`** — `auto` (tamaño natural, no se estira), `cover` (llena el contenedor, puede recortar) o `contain` (entra completa, puede dejar franjas).
-- **`position`** — posición CSS estándar (ej. `center`, `top center`).
-- **Ancho del contenedor** — "Contenido" (queda acotada al `contentWidth` del body, centrada) o "Ancho completo" (sangra hasta los bordes del email, independiente del ancho de contenido).
+- **`size`** — `auto` (natural size, not stretched), `cover` (fills the container, may crop), or `contain` (fits entirely, may leave bands).
+- **`position`** — standard CSS position (e.g. `center`, `top center`).
+- **Container width** — "Content" (bounded to the body's `contentWidth`, centered) or "Full width" (bleeds to the email's edges, independent of content width).
 
-::: tip Importar de Unlayer
-Al importar una plantilla de Unlayer, `size` casi nunca llega como palabra clave CSS — Unlayer manda ahí el peso del archivo en bytes. El importador lo detecta y cae a `auto` (tamaño natural), que es lo mismo que exporta Unlayer cuando no manda `background-size` explícito.
+::: tip Importing from Unlayer
+When importing an Unlayer template, `size` almost never arrives as a CSS keyword — Unlayer puts the file's byte size there instead. The importer detects this and falls back to `auto` (natural size), the same thing Unlayer itself exports when it doesn't send an explicit `background-size`.
 :::
 
 ## Outlook
 
-El soporte de fondo de fila en Outlook de escritorio es parcial — ver [Compatibilidad de email](/guide/email-compatibility).
+Row background support in Outlook desktop is partial — see [Email compatibility](/guide/email-compatibility).

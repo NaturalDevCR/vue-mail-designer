@@ -1,16 +1,16 @@
 # @naturaldevcr/vue-mail-designer
 
-Email builder visual drag & drop para Vue 3, estilo Unlayer. Genera HTML compatible con clientes de correo y JSON de diseño reeditable.
+Visual drag & drop email builder for Vue 3, Unlayer-style. Generates email-client-compatible HTML and a re-editable design JSON.
 
-📖 **[Documentación completa](https://naturaldevcr.github.io/vue-mail-designer/)** · [Repositorio](https://github.com/NaturalDevCR/vue-mail-designer)
+📖 **[Full documentation](https://naturaldevcr.github.io/vue-mail-designer/)** · [Repository](https://github.com/NaturalDevCR/vue-mail-designer)
 
-## Instalación
+## Install
 
 ```bash
 pnpm add @naturaldevcr/vue-mail-designer vue pinia
 ```
 
-## Uso básico
+## Basic usage
 
 ```vue
 <template>
@@ -29,116 +29,116 @@ import '@naturaldevcr/vue-mail-designer/style.css'
 import { ref } from 'vue'
 
 const design = ref<EmailDocument>()
-const mergeTags: MergeTagDef[] = [{ name: 'Nombre', value: 'first_name' }]
+const mergeTags: MergeTagDef[] = [{ name: 'First name', value: 'first_name' }]
 
 async function uploadImage(file: File): Promise<string> {
-  // subí el archivo a tu CDN y devolvé la URL
-  return 'https://cdn.tu-dominio.com/...'
+  // upload the file to your CDN and return the URL
+  return 'https://cdn.your-domain.com/...'
 }
 
 const mediaLibrary = {
   async list(cursor?: string) {
-    // listá tu bucket (ej. Firebase Storage) paginado por cursor
+    // list your bucket, paginated by cursor
     return { items: [], nextCursor: undefined }
   },
   async upload(file: File) {
-    // subí el archivo y devolvé el MediaItem completo (id, url, thumbnailUrl, name)
+    // upload the file and return the full MediaItem (id, url, thumbnailUrl, name)
     return { id: 'x', url: '...', thumbnailUrl: '...', name: file.name }
   },
   async delete(id: string) {
-    // borrá el archivo de tu bucket
+    // delete the file from your bucket
   },
   async rename(id: string, name: string) {
-    // renombrá el archivo y devolvé el MediaItem actualizado
+    // rename the file and return the updated MediaItem
     return { id, url: '...', thumbnailUrl: '...', name }
   },
 }
 
 function onHtml(html: string) {
-  // guardá o enviá el HTML
+  // save or send the HTML
 }
 </script>
 ```
 
 ## Props
 
-| Prop | Tipo | Descripción |
+| Prop | Type | Description |
 |------|------|-------------|
-| `design` | `EmailDocument` | Diseño (v-model). |
-| `mergeTags` | `MergeTagDef[]` | Variables insertables en texto (`{ name, value }`). |
-| `templates` | `EmailTemplate[]` | Plantillas extra además de las incluidas. |
-| `uploadImage` | `(file: File) => Promise<string>` | Handler de subida; devuelve la URL final. |
-| `imageSearch` | `(query: string) => Promise<ImageResult[]>` | Handler de búsqueda para la pestaña Imágenes; por defecto usa `openverseSearch`. |
-| `mediaLibrary` | `MediaLibraryOptions` | Habilita la pestaña "Galería": `{ list: (cursor?) => Promise<{ items: MediaItem[], nextCursor? }>, upload: (file) => Promise<MediaItem>, delete: (id) => Promise<void>, rename: (id, name) => Promise<MediaItem> }`. Sin esta prop, la pestaña no aparece. Todas las funciones las implementa el integrador contra su propio storage (ej. Firebase Storage); la librería no asume ningún backend. |
-| `unlayerFetch` | `(slug: string) => Promise<unknown>` | Handler para cargar una plantilla de Unlayer por URL/slug; devuelve el JSON de diseño. Por defecto pega a su API (falla por CORS sin proxy). |
-| `theme` | `'light' \| 'dark'` | Tema de la UI del builder. |
-| `locale` | `'es' \| 'en' \| LocaleDict` | Idioma de la UI. Objeto = diccionario de claves que se fusiona sobre el español (traduce solo lo que quieras). |
-| `appearance` | `Appearance` | Colores del builder: `accent`, `panel`, `border`, `background`, `foreground`, `muted`. Cada campo presente sobreescribe su variable CSS; no afecta el canvas del email. |
-| `tools` | `Partial<Record<BlockType, ToolConfig>>` | Config por bloque de la paleta: `{ enabled?, position?, usageLimit? }` para ocultar, reordenar o limitar instancias. |
-| `fonts` | `FontDef[]` | Lista de fuentes (`{ label, value, url? }`); las Google Fonts (`url`) se cargan en el canvas y en el HTML exportado. Por defecto una lista curada. |
-| `specialLinks` | `SpecialLink[]` | Enlaces especiales insertables desde el editor (`{ name, href }`, ej. cancelar suscripción). |
-| `customBlocks` | `CustomBlockDef[]` | Bloques propios del integrador (`{ type, label, icon?, defaultData, fields, render }`); aparecen en la paleta con inspector genérico y render en el export. |
+| `design` | `EmailDocument` | Design (v-model). |
+| `mergeTags` | `MergeTagDef[]` | Variables insertable in text (`{ name, value }`). |
+| `templates` | `EmailTemplate[]` | Extra templates, in addition to the built-in ones. |
+| `uploadImage` | `(file: File) => Promise<string>` | Upload handler; returns the final URL. |
+| `imageSearch` | `(query: string) => Promise<ImageResult[]>` | Search handler for the Images tab; defaults to `openverseSearch`. |
+| `mediaLibrary` | `MediaLibraryOptions` | Enables the "Gallery" tab: `{ list: (cursor?) => Promise<{ items: MediaItem[], nextCursor? }>, upload: (file) => Promise<MediaItem>, delete: (id) => Promise<void>, rename: (id, name) => Promise<MediaItem> }`. Without this prop, the tab doesn't appear. Every function is implemented by the integrator against their own storage (e.g. Firebase Storage); the library assumes no particular backend. |
+| `unlayerFetch` | `(slug: string) => Promise<unknown>` | Handler to load an Unlayer template by URL/slug; returns the design JSON. Defaults to hitting Unlayer's API directly (fails via CORS without a proxy). |
+| `theme` | `'light' \| 'dark'` | Builder UI theme. |
+| `locale` | `'es' \| 'en' \| LocaleDict` | UI language. An object is a dictionary merged on top of Spanish — translate only the keys you want. |
+| `appearance` | `Appearance` | Builder colors: `accent`, `panel`, `border`, `background`, `foreground`, `muted`. Each present field overrides its CSS variable; doesn't affect the email canvas. |
+| `tools` | `Partial<Record<BlockType, ToolConfig>>` | Per-block palette config: `{ enabled?, position?, usageLimit? }` to hide, reorder, or limit instances. |
+| `fonts` | `FontDef[]` | List of fonts (`{ label, value, url? }`); Google Fonts (`url`) are loaded both in the canvas and in the exported HTML. Defaults to a curated list. |
+| `specialLinks` | `SpecialLink[]` | Special links insertable from the editor (`{ name, href }`, e.g. an unsubscribe link). |
+| `customBlocks` | `CustomBlockDef[]` | Integrator-defined custom blocks (`{ type, label, icon?, defaultData, fields, render }`); appear in the palette with a generic inspector and their own render in the export. |
 
-`mergeTags` acepta además grupos: `{ name, tags: MergeTagDef[] }` (se muestran como optgroups en el editor).
+`mergeTags` also accepts groups: `{ name, tags: MergeTagDef[] }` (shown as optgroups in the editor).
 
-> **Seguridad de bloques custom:** tu `render(data)` genera HTML crudo. Si `data` puede venir de un JSON importado, escapá los valores (la librería exporta `escapeHtml`) para evitar inyección.
+> **Custom block security:** your `render(data)` generates raw HTML. If `data` can come from an imported JSON, escape the values (the library exports `escapeHtml`) to avoid injection.
 
-## Métodos extra (via ref)
+## Extra methods (via ref)
 
-- `exportImage(): Promise<string>` — PNG (data URL) del diseño. Limitación: imágenes de otro origen (CORS) pueden impedir la captura.
-- Versiones: desde **EXPORTAR → Versiones…** se guardan/cargan/borran versiones nombradas (en memoria durante la sesión).
+- `exportImage(): Promise<string>` — PNG (data URL) of the design. Limitation: cross-origin images (CORS) can prevent the capture.
+- Versions: from **Export → Versions…**, named versions are saved/loaded/deleted (in memory for the session).
 
-## Fondos
+## Backgrounds
 
-El **color y la imagen de fondo del cuerpo** se editan en la pestaña **Cuerpo** (`settings.backgroundColor` / `settings.backgroundImage`). Las filas son transparentes por defecto para que el fondo del cuerpo se vea a través; cada fila y columna puede tener su propio color/imagen de fondo.
+The **body background color and image** are edited in the **Body** tab (`settings.backgroundColor` / `settings.backgroundImage`). Rows are transparent by default so the body background shows through; each row and column can have its own background color/image.
 
-## Editor de texto
+## Rich text editor
 
-El editor enriquecido incluye negrita, cursiva, subrayado, tachado, listas (viñeta/numerada), alineación, **color de texto**, **tamaño de fuente**, enlaces, variables (merge tags) y limpiar formato.
+The rich text editor includes bold, italic, underline, strikethrough, lists (bullet/numbered), alignment, **text color**, **font size**, links, variables (merge tags), and clear formatting.
 
-## Importar de Unlayer
+## Importing from Unlayer
 
-Desde el menú **EXPORTAR → Importar de Unlayer…** puedes pegar el JSON de diseño de Unlayer o la URL de una plantilla de su studio (ej. `https://studio.unlayer.com/create/...`). El diseño se convierte a nuestro formato y se muestra una lista de advertencias con lo que no se pudo mapear (estilos responsive específicos, condiciones de visualización, fuentes de Google, etc.).
+From the **Export → Import from Unlayer…** menu you can paste an Unlayer design JSON, or the URL of a template from their studio (e.g. `https://studio.unlayer.com/create/...`). The design is converted to our format and a list of warnings is shown for anything that couldn't be mapped (responsive-specific styles, display conditions, Google fonts, etc.).
 
-- **Programático:** `unlayerToDocument(json)` devuelve `{ document, warnings }`; `unlayerSlugFromUrl(url)` extrae el slug.
-- **Por URL:** el navegador no puede pegar directamente a la API de Unlayer por CORS. Pasa un `unlayerFetch` que use tu backend/proxy (la app de demo usa un proxy de Vite en `/unlayer-api`).
-- **Assets:** las imágenes de las plantillas de Unlayer viven en su CDN y les pertenecen; reemplázalas por tus propios assets. El conversor lo advierte automáticamente.
+- **Programmatic:** `unlayerToDocument(json)` returns `{ document, warnings }`; `unlayerSlugFromUrl(url)` extracts the slug.
+- **By URL:** the browser can't hit Unlayer's API directly due to CORS. Pass an `unlayerFetch` that uses your own backend/proxy (the demo app uses a Vite proxy at `/unlayer-api`).
+- **Assets:** images from Unlayer templates live on their CDN and belong to them; replace them with your own assets. The converter warns about this automatically.
 
-## Eventos
+## Events
 
-- `update:design` — en cada cambio del diseño.
-- `change` — igual que arriba, sin v-model.
-- `export-html` — al llamar `exportHtml()`; entrega el HTML.
+- `update:design` — on every design change.
+- `change` — same as above, for when you'd rather not use `v-model`.
+- `export-html` — when calling `exportHtml()`; delivers the HTML.
 
-## Métodos (via ref)
+## Methods (via ref)
 
 - `exportHtml(): string`
 - `exportJson(): string`
 - `getDesign(): EmailDocument`
 - `loadDesign(doc: EmailDocument): void`
 
-## Bloques
+## Blocks
 
-Título, Texto (editor enriquecido), Imagen, Botón, Divisor, Espacio, Redes, Menú, HTML, Video, **Tabla**, **Galería** y **Timer** (cuenta regresiva: imagen dinámica del integrador, o caja estática con los días restantes).
+Heading, Text (rich editor), Image, Button, Divider, Spacer, Social, Menu, HTML, Video, **Table**, **Gallery**, and **Timer** (countdown: integrator-provided dynamic image, or a static box with the days remaining).
 
-## Propiedades ricas
+## Rich properties
 
-- **Ocultar por dispositivo** por bloque y por fila (`hideDesktop` / `hideMobile`) — el HTML exportado usa clases + media query.
-- **Imagen de fondo** por fila (`url`, `repeat`, `size`, `position`).
-- **Fuente propia** por bloque de título/texto (además de la fuente del documento).
-- Borde y radio por columna (soportados en el modelo y el HTML; sin control dedicado en el inspector todavía).
-- **Recorte de imagen** (botón "Recortar" en el inspector de un bloque imagen, visible solo con `uploadImage` configurado) — aspect ratio, rotar/flip, enderezar y radio de esquinas (`borderRadius`); el resultado se sube vía `uploadImage`.
+- **Hide per device** per block and per row (`hideDesktop` / `hideMobile`) — the exported HTML uses classes + a media query.
+- **Background image** per row (`url`, `repeat`, `size`, `position`).
+- **Own font** per heading/text block (in addition to the document font).
+- Border and radius per column (supported in the model and the HTML; no dedicated inspector control yet).
+- **Image cropping** ("Crop" button in an image block's inspector, only visible with `uploadImage` configured) — aspect ratio, rotate/flip, straighten, and corner radius (`borderRadius`); the result is uploaded via `uploadImage`.
 
-## Compatibilidad de email
+## Email compatibility
 
-El HTML usa tablas con estilos inline, ghost tables para Outlook y una media query para apilar columnas en móvil. Evita flex/grid/position.
+The HTML uses tables with inline styles, ghost tables for Outlook, and a media query to stack columns on mobile. Avoids flex/grid/position.
 
-## Limitaciones
+## Limitations
 
-- No importa HTML existente (solo JSON).
-- Fondos de fila en Outlook: soporte parcial (sin VML full-bleed todavía).
-- Los merge tags se emiten como `{{value}}`; el motor de tu plataforma los reemplaza.
-- No se pueden reordenar columnas dentro de una fila (sí filas y bloques).
-- `theme` solo acepta `'light' | 'dark'` (sin `'auto'`).
-- Borde/radio de columna sin control dedicado en el inspector; el timer no anima sin un servicio de imagen del integrador.
-- El radio de esquinas (`borderRadius`) del bloque imagen se renderiza con CSS `border-radius`; Outlook de escritorio (motor Word) lo ignora, así que las esquinas redondeadas se ven bien en el builder y en la mayoría de los clientes pero no en Outlook desktop.
+- Doesn't import existing HTML (JSON only).
+- Row backgrounds in Outlook: partial support (no full-bleed VML yet).
+- Merge tags are emitted as `{{value}}`; your platform's engine replaces them.
+- Columns can't be reordered within a row (rows and blocks can).
+- `theme` only accepts `'light' | 'dark'` (no `'auto'`).
+- Column border/radius has no dedicated inspector control yet; the timer doesn't animate without an integrator-provided image service.
+- The image block's corner radius (`borderRadius`) is rendered with CSS `border-radius`; Outlook desktop (Word engine) ignores it, so rounded corners look right in the builder and in most clients but not in Outlook desktop.

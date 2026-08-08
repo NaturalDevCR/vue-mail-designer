@@ -1,45 +1,45 @@
-# Editor de texto
+# Rich text editor
 
-El bloque **Texto** usa un editor enriquecido (Tiptap) con:
+The **Text** block uses a rich editor (Tiptap) with:
 
-- Negrita, cursiva, subrayado, tachado
-- Listas (viñeta y numerada)
-- Alineación de párrafo
-- Color de texto y tamaño de fuente
-- Enlaces
-- Variables (merge tags) — ver abajo
-- Limpiar formato
+- Bold, italic, underline, strikethrough
+- Lists (bullet and numbered)
+- Paragraph alignment
+- Text color and font size
+- Links
+- Variables (merge tags) — see below
+- Clear formatting
 
 ## Merge tags
 
-`mergeTags` define las variables que el usuario puede insertar desde la barra del editor:
+`mergeTags` defines the variables the user can insert from the editor toolbar:
 
 ```ts
 const mergeTags: MergeTagDef[] = [
-  { name: 'Nombre', value: 'first_name' },
-  { name: 'Empresa', value: 'company' },
+  { name: 'First name', value: 'first_name' },
+  { name: 'Company', value: 'company' },
 ]
 ```
 
-También acepta grupos, que se muestran como optgroups:
+It also accepts groups, shown as optgroups:
 
 ```ts
 const mergeTags = [
-  { name: 'Contacto', tags: [{ name: 'Nombre', value: 'first_name' }] },
-  { name: 'Cuenta', tags: [{ name: 'Plan', value: 'plan_name' }] },
+  { name: 'Contact', tags: [{ name: 'First name', value: 'first_name' }] },
+  { name: 'Account', tags: [{ name: 'Plan', value: 'plan_name' }] },
 ]
 ```
 
-En el HTML exportado, cada variable se emite como `{{value}}` — el motor de tu plataforma de envío es quien las reemplaza en el momento de mandar el correo. La librería no hace ningún reemplazo por su cuenta.
+In the exported HTML, each variable is emitted as `{{value}}` — your sending platform's engine is the one that replaces them at send time. The library performs no replacement of its own.
 
-## Color y subrayado de links
+## Link color and underline
 
-Por defecto, los links dentro de un bloque de texto heredan `linkColor`/`linkUnderline` del documento (pestaña **Cuerpo**). Un bloque de texto puntual puede desactivar esa herencia y fijar su propio color/subrayado desde su inspector.
+By default, links inside a text block inherit `linkColor`/`linkUnderline` from the document (**Body** tab). A given text block can opt out of that inheritance and set its own link color/underline from its inspector.
 
-## Enlaces especiales
+## Special links
 
-`specialLinks` agrega enlaces predefinidos al selector del editor (por ejemplo, un link de cancelar suscripción que tu plataforma resuelve del lado del envío):
+`specialLinks` adds predefined links to the editor's selector (for example, an unsubscribe link resolved by your sending platform):
 
 ```ts
-const specialLinks = [{ name: 'Cancelar suscripción', href: '{{unsubscribe_url}}' }]
+const specialLinks = [{ name: 'Unsubscribe', href: '{{unsubscribe_url}}' }]
 ```

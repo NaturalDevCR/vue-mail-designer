@@ -1,12 +1,12 @@
-# Instalación
+# Installation
 
-## Requisitos
+## Requirements
 
 - Vue `^3.5.0`
-- Pinia `^2.2.0` o `^3.0.0`
-- Node `>=20` (solo para desarrollar/compilar tu app)
+- Pinia `^2.2.0` or `^3.0.0`
+- Node `>=20` (only to develop/build your app)
 
-## Paquete
+## Package
 
 ::: code-group
 
@@ -24,16 +24,16 @@ yarn add @naturaldevcr/vue-mail-designer vue pinia
 
 :::
 
-`vue` y `pinia` son *peer dependencies* — la librería no las empaqueta, para no duplicarlas si tu app ya las usa.
+`vue` and `pinia` are peer dependencies — the library doesn't bundle them, to avoid duplicating them if your app already uses them.
 
-## Estilos
+## Styles
 
-El componente trae su propio CSS, con variables `--vmd-*` para theming. Importalo una vez en tu app:
+The component ships its own CSS, with `--vmd-*` variables for theming. Import it once in your app:
 
 ```ts
 import '@naturaldevcr/vue-mail-designer/style.css'
 ```
 
-## Siguiente paso
+## Next step
 
-[Inicio rápido](/guide/quickstart) — montar el editor y exportar tu primer HTML.
+[Quickstart](/guide/quickstart) — mount the editor and export your first HTML.

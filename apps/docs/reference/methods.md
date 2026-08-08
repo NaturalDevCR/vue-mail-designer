@@ -1,11 +1,11 @@
-# Métodos (vía ref)
+# Methods (via ref)
 
-Se acceden montando el componente con `ref`:
+Accessed by mounting the component with `ref`:
 
 ```vue
 <template>
   <EmailBuilder ref="builder" v-model:design="design" />
-  <button @click="handleExport">Exportar</button>
+  <button @click="handleExport">Export</button>
 </template>
 
 <script setup lang="ts">
@@ -21,14 +21,14 @@ function handleExport() {
 </script>
 ```
 
-| Método | Firma | Descripción |
+| Method | Signature | Description |
 |---|---|---|
-| `exportHtml` | `(): string` | HTML de email completo, listo para tu proveedor de envío. |
-| `exportJson` | `(): string` | El `EmailDocument` actual, serializado a JSON. |
-| `getDesign` | `(): EmailDocument` | El `EmailDocument` actual, sin serializar. |
-| `loadDesign` | `(doc: EmailDocument): void` | Reemplaza el documento actual por `doc` — resetea el historial de undo/redo. |
-| `exportImage` | `(): Promise<string>` | PNG del diseño, como data URL. **Limitación:** imágenes de otro origen (CORS) pueden impedir la captura. |
+| `exportHtml` | `(): string` | Full email HTML, ready for your sending provider. |
+| `exportJson` | `(): string` | The current `EmailDocument`, serialized to JSON. |
+| `getDesign` | `(): EmailDocument` | The current `EmailDocument`, unserialized. |
+| `loadDesign` | `(doc: EmailDocument): void` | Replaces the current document with `doc` — resets the undo/redo history. |
+| `exportImage` | `(): Promise<string>` | PNG of the design, as a data URL. **Limitation:** cross-origin images (CORS) can prevent the capture. |
 
-## Versiones
+## Versions
 
-Desde el menú **Exportar → Versiones…** el usuario puede guardar, cargar y borrar versiones nombradas del diseño — en memoria durante la sesión, no persistidas por la librería (guardalas vos si las necesitás entre sesiones).
+From the **Export → Versions…** menu, the user can save, load, and delete named versions of the design — in memory for the session, not persisted by the library (save them yourself if you need them across sessions).

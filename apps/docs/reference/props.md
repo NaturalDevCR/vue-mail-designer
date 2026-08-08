@@ -1,22 +1,22 @@
 # Props
 
-Todas opcionales.
+All optional.
 
-| Prop | Tipo | Descripción |
+| Prop | Type | Description |
 |------|------|-------------|
-| `design` | `EmailDocument` | Diseño del documento (`v-model:design`). Sin ella, el editor arranca en blanco. |
-| `mergeTags` | `MergeTagItem[]` | Variables insertables en texto: `{ name, value }`, o grupos `{ name, tags: MergeTagDef[] }` (se muestran como optgroups). |
-| `templates` | `EmailTemplate[]` | Plantillas extra, además de las incluidas por defecto. |
-| `uploadImage` | `(file: File) => Promise<string>` | Handler de subida; devuelve la URL final. Sin esta prop, el bloque Imagen no puede subir archivos nuevos. |
-| `imageSearch` | `(query: string) => Promise<ImageResult[]>` | Handler de búsqueda para la pestaña Imágenes; por defecto usa `openverseSearch` (Openverse, CC0/CC-BY). |
-| `mediaLibrary` | `MediaLibraryOptions` | Habilita la pestaña "Galería": `{ list: (cursor?) => Promise<{ items: MediaItem[], nextCursor? }>, upload: (file) => Promise<MediaItem>, delete: (id) => Promise<void>, rename: (id, name) => Promise<MediaItem> }`. Sin esta prop, la pestaña no aparece. Vos implementás cada función contra tu propio storage — la librería no asume ningún backend. |
-| `unlayerFetch` | `(slug: string) => Promise<unknown>` | Handler para cargar una plantilla de Unlayer por URL/slug; devuelve el JSON de diseño. Por defecto pega a la API pública de Unlayer (falla por CORS sin un proxy propio). |
-| `theme` | `'light' \| 'dark'` | Tema de la UI del builder (no afecta el canvas del email). |
-| `locale` | `'es' \| 'en' \| LocaleDict` | Idioma de la UI. Un objeto es un diccionario que se fusiona sobre el español — traducís solo las claves que quieras. |
-| `appearance` | `Appearance` | Colores del builder: `accent`, `panel`, `border`, `background`, `foreground`, `muted`. Cada campo presente sobreescribe su variable CSS `--vmd-*`. |
-| `tools` | `Partial<Record<BlockType, ToolConfig>>` | Config por bloque de la paleta: `{ enabled?, position?, usageLimit? }` para ocultar, reordenar o limitar instancias de un tipo de bloque. |
-| `fonts` | `FontDef[]` | Lista de fuentes disponibles (`{ label, value, url? }`); las que traen `url` (Google Fonts) se cargan tanto en el canvas como en el HTML exportado. Por defecto, una lista curada. |
-| `specialLinks` | `SpecialLink[]` | Enlaces predefinidos insertables desde el editor de texto (`{ name, href }`) — por ejemplo, un link de cancelar suscripción resuelto por tu plataforma de envío. |
-| `customBlocks` | `CustomBlockDef[]` | Bloques propios del integrador — ver [Bloques personalizados](/guide/custom-blocks). |
+| `design` | `EmailDocument` | The document's design (`v-model:design`). Without it, the editor starts blank. |
+| `mergeTags` | `MergeTagItem[]` | Variables insertable in text: `{ name, value }`, or groups `{ name, tags: MergeTagDef[] }` (shown as optgroups). |
+| `templates` | `EmailTemplate[]` | Extra templates, in addition to the built-in defaults. |
+| `uploadImage` | `(file: File) => Promise<string>` | Upload handler; returns the final URL. Without this prop, the Image block can't upload new files. |
+| `imageSearch` | `(query: string) => Promise<ImageResult[]>` | Search handler for the Images tab; defaults to `openverseSearch` (Openverse, CC0/CC-BY). |
+| `mediaLibrary` | `MediaLibraryOptions` | Enables the "Gallery" tab: `{ list: (cursor?) => Promise<{ items: MediaItem[], nextCursor? }>, upload: (file) => Promise<MediaItem>, delete: (id) => Promise<void>, rename: (id, name) => Promise<MediaItem> }`. Without this prop, the tab doesn't appear. You implement each function against your own storage — the library assumes no particular backend. |
+| `unlayerFetch` | `(slug: string) => Promise<unknown>` | Handler to load an Unlayer template by URL/slug; returns the design JSON. Defaults to hitting Unlayer's public API (fails via CORS without your own proxy). |
+| `theme` | `'light' \| 'dark'` | Builder UI theme (doesn't affect the email canvas). |
+| `locale` | `'es' \| 'en' \| LocaleDict` | UI language. An object is a dictionary merged on top of Spanish — translate only the keys you want. |
+| `appearance` | `Appearance` | Builder colors: `accent`, `panel`, `border`, `background`, `foreground`, `muted`. Each present field overrides its `--vmd-*` CSS variable. |
+| `tools` | `Partial<Record<BlockType, ToolConfig>>` | Per-block palette config: `{ enabled?, position?, usageLimit? }` to hide, reorder, or limit instances of a block type. |
+| `fonts` | `FontDef[]` | List of available fonts (`{ label, value, url? }`); the ones with `url` (Google Fonts) are loaded both in the canvas and in the exported HTML. Defaults to a curated list. |
+| `specialLinks` | `SpecialLink[]` | Predefined links insertable from the text editor (`{ name, href }`) — for example, an unsubscribe link resolved by your sending platform. |
+| `customBlocks` | `CustomBlockDef[]` | Integrator-defined custom blocks — see [Custom blocks](/guide/custom-blocks). |
 
-Ver también [Eventos](/reference/events) y [Métodos](/reference/methods).
+See also [Events](/reference/events) and [Methods](/reference/methods).

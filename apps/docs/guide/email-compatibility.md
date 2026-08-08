@@ -1,27 +1,27 @@
-# Compatibilidad de email
+# Email compatibility
 
-El HTML exportado está pensado para clientes de correo, no para navegadores: usa tablas con estilos inline, evita `flex`/`grid`/`position`, y agrega ghost tables condicionales para Outlook (motor Word).
+The exported HTML is built for email clients, not browsers: it uses tables with inline styles, avoids `flex`/`grid`/`position`, and adds conditional ghost tables for Outlook (Word engine).
 
-## Técnicas usadas
+## Techniques used
 
-- **Tablas de presentación** (`role="presentation"`) para todo el layout — columnas, padding, alineación.
-- **Ghost tables MSO** (`<!--[if mso]>...<![endif]-->`) para que Outlook de escritorio calcule anchos en píxeles donde el resto de los clientes usan `%`/`max-width`.
-- **Media query** única para apilar columnas en mobile (`@media (max-width: 480px)`) y para las clases de ocultar por dispositivo.
-- **VML** (`<v:roundrect>`) en botones de ancho fijo, para lograr esquinas redondeadas también en Outlook de escritorio — la única forma de conseguirlo ahí.
-- **`font-size:0;line-height:0`** en divisores y separadores, para evitar el hueco en blanco que deja `display:inline-block` en el layout de línea.
+- **Presentation tables** (`role="presentation"`) for all layout — columns, padding, alignment.
+- **MSO ghost tables** (`<!--[if mso]>...<![endif]-->`) so Outlook desktop computes pixel widths where other clients use `%`/`max-width`.
+- **A single media query** to stack columns on mobile (`@media (max-width: 480px)`) and for the per-device hide classes.
+- **VML** (`<v:roundrect>`) on fixed-width buttons, to get rounded corners in Outlook desktop too — the only way to achieve that there.
+- **`font-size:0;line-height:0`** on dividers and separators, to avoid the whitespace gap that `display:inline-block` leaves in inline layout.
 
-## Limitaciones conocidas
+## Known limitations
 
-- No importa HTML existente — solo JSON (propio o de Unlayer).
-- Fondos de fila: soporte parcial en Outlook de escritorio (sin VML full-bleed todavía).
-- Los merge tags se emiten como `{{value}}` — el motor de tu plataforma de envío los reemplaza; la librería no interpola nada.
-- No se pueden reordenar columnas dentro de una fila (sí se pueden reordenar filas y bloques).
-- `theme` acepta solo `'light' | 'dark'` (sin `'auto'`).
-- Borde/radio de columna: soportados en el modelo y el HTML exportado, pero sin control dedicado en el inspector todavía.
-- El `borderRadius` del bloque Imagen usa CSS `border-radius` — se ve bien en el builder y en la mayoría de los clientes, pero Outlook de escritorio (motor Word) lo ignora.
-- El timer no anima sin un servicio de imagen dinámica del integrador — sin él, muestra una caja estática con los días restantes.
+- Doesn't import existing HTML — JSON only (your own, or Unlayer's).
+- Row backgrounds: partial support in Outlook desktop (no full-bleed VML yet).
+- Merge tags are emitted as `{{value}}` — your sending platform's engine replaces them; the library interpolates nothing.
+- Columns can't be reordered within a row (rows and blocks can be reordered).
+- `theme` only accepts `'light' | 'dark'` (no `'auto'`).
+- Column border/radius: supported in the model and the exported HTML, but no dedicated inspector control yet.
+- The Image block's `borderRadius` uses CSS `border-radius` — looks right in the builder and in most clients, but Outlook desktop (Word engine) ignores it.
+- The timer doesn't animate without an integrator-provided dynamic image service — without one, it shows a static box with the days remaining.
 
-## Ver también
+## See also
 
-- [Fondos](/guide/backgrounds) — imagen/color de fondo por fila y columna.
-- [Importar de Unlayer](/guide/unlayer-import) — qué se advierte al convertir una plantilla.
+- [Backgrounds](/guide/backgrounds) — background image/color per row and column.
+- [Importing from Unlayer](/guide/unlayer-import) — what gets warned about when converting a template.

@@ -1,18 +1,18 @@
-# Bloques personalizados
+# Custom blocks
 
-Además de los bloques built-in, podés registrar bloques propios que aparecen en la paleta con un inspector genérico (generado a partir de `fields`) y tu propio render en el HTML exportado.
+Besides the built-in blocks, you can register your own blocks that appear in the palette with a generic inspector (generated from `fields`) and your own render in the exported HTML.
 
 ```ts
 import type { CustomBlockDef } from '@naturaldevcr/vue-mail-designer'
 
 const promoBlock: CustomBlockDef = {
   type: 'promo-banner',
-  label: 'Banner de promo',
-  icon: '🏷️', // opcional
-  defaultData: { text: 'Oferta especial', color: '#dc2626' },
+  label: 'Promo banner',
+  icon: '🏷️', // optional
+  defaultData: { text: 'Special offer', color: '#dc2626' },
   fields: [
-    { key: 'text', label: 'Texto', type: 'text' },
-    { key: 'color', label: 'Color de fondo', type: 'color' },
+    { key: 'text', label: 'Text', type: 'text' },
+    { key: 'color', label: 'Background color', type: 'color' },
   ],
   render: (data) => `<div style="background:${data.color};padding:16px;text-align:center;">${data.text}</div>`,
 }
@@ -24,21 +24,21 @@ const promoBlock: CustomBlockDef = {
 
 ## `CustomField`
 
-Cada entrada de `fields` es un control simple en el inspector, ligado a una clave de `data`:
+Each entry in `fields` is a simple control in the inspector, tied to a `data` key:
 
 | `type` | Control |
 |---|---|
-| `text` | input de texto |
-| `number` | input numérico |
-| `color` | selector de color |
+| `text` | text input |
+| `number` | numeric input |
+| `color` | color picker |
 | `textarea` | textarea |
 
 ## `render(data)`
 
-Recibe el `data` actual del bloque (arranca en `defaultData`, se actualiza con lo que el usuario edite en los `fields`) y devuelve el HTML crudo que va al export.
+Receives the block's current `data` (starts at `defaultData`, updated as the user edits the `fields`) and returns the raw HTML that goes into the export.
 
-::: warning Seguridad
-`render(data)` genera HTML crudo tal cual. Si ese `data` puede venir de un JSON importado desde fuera de tu control, escapá los valores antes de interpolarlos — la librería exporta `escapeHtml` para eso:
+::: warning Security
+`render(data)` generates raw HTML as-is. If that `data` can come from a JSON imported from outside your control, escape the values before interpolating them — the library exports `escapeHtml` for that:
 
 ```ts
 import { escapeHtml } from '@naturaldevcr/vue-mail-designer'

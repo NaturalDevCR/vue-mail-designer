@@ -1,30 +1,30 @@
-# Importar de Unlayer
+# Importing from Unlayer
 
-Desde el menú **Exportar → Importar de Unlayer…** podés pegar el JSON de diseño de una plantilla de Unlayer, o la URL de una plantilla de su studio (ej. `https://studio.unlayer.com/create/black-friday-laptop-deals`). El diseño se convierte a nuestro formato (`EmailDocument`) y se muestra una lista de advertencias con lo que no se pudo mapear.
+From the **Export → Import from Unlayer…** menu you can paste an Unlayer design JSON, or the URL of a template from their studio (e.g. `https://studio.unlayer.com/create/black-friday-laptop-deals`). The design is converted to our format (`EmailDocument`) and a list of warnings is shown for anything that couldn't be mapped.
 
-## Qué se advierte, no se importa
+## What gets warned about, not imported
 
-- Estilos responsive específicos de Unlayer (`_override.mobile`) — hoy el importador no genera reglas mobile-only equivalentes.
-- Condiciones de visualización (`displayCondition`).
-- Fuentes de Google referenciadas — hay que cargarlas vos en tu plataforma.
-- Imágenes servidas desde el CDN de Unlayer — les pertenecen a ellos; conviene reemplazarlas por tus propios assets. El conversor lo advierte automáticamente.
+- Unlayer-specific responsive styles (`_override.mobile`) — the importer doesn't yet generate equivalent mobile-only rules.
+- Display conditions (`displayCondition`).
+- Referenced Google Fonts — you need to load them yourself in your platform.
+- Images served from Unlayer's CDN — they belong to Unlayer; you should replace them with your own assets. The converter warns about this automatically.
 
-## Uso programático
+## Programmatic usage
 
 ```ts
 import { unlayerToDocument, unlayerSlugFromUrl } from '@naturaldevcr/vue-mail-designer'
 
 const { document, warnings } = unlayerToDocument(unlayerJson)
-// document: EmailDocument listo para cargar con loadDesign()/v-model:design
-// warnings: string[] con lo que no se pudo mapear
+// document: EmailDocument, ready to load with loadDesign()/v-model:design
+// warnings: string[] of anything that couldn't be mapped
 
 const slug = unlayerSlugFromUrl('https://studio.unlayer.com/create/black-friday-laptop-deals')
 // 'black-friday-laptop-deals'
 ```
 
-## Importar por URL desde el navegador
+## Importing by URL from the browser
 
-El navegador no puede pegarle directo a la API de Unlayer por CORS. Pasá un `unlayerFetch` propio que resuelva contra tu backend/proxy:
+The browser can't hit Unlayer's API directly due to CORS. Pass your own `unlayerFetch` that resolves against your backend/proxy:
 
 ```ts
 async function unlayerFetch(slug: string): Promise<unknown> {
@@ -37,13 +37,13 @@ async function unlayerFetch(slug: string): Promise<unknown> {
 <EmailBuilder ... :unlayer-fetch="unlayerFetch" />
 ```
 
-La app de demo de este repo usa un proxy de Vite en `/unlayer-api` como referencia.
+This repo's demo app uses a Vite proxy at `/unlayer-api` as a reference.
 
-## Fidelidad conocida
+## Known fidelity notes
 
-El importador se verificó campo a campo contra plantillas reales del studio de Unlayer (no solo contra la forma documentada del JSON). Algunos ejemplos de mapeos no obvios que ya cubre:
+The importer was verified field-by-field against real templates from Unlayer's studio (not just the documented shape of the JSON). A few examples of non-obvious mappings it already covers:
 
-- El ancho de imagen vive en `src.maxWidth`/`src.autoWidth`, no en `values.width` (que las plantillas stock traen en `null`).
-- El padding del menú separa `containerPadding` (bloque) de `padding` (cada ítem, individualmente).
-- `backgroundColor: ""` significa "sin color asignado", no un color real — un chequeo ingenuo lo interpretaba como string válida y pisaba el `transparent` de fábrica.
-- `backgroundImage.size` en la práctica es el peso del archivo en bytes, no una palabra clave CSS — cae a `auto` (tamaño natural), como hace el propio export de Unlayer.
+- Image width lives in `src.maxWidth`/`src.autoWidth`, not in `values.width` (which stock templates ship as `null`).
+- Menu padding separates `containerPadding` (block) from `padding` (each item, individually).
+- `backgroundColor: ""` means "no color assigned", not a real color — a naive check would interpret it as a valid string and overwrite the factory `transparent`.
+- `backgroundImage.size` is, in practice, the file's byte size, not a CSS keyword — it falls back to `auto` (natural size), same as Unlayer's own export.

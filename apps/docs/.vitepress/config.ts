@@ -2,8 +2,8 @@ import { defineConfig } from 'vitepress'
 
 export default defineConfig({
   title: 'Vue Mail Designer',
-  description: 'Email builder visual drag & drop para Vue 3, con export HTML compatible con clientes de correo.',
-  lang: 'es',
+  description: 'Visual drag & drop email builder for Vue 3, with email-client-compatible HTML export.',
+  lang: 'en',
   base: '/vue-mail-designer/',
   cleanUrls: true,
 
@@ -12,34 +12,34 @@ export default defineConfig({
   themeConfig: {
     logo: '/favicon.svg',
     nav: [
-      { text: 'Guía', link: '/guide/introduction' },
-      { text: 'Referencia', link: '/reference/props' },
+      { text: 'Guide', link: '/guide/introduction' },
+      { text: 'Reference', link: '/reference/props' },
       { text: 'GitHub', link: 'https://github.com/NaturalDevCR/vue-mail-designer' },
       { text: 'npm', link: 'https://www.npmjs.com/package/@naturaldevcr/vue-mail-designer' },
     ],
 
     sidebar: [
       {
-        text: 'Guía',
+        text: 'Guide',
         items: [
-          { text: 'Introducción', link: '/guide/introduction' },
-          { text: 'Instalación', link: '/guide/installation' },
-          { text: 'Inicio rápido', link: '/guide/quickstart' },
-          { text: 'Bloques', link: '/guide/blocks' },
-          { text: 'Fondos', link: '/guide/backgrounds' },
-          { text: 'Editor de texto', link: '/guide/rich-text' },
-          { text: 'Bloques personalizados', link: '/guide/custom-blocks' },
-          { text: 'Importar de Unlayer', link: '/guide/unlayer-import' },
-          { text: 'Compatibilidad de email', link: '/guide/email-compatibility' },
-          { text: 'Limitaciones', link: '/guide/limitations' },
+          { text: 'Introduction', link: '/guide/introduction' },
+          { text: 'Installation', link: '/guide/installation' },
+          { text: 'Quickstart', link: '/guide/quickstart' },
+          { text: 'Blocks', link: '/guide/blocks' },
+          { text: 'Backgrounds', link: '/guide/backgrounds' },
+          { text: 'Rich text editor', link: '/guide/rich-text' },
+          { text: 'Custom blocks', link: '/guide/custom-blocks' },
+          { text: 'Importing from Unlayer', link: '/guide/unlayer-import' },
+          { text: 'Email compatibility', link: '/guide/email-compatibility' },
+          { text: 'Limitations', link: '/guide/limitations' },
         ],
       },
       {
-        text: 'Referencia',
+        text: 'Reference',
         items: [
           { text: 'Props', link: '/reference/props' },
-          { text: 'Eventos', link: '/reference/events' },
-          { text: 'Métodos (ref)', link: '/reference/methods' },
+          { text: 'Events', link: '/reference/events' },
+          { text: 'Methods (ref)', link: '/reference/methods' },
         ],
       },
     ],
@@ -50,7 +50,7 @@ export default defineConfig({
     ],
 
     footer: {
-      message: 'Publicado bajo licencia MIT.',
+      message: 'Released under the MIT License.',
       copyright: 'Copyright © 2026 Josue',
     },
 
