@@ -23,3 +23,7 @@ Two outputs, both under your control:
 - [Installation](/guide/installation)
 - [Quickstart](/guide/quickstart)
 - [Props reference](/reference/props)
+
+::: tip Using an AI coding assistant?
+Point it at [llms-full.txt](/llms-full.txt) for the complete documentation in a single file, or [llms.txt](/llms.txt) for a linked index — [llmstxt.org](https://llmstxt.org) convention.
+:::
