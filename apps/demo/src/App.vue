@@ -13,7 +13,7 @@
 </template>
 
 <script setup lang="ts">
-import { EmailBuilder, escapeHtml, type CustomBlockDef, type EmailDocument, type MergeTagItem, type SpecialLink } from '@vue-mail-designer/builder'
+import { EmailBuilder, escapeHtml, type CustomBlockDef, type EmailDocument, type MergeTagItem, type SpecialLink } from 'vue-mailcraft'
 import { ref, watch } from 'vue'
 import { createDemoMediaLibrary } from './mediaLibrary'
 

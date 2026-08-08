@@ -10,15 +10,15 @@ importers:
 
   apps/demo:
     dependencies:
-      '@vue-mail-designer/builder':
-        specifier: workspace:*
-        version: link:../../packages/email-builder
       pinia:
         specifier: ^3.0.0
         version: 3.0.4(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3))
       vue:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)
+      vue-mailcraft:
+        specifier: workspace:*
+        version: link:../..
     devDependencies:
       '@vitejs/plugin-vue':
         specifier: ^6.0.0

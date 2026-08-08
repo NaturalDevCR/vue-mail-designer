@@ -10,7 +10,7 @@
     "jsx": "preserve",
     "types": ["vite/client"],
     "paths": {
-      "@vue-mail-designer/builder": ["../../packages/email-builder/src/index.ts"]
+      "vue-mailcraft": ["../../packages/email-builder/src/index.ts"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.vue"]

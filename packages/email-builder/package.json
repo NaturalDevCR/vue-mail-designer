@@ -1,7 +1,8 @@
 {
-  "name": "@vue-mail-designer/builder",
+  "name": "vue-mailcraft",
   "version": "0.1.0",
   "description": "Email builder visual drag & drop para Vue 3",
+  "license": "MIT",
   "type": "module",
   "files": [
     "dist"
@@ -14,7 +15,7 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./style.css": "./dist/vue-mail-designer.css"
+    "./style.css": "./dist/vue-mailcraft.css"
   },
   "scripts": {
     "build": "vite build",

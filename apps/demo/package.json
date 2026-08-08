@@ -9,7 +9,7 @@
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "@vue-mail-designer/builder": "workspace:*",
+    "vue-mailcraft": "workspace:*",
     "pinia": "^3.0.0",
     "vue": "^3.5.0"
   },

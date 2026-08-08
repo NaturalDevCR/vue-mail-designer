@@ -1,12 +1,13 @@
 {
-  "name": "vue-mail-designer",
+  "name": "vue-mailcraft",
   "version": "2.0.0",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "pnpm --filter demo dev",
-    "build": "pnpm --filter @vue-mail-designer/builder build && pnpm --filter demo build",
-    "test": "pnpm --filter @vue-mail-designer/builder test",
+    "build": "pnpm --filter vue-mailcraft build && pnpm --filter demo build",
+    "test": "pnpm --filter vue-mailcraft test",
     "typecheck": "pnpm -r typecheck",
     "check": "pnpm typecheck && pnpm test"
   },
