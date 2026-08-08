@@ -21,12 +21,6 @@
     "docs:dev": "pnpm --filter docs dev",
     "docs:build": "pnpm --filter docs build"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "vue-demi"
-    ]
-  },
   "engines": {
     "node": ">=20"
   }
