@@ -45,6 +45,14 @@ describe('renderHtml — frame y layout', () => {
     expect(html).toContain('#ff0000')
   })
 
+  it('text respeta align, igual que heading', () => {
+    const { doc, row } = docWith([100], [['text']])
+    const t = row.columns[0].blocks[0] as TextBlock
+    t.style.align = 'center'
+    const html = renderHtml(doc)
+    expect(html).toContain('text-align:center')
+  })
+
   it('text conserva HTML de tiptap y convierte merge tags', () => {
     const { doc, row } = docWith([100], [['text']])
     const t = row.columns[0].blocks[0] as TextBlock

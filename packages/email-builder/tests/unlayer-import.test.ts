@@ -347,3 +347,37 @@ describe('paridad con plantillas reales — colores "vacíos" de Unlayer no son 
     expect(document.rows[0].style.backgroundColor).toBe('#111827')
   })
 })
+
+describe('paridad con plantillas reales — align de texto', () => {
+  it('mapea values.textAlign del bloque text a style.align', () => {
+    const doc = unlayerToDocument({
+      body: {
+        values: { contentWidth: '600px' },
+        rows: [
+          {
+            cells: [1],
+            values: {},
+            columns: [{ values: {}, contents: [{ type: 'text', values: { text: '<p>x</p>', textAlign: 'center' } }] }],
+          },
+        ],
+      },
+    }).document
+    const b = doc.rows[0].columns[0].blocks[0]
+    if (b.type !== 'text') throw new Error()
+    expect(b.style.align).toBe('center')
+  })
+
+  it('sin textAlign, un bloque text importado queda alineado a la izquierda', () => {
+    const doc = unlayerToDocument({
+      body: {
+        values: { contentWidth: '600px' },
+        rows: [
+          { cells: [1], values: {}, columns: [{ values: {}, contents: [{ type: 'text', values: { text: '<p>x</p>' } }] }] },
+        ],
+      },
+    }).document
+    const b = doc.rows[0].columns[0].blocks[0]
+    if (b.type !== 'text') throw new Error()
+    expect(b.style.align).toBe('left')
+  })
+})

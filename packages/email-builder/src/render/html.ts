@@ -96,7 +96,7 @@ function renderBlockInner(block: Block, ctx: RenderCtx): string {
       const linkColor = block.linkColor ?? ctx.linkColor
       const linkUnderline = block.linkUnderline ?? ctx.linkUnderline
       return cellTable(
-        `<tr><td style="padding:${paddingCss(s.padding)};font-family:${fam};font-size:${s.fontSize}px;line-height:${s.lineHeight};${ls}color:${s.color};">${styleLinks(convertMergeTags(block.html), linkColor, linkUnderline)}</td></tr>`,
+        `<tr><td style="padding:${paddingCss(s.padding)};font-family:${fam};font-size:${s.fontSize}px;line-height:${s.lineHeight};${ls}color:${s.color};text-align:${s.align};">${styleLinks(convertMergeTags(block.html), linkColor, linkUnderline)}</td></tr>`,
       )
     }
     case 'image': {

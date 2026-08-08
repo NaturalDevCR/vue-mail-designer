@@ -69,7 +69,7 @@ export function createBlock(type: BlockType): Block {
     case 'text':
       return {
         id, type, html: '<p>Escribe aquí tu texto.</p>',
-        style: { color: '#374151', fontSize: 14, lineHeight: 1.6, letterSpacing: 0, padding: pad(8, 24, 8, 24) },
+        style: { color: '#374151', fontSize: 14, align: 'left', lineHeight: 1.6, letterSpacing: 0, padding: pad(8, 24, 8, 24) },
       }
     case 'image':
       return {

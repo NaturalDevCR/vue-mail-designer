@@ -329,6 +329,7 @@ function toBlock(content: Record<string, unknown>, warnings: Set<string>): Block
       b.style = {
         color: readColor(values.color, b.style.color),
         fontSize: parsePx(values.fontSize as string | number | undefined, b.style.fontSize),
+        align: toAlign(values.textAlign, b.style.align),
         lineHeight: parsePercent(values.lineHeight, b.style.lineHeight),
         letterSpacing: parsePx(values.letterSpacing as string | number | undefined, b.style.letterSpacing),
         padding: parseShorthandPadding(values.containerPadding as string | undefined),

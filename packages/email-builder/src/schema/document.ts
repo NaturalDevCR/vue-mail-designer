@@ -59,6 +59,7 @@ export const zTextBlock = z.object({
   style: z.object({
     color: z.string(),
     fontSize: z.number(),
+    align: zAlign.default('left'),
     lineHeight: z.number(),
     letterSpacing: z.number().default(0),
     padding: zPadding,

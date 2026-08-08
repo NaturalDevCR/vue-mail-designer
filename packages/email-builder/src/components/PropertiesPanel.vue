@@ -34,6 +34,7 @@
         </div>
         <SelectField label="Fuente" :model-value="block.fontFamily ?? ''" :options="FONT_OPTIONS" @update:model-value="updFont" />
         <ColorField label="Color" :model-value="block.style.color" @update:model-value="upd({ style: { color: $event } })" />
+        <AlignField label="Alineación" :model-value="block.style.align" @update:model-value="upd({ style: { align: $event } })" />
         <NumberField label="Tamaño" :model-value="block.style.fontSize" :min="10" :max="40" @update:model-value="upd({ style: { fontSize: $event } })" />
         <NumberField label="Interlineado" :model-value="block.style.lineHeight" :min="1" :max="3" :step="0.1" @update:model-value="upd({ style: { lineHeight: $event } })" />
         <NumberField label="Espaciado entre letras" :model-value="block.style.letterSpacing" :min="-2" :max="10" :step="0.5" @update:model-value="upd({ style: { letterSpacing: $event } })" />
