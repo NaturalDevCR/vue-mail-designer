@@ -3,7 +3,7 @@
 Además de los bloques built-in, podés registrar bloques propios que aparecen en la paleta con un inspector genérico (generado a partir de `fields`) y tu propio render en el HTML exportado.
 
 ```ts
-import type { CustomBlockDef } from '@vue-mail-designer/builder'
+import type { CustomBlockDef } from '@naturaldevcr/vue-mail-designer'
 
 const promoBlock: CustomBlockDef = {
   type: 'promo-banner',
@@ -41,7 +41,7 @@ Recibe el `data` actual del bloque (arranca en `defaultData`, se actualiza con l
 `render(data)` genera HTML crudo tal cual. Si ese `data` puede venir de un JSON importado desde fuera de tu control, escapá los valores antes de interpolarlos — la librería exporta `escapeHtml` para eso:
 
 ```ts
-import { escapeHtml } from '@vue-mail-designer/builder'
+import { escapeHtml } from '@naturaldevcr/vue-mail-designer'
 
 render: (data) => `<div>${escapeHtml(String(data.text))}</div>`
 ```

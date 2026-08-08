@@ -15,7 +15,7 @@ export default defineConfig({
       { text: 'Guía', link: '/guide/introduction' },
       { text: 'Referencia', link: '/reference/props' },
       { text: 'GitHub', link: 'https://github.com/NaturalDevCR/vue-mail-designer' },
-      { text: 'npm', link: 'https://www.npmjs.com/package/@vue-mail-designer/builder' },
+      { text: 'npm', link: 'https://www.npmjs.com/package/@naturaldevcr/vue-mail-designer' },
     ],
 
     sidebar: [
@@ -46,7 +46,7 @@ export default defineConfig({
 
     socialLinks: [
       { icon: 'github', link: 'https://github.com/NaturalDevCR/vue-mail-designer' },
-      { icon: 'npm', link: 'https://www.npmjs.com/package/@vue-mail-designer/builder' },
+      { icon: 'npm', link: 'https://www.npmjs.com/package/@naturaldevcr/vue-mail-designer' },
     ],
 
     footer: {

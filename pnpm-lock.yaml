@@ -10,7 +10,7 @@ importers:
 
   apps/demo:
     dependencies:
-      '@vue-mail-designer/builder':
+      '@naturaldevcr/vue-mail-designer':
         specifier: workspace:*
         version: link:../../packages/email-builder
       pinia:

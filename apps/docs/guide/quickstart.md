@@ -13,8 +13,8 @@ Un componente mínimo con subida de imágenes y export de HTML:
 </template>
 
 <script setup lang="ts">
-import { EmailBuilder, type EmailDocument, type MergeTagDef } from '@vue-mail-designer/builder'
-import '@vue-mail-designer/builder/style.css'
+import { EmailBuilder, type EmailDocument, type MergeTagDef } from '@naturaldevcr/vue-mail-designer'
+import '@naturaldevcr/vue-mail-designer/style.css'
 import { ref } from 'vue'
 
 const design = ref<EmailDocument>()

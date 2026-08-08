@@ -10,7 +10,7 @@
     "jsx": "preserve",
     "types": ["vite/client"],
     "paths": {
-      "@vue-mail-designer/builder": ["../../packages/email-builder/src/index.ts"]
+      "@naturaldevcr/vue-mail-designer": ["../../packages/email-builder/src/index.ts"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.vue"]

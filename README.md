@@ -1,6 +1,6 @@
 # Vue Mail Designer
 
-[![npm](https://img.shields.io/npm/v/@vue-mail-designer/builder)](https://www.npmjs.com/package/@vue-mail-designer/builder)
+[![npm](https://img.shields.io/npm/v/@naturaldevcr/vue-mail-designer)](https://www.npmjs.com/package/@naturaldevcr/vue-mail-designer)
 [![CI](https://github.com/NaturalDevCR/vue-mail-designer/actions/workflows/ci.yml/badge.svg)](https://github.com/NaturalDevCR/vue-mail-designer/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
@@ -11,7 +11,7 @@ Email builder visual drag & drop para Vue 3, estilo Unlayer. Arrastrá bloques a
 ## Instalación
 
 ```bash
-pnpm add @vue-mail-designer/builder vue pinia
+pnpm add @naturaldevcr/vue-mail-designer vue pinia
 ```
 
 ## Uso básico
@@ -22,8 +22,8 @@ pnpm add @vue-mail-designer/builder vue pinia
 </template>
 
 <script setup lang="ts">
-import { EmailBuilder, type EmailDocument } from '@vue-mail-designer/builder'
-import '@vue-mail-designer/builder/style.css'
+import { EmailBuilder, type EmailDocument } from '@naturaldevcr/vue-mail-designer'
+import '@naturaldevcr/vue-mail-designer/style.css'
 import { ref } from 'vue'
 
 const design = ref<EmailDocument>()
@@ -44,7 +44,7 @@ Ver la [guía de inicio rápido](https://naturaldevcr.github.io/vue-mail-designe
 
 Monorepo pnpm:
 
-- **[`packages/email-builder`](./packages/email-builder)** — la librería publicada (`@vue-mail-designer/builder`).
+- **[`packages/email-builder`](./packages/email-builder)** — la librería publicada (`@naturaldevcr/vue-mail-designer`).
 - **[`apps/demo`](./apps/demo)** — demo de consumo, editor de punta a punta.
 - **[`apps/docs`](./apps/docs)** — sitio de documentación ([VitePress](https://vitepress.dev)), desplegado a GitHub Pages.
 

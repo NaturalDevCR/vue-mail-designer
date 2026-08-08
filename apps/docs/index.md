@@ -14,7 +14,7 @@ hero:
       link: https://github.com/NaturalDevCR/vue-mail-designer
     - theme: alt
       text: npm
-      link: https://www.npmjs.com/package/@vue-mail-designer/builder
+      link: https://www.npmjs.com/package/@naturaldevcr/vue-mail-designer
 
 features:
   - title: Bloques ricos

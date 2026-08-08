@@ -14,8 +14,8 @@
   "packageManager": "pnpm@11.11.0",
   "scripts": {
     "dev": "pnpm --filter demo dev",
-    "build": "pnpm --filter @vue-mail-designer/builder build && pnpm --filter demo build",
-    "test": "pnpm --filter @vue-mail-designer/builder test",
+    "build": "pnpm --filter @naturaldevcr/vue-mail-designer build && pnpm --filter demo build",
+    "test": "pnpm --filter @naturaldevcr/vue-mail-designer test",
     "typecheck": "pnpm -r typecheck",
     "check": "pnpm typecheck && pnpm test",
     "docs:dev": "pnpm --filter docs dev",

@@ -11,15 +11,15 @@
 ::: code-group
 
 ```bash [pnpm]
-pnpm add @vue-mail-designer/builder vue pinia
+pnpm add @naturaldevcr/vue-mail-designer vue pinia
 ```
 
 ```bash [npm]
-npm install @vue-mail-designer/builder vue pinia
+npm install @naturaldevcr/vue-mail-designer vue pinia
 ```
 
 ```bash [yarn]
-yarn add @vue-mail-designer/builder vue pinia
+yarn add @naturaldevcr/vue-mail-designer vue pinia
 ```
 
 :::
@@ -31,7 +31,7 @@ yarn add @vue-mail-designer/builder vue pinia
 El componente trae su propio CSS, con variables `--vmd-*` para theming. Importalo una vez en tu app:
 
 ```ts
-import '@vue-mail-designer/builder/style.css'
+import '@naturaldevcr/vue-mail-designer/style.css'
 ```
 
 ## Siguiente paso

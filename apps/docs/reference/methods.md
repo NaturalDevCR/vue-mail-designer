@@ -10,7 +10,7 @@ Se acceden montando el componente con `ref`:
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { EmailBuilder as EmailBuilderInstance } from '@vue-mail-designer/builder'
+import type { EmailBuilder as EmailBuilderInstance } from '@naturaldevcr/vue-mail-designer'
 
 const builder = ref<InstanceType<typeof EmailBuilderInstance>>()
 

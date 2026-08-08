@@ -1,4 +1,4 @@
-# @vue-mail-designer/builder
+# @naturaldevcr/vue-mail-designer
 
 Email builder visual drag & drop para Vue 3, estilo Unlayer. Genera HTML compatible con clientes de correo y JSON de diseño reeditable.
 
@@ -7,7 +7,7 @@ Email builder visual drag & drop para Vue 3, estilo Unlayer. Genera HTML compati
 ## Instalación
 
 ```bash
-pnpm add @vue-mail-designer/builder vue pinia
+pnpm add @naturaldevcr/vue-mail-designer vue pinia
 ```
 
 ## Uso básico
@@ -24,8 +24,8 @@ pnpm add @vue-mail-designer/builder vue pinia
 </template>
 
 <script setup lang="ts">
-import { EmailBuilder, type EmailDocument, type MergeTagDef } from '@vue-mail-designer/builder'
-import '@vue-mail-designer/builder/style.css'
+import { EmailBuilder, type EmailDocument, type MergeTagDef } from '@naturaldevcr/vue-mail-designer'
+import '@naturaldevcr/vue-mail-designer/style.css'
 import { ref } from 'vue'
 
 const design = ref<EmailDocument>()

@@ -12,7 +12,7 @@ Desde el menú **Exportar → Importar de Unlayer…** podés pegar el JSON de d
 ## Uso programático
 
 ```ts
-import { unlayerToDocument, unlayerSlugFromUrl } from '@vue-mail-designer/builder'
+import { unlayerToDocument, unlayerSlugFromUrl } from '@naturaldevcr/vue-mail-designer'
 
 const { document, warnings } = unlayerToDocument(unlayerJson)
 // document: EmailDocument listo para cargar con loadDesign()/v-model:design
