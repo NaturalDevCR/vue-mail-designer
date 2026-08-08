@@ -4,9 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vitepress dev",
-    "build": "vitepress build",
-    "preview": "vitepress preview"
+    "dev": "node scripts/build-llms.mjs && vitepress dev",
+    "build": "node scripts/build-llms.mjs && vitepress build",
+    "preview": "vitepress preview",
+    "build:llms": "node scripts/build-llms.mjs"
   },
   "devDependencies": {
     "vitepress": "^1.6.4"

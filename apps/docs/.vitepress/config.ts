@@ -50,7 +50,7 @@ export default defineConfig({
     ],
 
     footer: {
-      message: 'Released under the MIT License.',
+      message: 'Released under the MIT License. <a href="/vue-mail-designer/llms.txt">llms.txt</a> for AI assistants.',
       copyright: 'Copyright © 2026 Josue',
     },
 

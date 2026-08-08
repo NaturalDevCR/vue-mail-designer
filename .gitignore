@@ -4,3 +4,5 @@ dist/
 *.local
 .superpowers/
 apps/docs/.vitepress/cache/
+apps/docs/public/llms.txt
+apps/docs/public/llms-full.txt
