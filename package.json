@@ -8,6 +8,7 @@
   "bugs": "https://github.com/NaturalDevCR/vue-mail-designer/issues",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@11.11.0",
   "scripts": {
     "dev": "pnpm --filter demo dev",
     "build": "pnpm --filter @vue-mail-designer/builder build && pnpm --filter demo build",
