@@ -29,6 +29,22 @@ describe('BlockView', () => {
     expect(wrapper.find('.vmd-b-button').attributes('style')).toContain('background')
   })
 
+  it('text respeta style.align en el lienzo, no solo en el HTML exportado', () => {
+    const block = createBlock('text')
+    if (block.type !== 'text') throw new Error()
+    block.style.align = 'center'
+    const { wrapper } = mountBlock(block)
+    expect(wrapper.find('.vmd-b-text').element.parentElement?.getAttribute('style')).toContain('text-align: center')
+  })
+
+  it('divider no deja un hueco en blanco arriba del borde (gap de inline-block sin font-size:0)', () => {
+    const block = createBlock('divider')
+    if (block.type !== 'divider') throw new Error()
+    const { wrapper } = mountBlock(block)
+    const wrap = wrapper.find('.vmd-block > div:not(.vmd-block-actions)')
+    expect(wrap.attributes('style')).toContain('font-size: 0')
+  })
+
   it('image sin src muestra placeholder', () => {
     const { wrapper } = mountBlock(createBlock('image'))
     expect(wrapper.find('.vmd-b-image-placeholder').exists()).toBe(true)

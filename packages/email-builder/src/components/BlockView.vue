@@ -33,6 +33,7 @@
       :style="{
         color: block.style.color,
         fontSize: block.style.fontSize + 'px',
+        textAlign: block.style.align,
         lineHeight: String(block.style.lineHeight),
         letterSpacing: block.style.letterSpacing + 'px',
         padding: padCss(block.style.padding),
@@ -81,7 +82,7 @@
     </div>
 
     <!-- divider -->
-    <div v-else-if="block.type === 'divider'" :style="{ padding: padCss(block.style.padding), textAlign: block.style.align }">
+    <div v-else-if="block.type === 'divider'" :style="{ padding: padCss(block.style.padding), textAlign: block.style.align, fontSize: '0' }">
       <div :style="{ width: block.style.widthPct + '%', display: 'inline-block', borderTop: block.style.thickness + 'px ' + block.style.lineStyle + ' ' + block.style.color }" />
     </div>
 
