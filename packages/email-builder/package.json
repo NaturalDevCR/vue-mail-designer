@@ -1,8 +1,23 @@
 {
   "name": "@vue-mail-designer/builder",
   "version": "0.1.0",
-  "description": "Email builder visual drag & drop para Vue 3",
+  "description": "Email builder visual drag & drop para Vue 3, estilo Unlayer. Exporta HTML compatible con clientes de correo y JSON de diseño reeditable.",
   "license": "MIT",
+  "author": "Josue <josue@symphonycr.com>",
+  "homepage": "https://naturaldevcr.github.io/vue-mail-designer/",
+  "repository": { "type": "git", "url": "https://github.com/NaturalDevCR/vue-mail-designer.git", "directory": "packages/email-builder" },
+  "bugs": "https://github.com/NaturalDevCR/vue-mail-designer/issues",
+  "keywords": [
+    "vue",
+    "vue3",
+    "email",
+    "email-builder",
+    "email-editor",
+    "drag-and-drop",
+    "html-email",
+    "newsletter",
+    "unlayer"
+  ],
   "type": "module",
   "files": [
     "dist"
