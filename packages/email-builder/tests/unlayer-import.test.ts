@@ -213,3 +213,91 @@ it('mapea la imagen de fondo del cuerpo y de la fila', () => {
   expect(document.settings.backgroundImage?.size).toBe('cover')
   expect(document.rows[0].style.backgroundImage?.url).toBe('https://cdn.templates.unlayer.com/assets/bg.png')
 })
+
+describe('paridad con plantillas reales de Unlayer', () => {
+  /** Envuelve un único bloque en la estructura mínima de un design de Unlayer. */
+  function designWith(content: Record<string, unknown>) {
+    return {
+      body: {
+        values: { contentWidth: '600px' },
+        rows: [{ cells: [1], values: {}, columns: [{ values: {}, contents: [content] }] }],
+      },
+    }
+  }
+
+  // Valores tomados textualmente de la plantilla stock `black-friday-laptop-deals`: Unlayer
+  // guarda el ancho de la imagen dentro de `src` (maxWidth + autoWidth), y deja `values.width`
+  // en null. Leer solo `values.width` deja la imagen en el 100% de fábrica.
+  it('toma el ancho de la imagen de src.maxWidth/src.autoWidth', () => {
+    const doc = unlayerToDocument(
+      designWith({
+        type: 'image',
+        values: {
+          src: {
+            url: 'https://cdn.templates.unlayer.com/assets/466%201.png',
+            width: 1172,
+            height: 955,
+            maxWidth: '67%',
+            autoWidth: false,
+          },
+          width: null,
+          altText: 'Open laptop, keyboard view.',
+          textAlign: 'center',
+          containerPadding: '0px',
+        },
+      }),
+    ).document
+    const b = doc.rows[0].columns[0].blocks[0]
+    if (b.type !== 'image') throw new Error()
+    expect(b.widthAuto).toBe(false)
+    expect(b.widthPct).toBe(67)
+  })
+
+  it('respeta autoWidth: true dentro de src', () => {
+    const doc = unlayerToDocument(
+      designWith({
+        type: 'image',
+        values: { src: { url: 'https://cdn.templates.unlayer.com/b.png', autoWidth: true }, textAlign: 'center' },
+      }),
+    ).document
+    const b = doc.rows[0].columns[0].blocks[0]
+    if (b.type !== 'image') throw new Error()
+    expect(b.widthAuto).toBe(true)
+  })
+
+  // En el menú, Unlayer usa `containerPadding` para el bloque y `padding` para CADA ítem: son
+  // los 23px por lado los que separan los ítems entre sí.
+  it('mapea values.padding del menú al padding por ítem', () => {
+    const doc = unlayerToDocument(
+      designWith({
+        type: 'menu',
+        values: {
+          menu: { items: [{ text: 'Home', link: { values: { href: 'https://a.com' } } }, { text: 'Page', link: { values: { href: 'https://b.com' } } }] },
+          align: 'center',
+          layout: 'horizontal',
+          padding: '10px 23px',
+          fontSize: '14px',
+          linkColor: '#ffffff',
+          separator: '|',
+          containerPadding: '0px',
+        },
+      }),
+    ).document
+    const b = doc.rows[0].columns[0].blocks[0]
+    if (b.type !== 'menu') throw new Error()
+    expect(b.style.itemPadding).toEqual({ top: 10, right: 23, bottom: 10, left: 23 })
+    expect(b.style.padding).toEqual({ top: 0, right: 0, bottom: 0, left: 0 })
+  })
+
+  it('conserva el padding por ítem de fábrica si el menú no trae padding', () => {
+    const doc = unlayerToDocument(
+      designWith({
+        type: 'menu',
+        values: { menu: { items: [{ text: 'Home', link: { values: { href: 'https://a.com' } } }] }, containerPadding: '0px' },
+      }),
+    ).document
+    const b = doc.rows[0].columns[0].blocks[0]
+    if (b.type !== 'menu') throw new Error()
+    expect(b.style.itemPadding).toEqual({ top: 5, right: 15, bottom: 5, left: 15 })
+  })
+})

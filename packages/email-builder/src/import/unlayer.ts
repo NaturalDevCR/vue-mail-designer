@@ -377,8 +377,17 @@ function toBlock(content: Record<string, unknown>, warnings: Set<string>): Block
       if (typeof actionVals?.href === 'string' && actionVals.href) b.href = actionVals.href
       if (actionVals?.target === '_self' || actionVals?.target === '_blank') b.target = actionVals.target
       b.align = toAlign(values.textAlign, 'center')
-      const autoWidth = (values.width as Record<string, unknown> | undefined)?.autoWidth
+      // El ancho vive dentro de `src` (`maxWidth` tipo "67%" + `autoWidth`), no en `values.width`
+      // —que las plantillas stock traen en null—. Se mantiene `values.width` como respaldo por si
+      // alguna exportación vieja lo usa. Mismo criterio que el `size.width` del botón.
+      const widthSrc = (values.width as Record<string, unknown> | undefined) ?? undefined
+      const autoWidth = src?.autoWidth ?? widthSrc?.autoWidth
       if (typeof autoWidth === 'boolean') b.widthAuto = autoWidth
+      const maxWidth = src?.maxWidth ?? widthSrc?.width
+      if (b.widthAuto === false && (typeof maxWidth === 'string' || typeof maxWidth === 'number')) {
+        const w = Math.round(parsePx(maxWidth, 0))
+        if (w >= 10 && w <= 100) b.widthPct = w
+      }
       b.style = { padding: parseShorthandPadding(values.containerPadding as string | undefined) }
       return b
     }
@@ -436,6 +445,13 @@ function toBlock(content: Record<string, unknown>, warnings: Set<string>): Block
       if (typeof menuColor === 'string') b.style.color = menuColor
       b.style.fontSize = parsePx(values.fontSize as string | number | undefined, b.style.fontSize)
       if (typeof values.separator === 'string' && values.separator) b.separator = values.separator
+      if (values.layout === 'vertical' || values.layout === 'horizontal') b.layout = values.layout
+      // En el menú, Unlayer separa el padding del bloque (`containerPadding`) del de CADA ítem
+      // (`padding`): son esos px por lado los que separan los ítems entre sí. Si no viene, se
+      // conserva el del bloque de fábrica en vez de dejarlo en cero.
+      if (typeof values.padding === 'string' && values.padding.trim()) {
+        b.style.itemPadding = parseShorthandPadding(values.padding)
+      }
       b.style.padding = parseShorthandPadding(values.containerPadding as string | undefined)
       return b
     }
