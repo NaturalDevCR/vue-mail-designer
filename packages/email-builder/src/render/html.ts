@@ -1,8 +1,17 @@
-import type { Block, EmailDocument, GalleryBlock, Padding, Row, SocialNetworkKind, TableBlock, TimerBlock } from '../schema'
+import type { Block, ButtonBlock, EmailDocument, GalleryBlock, Padding, Row, SocialNetworkKind, TableBlock, TimerBlock } from '../schema'
 import { DEFAULT_FONTS, usedFontUrls, type FontDef } from '../fonts'
 import type { CustomBlockDef } from '../options'
 
-export type RenderCtx = { fontFamily: string; linkColor: string; linkUnderline: boolean; customBlocks?: CustomBlockDef[] }
+export type RenderCtx = {
+  fontFamily: string
+  linkColor: string
+  linkUnderline: boolean
+  customBlocks?: CustomBlockDef[]
+  /** Ancho en px del área de contenido de la columna actual (ya sin el padding de la columna).
+   * Solo se conoce dentro de renderRow → renderColumnBlocks; sirve para calcular el ancho
+   * exacto en px que necesita el VML de Outlook en botones con ancho fijo. */
+  colContentWidthPx?: number
+}
 
 /**
  * Glifos sociales: paths oficiales de simple-icons (CC0-1.0, https://simpleicons.org),
@@ -121,23 +130,8 @@ function renderBlockInner(block: Block, ctx: RenderCtx): string {
         `</td></tr>`,
       )
     }
-    case 'button': {
-      const s = block.style
-      const border = s.border ? `border:${s.border.width}px ${s.border.style} ${s.border.color};` : ''
-      const ls = s.letterSpacing ? `letter-spacing:${s.letterSpacing}px;` : ''
-      // ancho fijo (%) → la tabla del botón ocupa ese % y el <a> se estira (display:block, centrado)
-      const hasWidth = typeof block.widthPct === 'number'
-      const btnTableWidth = hasWidth ? ` width="${block.widthPct}%"` : ''
-      const linkDisplay = hasWidth ? 'block' : 'inline-block'
-      const textAlign = hasWidth ? 'text-align:center;' : ''
-      return cellTable(
-        `<tr><td align="${block.align}" style="padding:${paddingCss(s.padding)};">` +
-        `<table role="presentation"${btnTableWidth} cellpadding="0" cellspacing="0" border="0"><tr>` +
-        `<td style="border-radius:${s.borderRadius}px;background-color:${s.backgroundColor};${border}${textAlign}">` +
-        `<a href="${escapeHtml(block.href)}" target="${block.target}" style="display:${linkDisplay};padding:${s.innerPaddingY}px ${s.innerPaddingX}px;font-family:${ctx.fontFamily};font-size:${s.fontSize}px;line-height:${s.lineHeight};${ls}font-weight:bold;color:${s.color};text-decoration:none;border-radius:${s.borderRadius}px;">${escapeHtml(block.label)}</a>` +
-        `</td></tr></table></td></tr>`,
-      )
-    }
+    case 'button':
+      return renderButton(block, ctx)
     case 'divider': {
       const s = block.style
       return cellTable(
@@ -224,6 +218,54 @@ function renderBlockInner(block: Block, ctx: RenderCtx): string {
       return cellTable(`<tr><td>${def.render(block.data)}</td></tr>`)
     }
   }
+}
+
+/**
+ * Botón con ancho fijo (`widthPct`) + `colContentWidthPx` conocido → "bulletproof button":
+ * VML `<v:roundrect>` para Outlook desktop (única forma de lograr esquinas redondeadas ahí,
+ * ver https://buttons.cm) oculto tras `<!--[if mso]>`, y el `<a>` normal oculto de Outlook
+ * tras `<!--[if !mso]><!-- -->...<!--<![endif]-->`. Sin esas dos condiciones (auto-width, o
+ * el bloque se renderiza fuera de una fila/columna) se usa el <a> normal para todos — Outlook
+ * ve esquina cuadrada, igual que cualquier otro builder cuando no conoce el ancho en px.
+ */
+function renderButton(block: ButtonBlock, ctx: RenderCtx): string {
+  const s = block.style
+  const border = s.border ? `border:${s.border.width}px ${s.border.style} ${s.border.color};` : ''
+  const ls = s.letterSpacing ? `letter-spacing:${s.letterSpacing}px;` : ''
+  const hasWidth = typeof block.widthPct === 'number'
+  const btnTableWidth = hasWidth ? ` width="${block.widthPct}%"` : ''
+  const linkDisplay = hasWidth ? 'block' : 'inline-block'
+  const textAlign = hasWidth ? 'text-align:center;' : ''
+  const href = escapeHtml(block.href)
+  const label = escapeHtml(block.label)
+
+  const webLink =
+    `<table role="presentation"${btnTableWidth} cellpadding="0" cellspacing="0" border="0"><tr>` +
+    `<td style="border-radius:${s.borderRadius}px;background-color:${s.backgroundColor};${border}${textAlign}">` +
+    `<a href="${href}" target="${block.target}" style="display:${linkDisplay};padding:${s.innerPaddingY}px ${s.innerPaddingX}px;font-family:${ctx.fontFamily};font-size:${s.fontSize}px;line-height:${s.lineHeight};${ls}font-weight:bold;color:${s.color};text-decoration:none;border-radius:${s.borderRadius}px;">${label}</a>` +
+    `</td></tr></table>`
+
+  if (!hasWidth || !ctx.colContentWidthPx) {
+    return cellTable(`<tr><td align="${block.align}" style="padding:${paddingCss(s.padding)};">${webLink}</td></tr>`)
+  }
+
+  const availablePx = ctx.colContentWidthPx - s.padding.left - s.padding.right
+  const widthPx = Math.max(1, Math.round((availablePx * block.widthPct!) / 100))
+  const heightPx = Math.max(1, Math.round(s.fontSize * s.lineHeight + s.innerPaddingY * 2))
+  const arcsize = Math.min(50, Math.round((s.borderRadius / heightPx) * 100))
+  const strokeAttr = s.border ? ` strokecolor="${s.border.color}" strokeweight="${s.border.width}px"` : ' stroke="f"'
+
+  const vml =
+    `<!--[if mso]>` +
+    `<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${href}" ` +
+    `style="height:${heightPx}px;v-text-anchor:middle;width:${widthPx}px;" arcsize="${arcsize}%"${strokeAttr} fillcolor="${s.backgroundColor}">` +
+    `<w:anchorlock/>` +
+    `<center style="color:${s.color};font-family:Arial,sans-serif;font-size:${s.fontSize}px;font-weight:bold;">${label}</center>` +
+    `</v:roundrect>` +
+    `<![endif]-->`
+  const webLinkMsoHidden = `<!--[if !mso]><!-- -->${webLink}<!--<![endif]-->`
+
+  return cellTable(`<tr><td align="${block.align}" style="padding:${paddingCss(s.padding)};">${vml}${webLinkMsoHidden}</td></tr>`)
 }
 
 function renderTable(block: TableBlock): string {
@@ -321,11 +363,12 @@ function renderRow(row: Row, contentWidth: number, contentAlignment: 'left' | 'c
         ? `border:${col.style.border.width}px ${col.style.border.style} ${col.style.border.color};`
         : ''
       const colRadius = col.style.borderRadius ? `border-radius:${col.style.borderRadius}px;` : ''
+      const colContentWidthPx = pxWidth - col.style.padding.left - col.style.padding.right
       return (
         `<!--[if mso]><td width="${pxWidth}" valign="top"><![endif]-->` +
         `<div class="vmd-col" style="display:inline-block;width:100%;max-width:${pxWidth}px;vertical-align:top;font-size:14px;">` +
         `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding:${paddingCss(col.style.padding)};${colBg}${colBorder}${colRadius}">` +
-        renderColumnBlocks(col.blocks, ctx) +
+        renderColumnBlocks(col.blocks, { ...ctx, colContentWidthPx }) +
         `</td></tr></table></div>` +
         `<!--[if mso]></td><![endif]-->`
       )
