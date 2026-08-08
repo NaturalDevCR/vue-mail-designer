@@ -51,6 +51,16 @@ function checkCommonWarnings(values: Record<string, unknown>, warnings: Set<stri
   }
 }
 
+/**
+ * Lee un color de Unlayer, o `fallback` si no vino ninguno. Unlayer exporta `""` para "sin
+ * color asignado" (confirmado contra la plantilla stock `black-friday-laptop-deals`: todas sus
+ * filas traen `backgroundColor`/`columnsBackgroundColor` en `""`) — un chequeo `typeof === 'string'`
+ * a secas acepta ese `""` como si fuera un color real y pisa el valor de fábrica.
+ */
+export function readColor(v: unknown, fallback: string): string {
+  return typeof v === 'string' && v.trim() ? v : fallback
+}
+
 export function parseShorthandPadding(s: unknown): Padding {
   if (typeof s !== 'string' || !s.trim()) return { top: 0, right: 0, bottom: 0, left: 0 }
   const parts = s.trim().split(/\s+/).map((p) => parsePx(p, 0))
@@ -133,7 +143,7 @@ function parseUnlayerBorder(raw: unknown, warnings: Set<string>): ParsedBorder |
   const width = parsePx(border.borderTopWidth as string | number | undefined, 0)
   if (width <= 0) return null
   const style = border.borderTopStyle as string | undefined
-  const topColor = typeof border.borderTopColor === 'string' ? border.borderTopColor : undefined
+  const topColor = typeof border.borderTopColor === 'string' && border.borderTopColor.trim() ? border.borderTopColor : undefined
   const widthsDiffer = (['borderRightWidth', 'borderBottomWidth', 'borderLeftWidth'] as const)
     .some((k) => k in border && parsePx(border[k] as string | number | undefined, 0) !== width)
   const colorsDiffer = (['borderRightColor', 'borderBottomColor', 'borderLeftColor'] as const)
@@ -195,8 +205,8 @@ export function unlayerToDocument(json: unknown): { document: EmailDocument; war
   const doc = createDocument()
 
   doc.settings.contentWidth = clamp(parsePx(bodyValues.contentWidth as string | number | undefined, doc.settings.contentWidth), 320, 900)
-  if (typeof bodyValues.backgroundColor === 'string') doc.settings.backgroundColor = bodyValues.backgroundColor
-  if (typeof bodyValues.textColor === 'string') doc.settings.textColor = bodyValues.textColor
+  doc.settings.backgroundColor = readColor(bodyValues.backgroundColor, doc.settings.backgroundColor)
+  doc.settings.textColor = readColor(bodyValues.textColor, doc.settings.textColor)
   const fontFamily = getFontFamily(bodyValues.fontFamily)
   if (fontFamily) doc.settings.fontFamily = fontFamily
   if (typeof bodyValues.preheaderText === 'string') doc.settings.preheader = bodyValues.preheaderText
@@ -206,7 +216,7 @@ export function unlayerToDocument(json: unknown): { document: EmailDocument; war
 
   const linkStyle = bodyValues.linkStyle as Record<string, unknown> | undefined
   if (linkStyle) {
-    if (typeof linkStyle.linkColor === 'string') doc.settings.linkColor = linkStyle.linkColor
+    doc.settings.linkColor = readColor(linkStyle.linkColor, doc.settings.linkColor)
     if (typeof linkStyle.linkUnderline === 'boolean') doc.settings.linkUnderline = linkStyle.linkUnderline
   }
 
@@ -234,8 +244,8 @@ function toRow(raw: Record<string, unknown>, warnings: Set<string>): Row {
   const values = (raw.values && typeof raw.values === 'object' ? raw.values : {}) as Record<string, unknown>
   checkCommonWarnings(values, warnings)
 
-  if (typeof values.backgroundColor === 'string') row.style.backgroundColor = values.backgroundColor
-  if (typeof values.columnsBackgroundColor === 'string') row.style.contentBackgroundColor = values.columnsBackgroundColor
+  row.style.backgroundColor = readColor(values.backgroundColor, row.style.backgroundColor)
+  row.style.contentBackgroundColor = readColor(values.columnsBackgroundColor, row.style.contentBackgroundColor)
   row.style.padding = parseShorthandPadding(values.padding as string | undefined)
 
   const borderRadius = parsePx(values.borderRadius as string | number | undefined, 0)
@@ -260,7 +270,7 @@ function toColumn(col: Column, raw: Record<string, unknown>, warnings: Set<strin
   const values = (raw.values && typeof raw.values === 'object' ? raw.values : {}) as Record<string, unknown>
   checkCommonWarnings(values, warnings)
 
-  if (typeof values.backgroundColor === 'string') col.style.backgroundColor = values.backgroundColor
+  col.style.backgroundColor = readColor(values.backgroundColor, col.style.backgroundColor)
   col.style.padding = parseShorthandPadding(values.padding as string | undefined)
 
   const borderRadius = parsePx(values.borderRadius as string | number | undefined, 0)
@@ -297,7 +307,7 @@ function toBlock(content: Record<string, unknown>, warnings: Set<string>): Block
       if (fontFamily) b.fontFamily = fontFamily
       if (values.fontWeight === 'normal' || values.fontWeight === 'bold') b.fontWeight = values.fontWeight
       b.style = {
-        color: typeof values.color === 'string' ? values.color : b.style.color,
+        color: readColor(values.color, b.style.color),
         fontSize: parsePx(values.fontSize as string | number | undefined, b.style.fontSize),
         align: toAlign(values.textAlign, 'left'),
         lineHeight: parsePercent(values.lineHeight, b.style.lineHeight),
@@ -312,10 +322,12 @@ function toBlock(content: Record<string, unknown>, warnings: Set<string>): Block
       const fontFamily = getFontFamily(values.fontFamily)
       if (fontFamily) b.fontFamily = fontFamily
       const linkStyle = values.linkStyle as Record<string, unknown> | undefined
-      if (typeof linkStyle?.linkColor === 'string') b.linkColor = linkStyle.linkColor
+      // linkColor es opcional (undefined = hereda del body): a diferencia de los campos style.*
+      // de arriba, acá NO hay que asignar con fallback — un "" solo debe dejarlo sin tocar.
+      if (typeof linkStyle?.linkColor === 'string' && linkStyle.linkColor.trim()) b.linkColor = linkStyle.linkColor
       if (typeof linkStyle?.linkUnderline === 'boolean') b.linkUnderline = linkStyle.linkUnderline
       b.style = {
-        color: typeof values.color === 'string' ? values.color : b.style.color,
+        color: readColor(values.color, b.style.color),
         fontSize: parsePx(values.fontSize as string | number | undefined, b.style.fontSize),
         lineHeight: parsePercent(values.lineHeight, b.style.lineHeight),
         letterSpacing: parsePx(values.letterSpacing as string | number | undefined, b.style.letterSpacing),
@@ -334,8 +346,8 @@ function toBlock(content: Record<string, unknown>, warnings: Set<string>): Block
       const colors = values.buttonColors as Record<string, unknown> | undefined
       const innerPad = parseShorthandPadding(values.padding as string | undefined)
       b.style = {
-        backgroundColor: typeof colors?.backgroundColor === 'string' ? colors.backgroundColor : b.style.backgroundColor,
-        color: typeof colors?.color === 'string' ? colors.color : b.style.color,
+        backgroundColor: readColor(colors?.backgroundColor, b.style.backgroundColor),
+        color: readColor(colors?.color, b.style.color),
         fontSize: parsePx(values.fontSize as string | number | undefined, b.style.fontSize),
         lineHeight: parsePercent(values.lineHeight, b.style.lineHeight),
         letterSpacing: parsePx(values.letterSpacing as string | number | undefined, b.style.letterSpacing),
@@ -358,7 +370,7 @@ function toBlock(content: Record<string, unknown>, warnings: Set<string>): Block
       const border = values.border as Record<string, unknown> | undefined
       const lineStyle = border?.borderTopStyle
       b.style = {
-        color: typeof border?.borderTopColor === 'string' ? border.borderTopColor : b.style.color,
+        color: readColor(border?.borderTopColor, b.style.color),
         lineStyle: lineStyle === 'dashed' || lineStyle === 'dotted' ? lineStyle : 'solid',
         thickness: parsePx(border?.borderTopWidth as string | number | undefined, b.style.thickness),
         widthPct: clamp(parsePx(values.width as string | number | undefined, b.style.widthPct), 10, 100),
@@ -442,7 +454,7 @@ function toBlock(content: Record<string, unknown>, warnings: Set<string>): Block
       b.align = toAlign(values.align, 'center')
       // Unlayer usa textColor/linkColor para el color de los ítems del menú
       const menuColor = [values.color, values.linkColor, values.textColor].find((c) => typeof c === 'string' && c)
-      if (typeof menuColor === 'string') b.style.color = menuColor
+      b.style.color = readColor(menuColor, b.style.color)
       b.style.fontSize = parsePx(values.fontSize as string | number | undefined, b.style.fontSize)
       if (typeof values.separator === 'string' && values.separator) b.separator = values.separator
       if (values.layout === 'vertical' || values.layout === 'horizontal') b.layout = values.layout

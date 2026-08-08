@@ -301,3 +301,49 @@ describe('paridad con plantillas reales de Unlayer', () => {
     expect(b.style.itemPadding).toEqual({ top: 5, right: 15, bottom: 5, left: 15 })
   })
 })
+
+describe('paridad con plantillas reales — colores "vacíos" de Unlayer no son un color', () => {
+  // Unlayer exporta backgroundColor: "" para "sin color asignado" (confirmado contra la
+  // plantilla real black-friday-laptop-deals: TODAS sus filas traen "" en backgroundColor y
+  // columnsBackgroundColor, y dos columnas también). typeof '' === 'string' es true, así que
+  // un chequeo ingenuo pisa el 'transparent' de fábrica con background-color:; (CSS inválido) —
+  // el navegador lo ignora y se ve el fondo claro del canvas por detrás de la fila.
+  const design = {
+    body: {
+      values: { contentWidth: '600px' },
+      rows: [
+        {
+          cells: [1],
+          values: { backgroundColor: '', columnsBackgroundColor: '', padding: '0px' },
+          columns: [{ values: { backgroundColor: '' }, contents: [] }],
+        },
+      ],
+    },
+  }
+
+  it('una fila con backgroundColor vacío conserva el transparente de fábrica', () => {
+    const { document } = unlayerToDocument(design)
+    expect(document.rows[0].style.backgroundColor).toBe('transparent')
+  })
+
+  it('una fila con columnsBackgroundColor vacío conserva el transparente de fábrica', () => {
+    const { document } = unlayerToDocument(design)
+    expect(document.rows[0].style.contentBackgroundColor).toBe('transparent')
+  })
+
+  it('una columna con backgroundColor vacío conserva el transparente de fábrica', () => {
+    const { document } = unlayerToDocument(design)
+    expect(document.rows[0].columns[0].style.backgroundColor).toBe('transparent')
+  })
+
+  it('un color no vacío sigue aplicándose normalmente', () => {
+    const withColor = {
+      body: {
+        values: { contentWidth: '600px' },
+        rows: [{ cells: [1], values: { backgroundColor: '#111827' }, columns: [{ values: {}, contents: [] }] }],
+      },
+    }
+    const { document } = unlayerToDocument(withColor)
+    expect(document.rows[0].style.backgroundColor).toBe('#111827')
+  })
+})
