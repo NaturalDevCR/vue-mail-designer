@@ -228,6 +228,9 @@ img.vmd-media-drop-active { outline: 2px solid var(--vmd-accent); outline-offset
 .vmd-field-input { width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid var(--vmd-border); border-radius: 6px; background: var(--vmd-bg); color: var(--vmd-fg); font-size: 13px; }
 .vmd-field-range-row { display: flex; align-items: center; gap: 8px; }
 .vmd-field-range { flex: 1; accent-color: var(--vmd-accent); }
+/* accent-color solo pinta el tramo relleno y el thumb; el riel vacío es dibujado por el user
+   agent siguiendo color-scheme. Sin esto sale claro incluso en modo oscuro. */
+.vmd-root.vmd-dark .vmd-field-range { color-scheme: dark; }
 .vmd-field-range-number { width: 64px; flex: none; text-align: right; }
 .vmd-field-color { display: flex; gap: 6px; align-items: center; }
 .vmd-field-color input[type='color'] { width: 32px; height: 32px; padding: 0; border: 1px solid var(--vmd-border); border-radius: 6px; background: none; }
