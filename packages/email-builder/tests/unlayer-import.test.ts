@@ -209,9 +209,48 @@ it('mapea la imagen de fondo del cuerpo y de la fila', () => {
   }
   const { document } = unlayerToDocument(d)
   expect(document.settings.backgroundImage?.url).toBe('https://cdn.x/body.jpg')
-  // size 'custom' de Unlayer → cover (valor soportado)
-  expect(document.settings.backgroundImage?.size).toBe('cover')
+  // size 'custom' no es un keyword CSS válido → cae a 'auto' (tamaño natural), no a 'cover'.
+  // Confirmado contra la plantilla real: ahí Unlayer nunca manda 'custom' en la práctica, manda
+  // el peso del archivo en bytes — ver el test siguiente con esos valores reales.
+  expect(document.settings.backgroundImage?.size).toBe('auto')
   expect(document.rows[0].style.backgroundImage?.url).toBe('https://cdn.templates.unlayer.com/assets/bg.png')
+  expect(document.rows[0].style.backgroundImage?.size).toBe('cover')
+  // 'center', sin guion, pasa igual
+  expect(document.rows[0].style.backgroundImage?.position).toBe('center')
+})
+
+it('el peso en bytes que Unlayer manda en backgroundImage.size no es un keyword CSS: cae a auto, no a cover', () => {
+  // Valores tomados textualmente de la fila 0 (hero) de la plantilla real
+  // black-friday-laptop-deals: `size` es el peso del archivo (137296 bytes), no
+  // 'auto'/'cover'/'contain' — con background-size:cover la imagen se estira a todo el ancho de
+  // pantalla en vez de mostrarse a su tamaño natural (600×2037) centrada, que es como la
+  // exporta Unlayer mismo (su HTML real no trae background-size en absoluto ahí).
+  const d = {
+    body: {
+      values: {},
+      rows: [
+        {
+          cells: [1],
+          values: {
+            backgroundImage: {
+              url: 'https://cdn.templates.unlayer.com/assets/1731326365340-bg.png',
+              size: 137296,
+              width: 600,
+              height: 2037,
+              repeat: 'no-repeat',
+              position: 'top-center',
+              fullWidth: true,
+            },
+          },
+          columns: [{ values: {}, contents: [] }],
+        },
+      ],
+    },
+  }
+  const { document } = unlayerToDocument(d)
+  const bg = document.rows[0].style.backgroundImage
+  expect(bg?.size).toBe('auto')
+  expect(bg?.position).toBe('top center')
 })
 
 describe('paridad con plantillas reales de Unlayer', () => {

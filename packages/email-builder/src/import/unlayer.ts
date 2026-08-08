@@ -120,15 +120,22 @@ function parseBackgroundImage(raw: unknown): BgImage | null {
   const bg = raw as Record<string, unknown>
   if (typeof bg.url !== 'string' || !bg.url) return null
   const repeat = bg.repeat as string | undefined
-  const size = bg.size as string | undefined
+  const size = bg.size
+  const position = bg.position
   return {
     url: bg.url,
     repeat: (['no-repeat', 'repeat', 'repeat-x', 'repeat-y'] as const).includes(repeat as never)
       ? (repeat as BgImage['repeat'])
       : 'no-repeat',
-    // Unlayer usa size 'custom'/'cover'/'contain'/'auto'; lo que no reconocemos → cover
-    size: (['auto', 'cover', 'contain'] as const).includes(size as never) ? (size as BgImage['size']) : 'cover',
-    position: typeof bg.position === 'string' ? bg.position : 'center',
+    // `size` reconoce 'auto'/'cover'/'contain' como keywords CSS válidos. Cualquier otra cosa
+    // —confirmado contra la plantilla real black-friday-laptop-deals: ahí `size` es el peso del
+    // archivo en bytes (137296), no una palabra clave— cae a 'auto' (tamaño natural), que es lo
+    // que Unlayer mismo exporta cuando no manda background-size explícito.
+    size: (['auto', 'cover', 'contain'] as const).includes(size as never) ? (size as BgImage['size']) : 'auto',
+    // Unlayer manda la posición como grilla con guion ('top-center', 'center-right', ...); CSS
+    // acepta las mismas dos palabras clave separadas por espacio, en cualquier orden — alcanza
+    // con reemplazar el guion. 'center' sin guion pasa igual.
+    position: typeof position === 'string' && position ? position.replace('-', ' ') : 'center',
     // Unlayer: backgroundImage.fullWidth → la imagen bleedea fuera del contenedor de contenido
     fullWidth: bg.fullWidth === true,
   }
