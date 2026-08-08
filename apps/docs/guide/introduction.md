@@ -1,6 +1,6 @@
 # Introduction
 
-**Vue Mail Designer** (`@naturaldevcr/vue-mail-designer`) is a Vue 3 component for visual email editing, Unlayer-style: drag blocks onto a canvas, edit them with a properties inspector, and get email-client-compatible HTML (Outlook included) plus a re-editable design JSON.
+**Vue Mail Designer** (`@naturaldevcr/vue-mail-designer`) is a Vue 3 component for visual email editing: drag blocks onto a canvas, edit them with a properties inspector, and get email-client-compatible HTML (Outlook included) plus a re-editable design JSON.
 
 ## Who is this for?
 

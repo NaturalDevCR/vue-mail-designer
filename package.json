@@ -2,7 +2,7 @@
   "name": "vue-mail-designer",
   "version": "2.0.0",
   "license": "MIT",
-  "description": "Monorepo de vue-mail-designer: email builder visual drag & drop para Vue 3.",
+  "description": "vue-mail-designer monorepo: a visual drag & drop email builder for Vue 3.",
   "homepage": "https://naturaldevcr.github.io/vue-mail-designer/",
   "repository": {
     "type": "git",

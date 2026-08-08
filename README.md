@@ -4,7 +4,7 @@
 [![CI](https://github.com/NaturalDevCR/vue-mail-designer/actions/workflows/ci.yml/badge.svg)](https://github.com/NaturalDevCR/vue-mail-designer/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-Visual drag & drop email builder for Vue 3, Unlayer-style. Drag blocks onto a canvas, edit them with a properties inspector, and export email-client-compatible HTML (Outlook included) plus a re-editable design JSON.
+A visual drag & drop email builder for Vue 3. Drag blocks onto a canvas, edit them with a properties inspector, and export email-client-compatible HTML (Outlook included) plus a re-editable design JSON.
 
 📖 **[Full documentation](https://naturaldevcr.github.io/vue-mail-designer/)**
 

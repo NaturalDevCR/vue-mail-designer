@@ -1,6 +1,6 @@
 # @naturaldevcr/vue-mail-designer
 
-Visual drag & drop email builder for Vue 3, Unlayer-style. Generates email-client-compatible HTML and a re-editable design JSON.
+A visual drag & drop email builder for Vue 3. Generates email-client-compatible HTML and a re-editable design JSON.
 
 📖 **[Full documentation](https://naturaldevcr.github.io/vue-mail-designer/)** · [Repository](https://github.com/NaturalDevCR/vue-mail-designer)
 
