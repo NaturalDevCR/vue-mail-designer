@@ -6,7 +6,7 @@
 
 A visual drag & drop email builder for Vue 3. Drag blocks onto a canvas, edit them with a properties inspector, and export email-client-compatible HTML (Outlook included) plus a re-editable design JSON.
 
-📖 **[Full documentation](https://naturaldevcr.github.io/vue-mail-designer/)**
+📖 **[Full documentation](https://naturaldevcr.github.io/vue-mail-designer/)** · 🤖 Using an AI coding assistant? Point it at [llms-full.txt](https://naturaldevcr.github.io/vue-mail-designer/llms-full.txt) for the complete docs in one file, or [llms.txt](https://naturaldevcr.github.io/vue-mail-designer/llms.txt) for a linked index.
 
 ## Install
 
