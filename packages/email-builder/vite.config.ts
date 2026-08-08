@@ -11,7 +11,7 @@ export default defineConfig({
       entry: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
       formats: ['es'],
       fileName: 'index',
-      cssFileName: 'vue-mailcraft',
+      cssFileName: 'vue-mail-designer',
     },
     commonjsOptions: { esmExternals: ['vue', 'pinia'] },
     rollupOptions: {

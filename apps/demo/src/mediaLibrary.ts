@@ -1,4 +1,4 @@
-import type { MediaItem, MediaLibraryOptions } from 'vue-mailcraft'
+import type { MediaItem, MediaLibraryOptions } from '@vue-mail-designer/builder'
 
 const PAGE_SIZE = 4
 const LATENCY_MS = 500

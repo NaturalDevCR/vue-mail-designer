@@ -1,11 +1,11 @@
-# vue-mailcraft
+# @vue-mail-designer/builder
 
 Email builder visual drag & drop para Vue 3, estilo Unlayer. Genera HTML compatible con clientes de correo y JSON de diseño reeditable.
 
 ## Instalación
 
 ```bash
-pnpm add vue-mailcraft vue pinia
+pnpm add @vue-mail-designer/builder vue pinia
 ```
 
 ## Uso básico
@@ -22,8 +22,8 @@ pnpm add vue-mailcraft vue pinia
 </template>
 
 <script setup lang="ts">
-import { EmailBuilder, type EmailDocument, type MergeTagDef } from 'vue-mailcraft'
-import 'vue-mailcraft/style.css'
+import { EmailBuilder, type EmailDocument, type MergeTagDef } from '@vue-mail-designer/builder'
+import '@vue-mail-designer/builder/style.css'
 import { ref } from 'vue'
 
 const design = ref<EmailDocument>()
@@ -139,11 +139,4 @@ El HTML usa tablas con estilos inline, ghost tables para Outlook y una media que
 - No se pueden reordenar columnas dentro de una fila (sí filas y bloques).
 - `theme` solo acepta `'light' | 'dark'` (sin `'auto'`).
 - Borde/radio de columna sin control dedicado en el inspector; el timer no anima sin un servicio de imagen del integrador.
-- El radio de esquinas (`borderRadius`) del bloque imagen (y de filas/columnas) se renderiza con CSS `border-radius`; Outlook de escritorio (motor Word) lo ignora, así que las esquinas redondeadas se ven bien en el builder y en la mayoría de los clientes pero no en Outlook desktop.
-- El bloque **Botón** es la excepción: cuando tiene ancho fijo (`widthPct`), el export agrega un `<v:roundrect>` VML condicional para Outlook desktop, así que sus esquinas redondeadas sí se ven ahí. Un botón con ancho automático (sin `widthPct`) no puede calcularse en píxeles para VML, así que se ve cuadrado en Outlook igual que el resto.
-
-## Licencia
-
-MIT — ver [LICENSE](../../LICENSE) en la raíz del monorepo. Este proyecto no está afiliado con,
-respaldado por, ni asociado a Unlayer Inc.; se menciona su nombre solo para describir la función
-de importación de diseños en formato JSON de Unlayer (interoperabilidad).
+- El radio de esquinas (`borderRadius`) del bloque imagen se renderiza con CSS `border-radius`; Outlook de escritorio (motor Word) lo ignora, así que las esquinas redondeadas se ven bien en el builder y en la mayoría de los clientes pero no en Outlook desktop.

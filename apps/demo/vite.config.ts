@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [vue()],
   resolve: {
     alias: {
-      'vue-mailcraft': fileURLToPath(
+      '@vue-mail-designer/builder': fileURLToPath(
         new URL('../../packages/email-builder/src/index.ts', import.meta.url),
       ),
     },

@@ -1,8 +1,8 @@
-# vue-mailcraft
+# vue-mail-designer
 
 Monorepo de un email builder visual drag & drop para Vue 3 (estilo Unlayer), publicado como librería embebible y acompañado de una demo.
 
-- `packages/email-builder` — la librería (`vue-mailcraft`): componente `EmailBuilder`, store Pinia, generador de HTML compatible con clientes de correo, schema Zod y plantillas built-in. Ver su [README](./packages/email-builder/README.md) para instalación y uso.
+- `packages/email-builder` — la librería (`@vue-mail-designer/builder`): componente `EmailBuilder`, store Pinia, generador de HTML compatible con clientes de correo, schema Zod y plantillas built-in. Ver su [README](./packages/email-builder/README.md) para instalación y uso.
 - `apps/demo` — app de demostración que consume la librería (vía alias a `src` en desarrollo) para probar el editor de punta a punta.
 
 ## Stack
@@ -25,7 +25,7 @@ pnpm install
 | Comando | Descripción |
 |---------|-------------|
 | `pnpm dev` | Levanta la demo en modo desarrollo. |
-| `pnpm build` | Compila la librería en modo lib (`dist/index.js`, `dist/index.d.ts`, `dist/vue-mailcraft.css`) y luego la demo. |
+| `pnpm build` | Compila la librería en modo lib (`dist/index.js`, `dist/index.d.ts`, `dist/vue-mail-designer.css`) y luego la demo. |
 | `pnpm test` | Corre los tests de la librería (Vitest). |
 | `pnpm typecheck` | Verifica tipos en todos los paquetes del workspace. |
 | `pnpm check` | `typecheck` + `test`. |
@@ -39,10 +39,4 @@ apps/demo/                 # demo de consumo
 
 ## Licencia
 
-MIT — ver [LICENSE](./LICENSE).
-
-## Aviso
-
-Este proyecto no está afiliado con, respaldado por, ni asociado a Unlayer Inc. "Unlayer" se
-menciona únicamente para describir la función de importación de diseños en formato JSON de
-Unlayer (interoperabilidad), no como indicación de asociación o patrocinio.
+Privado / uso interno.
