@@ -225,6 +225,9 @@ img.vmd-media-drop-active { outline: 2px solid var(--vmd-accent); outline-offset
 .vmd-inspector-title { margin: 4px 0 12px; font-size: 13px; text-transform: uppercase; color: var(--vmd-muted); }
 .vmd-field { display: block; margin-bottom: 10px; }
 .vmd-field-label { display: block; margin-bottom: 4px; font-size: 12px; color: var(--vmd-muted); }
+.vmd-field-label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.vmd-field-label-row .vmd-field-label { margin-bottom: 0; }
+.vmd-field-label-row .vmd-mini-btn { width: 22px; height: 22px; padding: 0; }
 .vmd-field-input { width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid var(--vmd-border); border-radius: 6px; background: var(--vmd-bg); color: var(--vmd-fg); font-size: 13px; }
 .vmd-field-range-row { display: flex; align-items: center; gap: 8px; }
 .vmd-field-range { flex: 1; accent-color: var(--vmd-accent); }
