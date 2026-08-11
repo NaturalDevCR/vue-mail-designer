@@ -288,8 +288,8 @@ Expected: library and demo builds exit 0.
 Run:
 
 ~~~bash
-git diff main...HEAD --check
-git diff main...HEAD --stat
+git diff origin/main...HEAD --check
+git diff origin/main...HEAD --stat
 git status --short --branch
 ~~~
 
