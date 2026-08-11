@@ -60,6 +60,21 @@ function onHtml(html: string) {
 </script>
 ```
 
+To hide the builder header while using distinct colors for each mode:
+
+```vue
+<EmailBuilder
+  :show-header="false"
+  theme="dark"
+  :appearance="{
+    light: { accent: '#2563eb', panel: '#ffffff' },
+    dark: { accent: '#60a5fa', panel: '#111827' },
+  }"
+/>
+```
+
+The flat `Appearance` form remains supported. When the header is hidden, built-in export and theme-toggle controls are also removed, so the host app should use the component's methods and events for those actions.
+
 ## Props
 
 | Prop | Type | Description |
@@ -72,8 +87,9 @@ function onHtml(html: string) {
 | `mediaLibrary` | `MediaLibraryOptions` | Enables the "Gallery" tab: `{ list: (cursor?) => Promise<{ items: MediaItem[], nextCursor? }>, upload: (file) => Promise<MediaItem>, delete: (id) => Promise<void>, rename: (id, name) => Promise<MediaItem> }`. Without this prop, the tab doesn't appear. Every function is implemented by the integrator against their own storage (e.g. Firebase Storage); the library assumes no particular backend. |
 | `unlayerFetch` | `(slug: string) => Promise<unknown>` | Handler to load an Unlayer template by URL/slug; returns the design JSON. Defaults to hitting Unlayer's API directly (fails via CORS without a proxy). |
 | `theme` | `'light' \| 'dark'` | Builder UI theme. |
+| `showHeader` | `boolean` | Whether to show the builder header. Defaults to `true`; when `false`, the entire builder header is hidden. |
 | `locale` | `'es' \| 'en' \| LocaleDict` | UI language. An object is a dictionary merged on top of Spanish — translate only the keys you want. |
-| `appearance` | `Appearance` | Builder colors: `accent`, `panel`, `border`, `background`, `foreground`, `muted`. Each present field overrides its CSS variable; doesn't affect the email canvas. |
+| `appearance` | `Appearance` | Builder colors. A flat object (`{ accent, panel, border, background, foreground, muted }`) applies to both modes. The union Appearance or ThemeAppearance also accepts `{ light: Appearance, dark: Appearance }` for mode-specific values; omitted fields keep that mode's defaults. |
 | `tools` | `Partial<Record<BlockType, ToolConfig>>` | Per-block palette config: `{ enabled?, position?, usageLimit? }` to hide, reorder, or limit instances. |
 | `fonts` | `FontDef[]` | List of fonts (`{ label, value, url? }`); Google Fonts (`url`) are loaded both in the canvas and in the exported HTML. Defaults to a curated list. |
 | `specialLinks` | `SpecialLink[]` | Special links insertable from the editor (`{ name, href }`, e.g. an unsubscribe link). |
