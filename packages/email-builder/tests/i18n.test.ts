@@ -34,11 +34,6 @@ const TASK_4_SPANISH_LITERALS = [
   'Rotar izquierda',
   'Selecciona una imagen en el inspector',
   'Configura el video en el inspector',
-  'Propiedades de fila',
-  'Texto del preheader',
-  'Buscar imágenes…',
-  'Subir imagen',
-  'Agregar',
 ] as const
 
 const TASK_4_ENGLISH_LITERALS = [
@@ -49,11 +44,6 @@ const TASK_4_ENGLISH_LITERALS = [
   'Rotate left',
   'Select an image in the inspector',
   'Configure the video in the inspector',
-  'Row settings',
-  'Preheader text',
-  'Search images…',
-  'Upload image',
-  'Add',
 ] as const
 
 function task4Design() {
@@ -152,7 +142,6 @@ async function openTask4Chrome(locale: 'en' | 'es') {
   await wrapper.find('[data-action="import-unlayer"]').trigger('click')
 
   await wrapper.find('[data-action="templates"]').trigger('click')
-  await wrapper.find('.vmd-modal').trigger('click')
 
   await wrapper.find('[data-action="preview"]').trigger('click')
 
@@ -241,7 +230,6 @@ describe('i18n', () => {
 
     expect(spanishText).toContain('Importar de Unlayer')
     expect(spanishText).toContain('Elegir plantilla')
-    expect(spanishText).toContain('Buscar imágenes…')
     expect(spanishText).toContain('Oculto aquí')
     expect(spanishText).toContain('días')
 

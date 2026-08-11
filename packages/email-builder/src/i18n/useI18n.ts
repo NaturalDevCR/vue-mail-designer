@@ -1,5 +1,6 @@
 import type { InjectionKey } from 'vue'
 import { inject, provide } from 'vue'
+import { en } from './en'
 import type { LocaleDict } from './keys'
 
 export type ResolvedLocale = 'en' | 'es'
@@ -26,5 +27,5 @@ export function provideI18n(
 }
 
 export function useI18n(): I18n {
-  return inject(I18N_KEY, { t: (k: string) => k, locale: 'en' })
+  return inject(I18N_KEY, { t: (k: string) => en[k] ?? k, locale: 'en' })
 }
