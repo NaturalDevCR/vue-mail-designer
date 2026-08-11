@@ -1,0 +1,84 @@
+name: Publish package
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.11.0
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Verify Trusted Publishing runtime
+        run: |
+          node --version
+          npm --version
+          node --input-type=module <<'EOF'
+          import { execSync } from 'node:child_process';
+
+          const version = execSync('npm --version', { encoding: 'utf8' }).trim();
+
+          const [major, minor, patch] = version.split('.').map(Number);
+          const minimum = [11, 5, 1];
+          const current = [major, minor, patch];
+
+          for (let index = 0; index < minimum.length; index += 1) {
+            if (current[index] > minimum[index]) process.exit(0);
+            if (current[index] < minimum[index]) {
+              console.error(`npm ${version} does not satisfy the Trusted Publishing minimum of 11.5.1.`);
+              process.exit(1);
+            }
+          }
+          EOF
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter @naturaldevcr/vue-mail-designer typecheck
+
+      - run: pnpm --filter @naturaldevcr/vue-mail-designer test
+
+      - run: pnpm --filter @naturaldevcr/vue-mail-designer build
+
+      - name: Verify release metadata
+        env:
+          EXPECTED_REPOSITORY_URL: https://github.com/NaturalDevCR/vue-mail-designer
+        run: |
+          node --input-type=module <<'EOF'
+          import { readFileSync } from 'node:fs';
+
+          const packageJson = JSON.parse(readFileSync('packages/email-builder/package.json', 'utf8'));
+          const gitTag = process.env.GITHUB_REF_NAME;
+          const expectedTag = `v${packageJson.version}`;
+
+          if (gitTag !== expectedTag) {
+            console.error(`Tag ${gitTag} does not match packages/email-builder/package.json version ${packageJson.version}.`);
+            process.exit(1);
+          }
+
+          if (packageJson.repository?.url !== process.env.EXPECTED_REPOSITORY_URL) {
+            console.error(
+              `packages/email-builder/package.json repository.url must be ${process.env.EXPECTED_REPOSITORY_URL}, got ${packageJson.repository?.url ?? 'undefined'}.`,
+            );
+            process.exit(1);
+          }
+          EOF
+
+      - run: npm publish ./packages/email-builder --access public
