@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
 import { mount } from '@vue/test-utils'
 import { defineComponent } from 'vue'
 import { describe, expect, it, vi } from 'vitest'
@@ -10,7 +8,8 @@ import { useI18n } from '../src/i18n/useI18n'
 import { createBlock, createDocument, createRow } from '../src/schema'
 import type { MediaItem } from '../src/mediaLibrary'
 
-const TASK_4_COMPONENT_PATHS = [
+const TASK_4_COMPONENT_SOURCES = import.meta.glob<string>(
+  [
   '../src/components/UnlayerImportDialog.vue',
   '../src/components/TemplateGallery.vue',
   '../src/components/PreviewDialog.vue',
@@ -24,7 +23,9 @@ const TASK_4_COMPONENT_PATHS = [
   '../src/components/tabs/ImagesTab.vue',
   '../src/components/tabs/MediaLibraryTab.vue',
   '../src/components/ImagePreviewDialog.vue',
-] as const
+  ],
+  { eager: true, import: 'default', query: '?raw' },
+)
 
 const TASK_4_SPANISH_LITERALS = [
   'Importar de Unlayer',
@@ -170,8 +171,7 @@ async function openTask4Chrome(locale: 'en' | 'es') {
   return { wrapper, cropImage, emptyImage, video, timer, rowId }
 }
 
-function usedLocaleKeys(componentRelativePath: string): string[] {
-  const source = readFileSync(fileURLToPath(new URL(componentRelativePath, import.meta.url)), 'utf8')
+function usedLocaleKeys(source: string): string[] {
   const matches = source.matchAll(/\bt\(\s*['"]([^'"]+)['"]\s*\)/g)
   return [...new Set([...matches].map((match) => match[1]))].sort()
 }
@@ -237,7 +237,7 @@ describe('i18n', () => {
   })
 
   it('keeps every Task 4 i18n key aligned across English and Spanish', () => {
-    const keys = new Set(TASK_4_COMPONENT_PATHS.flatMap((path) => usedLocaleKeys(path)))
+    const keys = new Set(Object.values(TASK_4_COMPONENT_SOURCES).flatMap((source) => usedLocaleKeys(source)))
 
     expect(keys.size).toBeGreaterThan(0)
     for (const key of keys) {

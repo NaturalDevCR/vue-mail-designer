@@ -125,3 +125,85 @@ Conclusion:
 - The focused drag/image/gallery suite is green.
 - `pnpm build` and `pnpm docs:build` pass.
 - `pnpm check` remains red because of pre-existing `tests/i18n.test.ts` Node built-in type-resolution errors outside this task’s scope.
+
+## Follow-up verification fix
+
+Status: complete in scope for the i18n test-loader follow-up.
+
+Date: Tuesday, August 11, 2026
+
+Follow-up scope:
+
+- Replaced the `tests/i18n.test.ts` audit helper’s `node:fs` + `node:url` source loading with a Vite/Vitest-compatible raw-source loader via `import.meta.glob(..., { eager: true, import: 'default', query: '?raw' })`.
+- Preserved the existing Task 4 audit assertions by continuing to scan raw component source for `t('...')` keys.
+
+Files changed in the follow-up:
+
+- `packages/email-builder/tests/i18n.test.ts`
+- `task-7-report.md`
+
+Affected suite rerun:
+
+```bash
+pnpm --filter @naturaldevcr/vue-mail-designer exec vitest run tests/i18n.test.ts
+```
+
+Affected suite result:
+
+```text
+Test Files  1 passed (1)
+Tests  12 passed (12)
+Duration  1.38s
+```
+
+Affected suite notes:
+
+- The same jsdom auto-scroll warnings still appear.
+- jsdom also still logs `getaddrinfo ENOTFOUND cdn.example.com` from networked image/XHR attempts during mounted UI flows; the suite still exits successfully.
+
+Corrected `pnpm check` rerun:
+
+```bash
+pnpm check
+```
+
+Corrected `pnpm check` result:
+
+```text
+typecheck stage passes and the command advances into vitest
+exit 1 in test phase
+```
+
+Corrected `pnpm check` note:
+
+- The original `node:fs` / `node:url` typecheck blocker is resolved.
+- `pnpm check` is now red for unrelated existing full-suite localization expectations, not for the i18n test loader.
+
+Observed failing test groups after the fix:
+
+- `tests/block-view-fase-b.test.ts`
+  - timer placeholder now renders English (`3 days`) while the test still expects `/día/`
+- `tests/inspector-fase-b.test.ts`
+  - 6 failures still expecting Spanish-first inspector labels such as `Fila de encabezado`, `Columnas`, `Fecha y hora límite`, `Ocultar en escritorio`, and `Fuente`
+- `tests/padding-field.test.ts`
+  - still expects the Spanish title `Vincular lados` instead of `Link sides`
+- `tests/tools-config.test.ts`
+  - still expects `Imagen` instead of `Image`
+
+Diff check:
+
+```bash
+git diff --check
+```
+
+Diff check result:
+
+```text
+(no output)
+```
+
+Follow-up conclusion:
+
+- The requested typecheck issue in `tests/i18n.test.ts` is fixed without adding a runtime dependency.
+- The i18n audit assertions still pass.
+- `pnpm check` now fails later, in the branch’s broader still-Spanish test expectations, which were previously masked by the earlier typecheck error.
