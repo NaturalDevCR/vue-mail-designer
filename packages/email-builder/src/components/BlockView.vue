@@ -5,7 +5,7 @@
     :class="{ 'vmd-selected': isSelected, 'vmd-drop-before': blockEdge === 'before', 'vmd-drop-after': blockEdge === 'after' }"
     @click.stop="selectBlock"
   >
-    <span v-if="showHiddenBadge" class="vmd-hidden-badge">Oculto aquí</span>
+    <span v-if="showHiddenBadge" class="vmd-hidden-badge">{{ t('canvas.hiddenHere') }}</span>
     <div class="vmd-block-actions">
       <button ref="handle" type="button" class="vmd-mini-btn vmd-drag-handle" :title="t('props.move')"><span class="vmd-ico" v-html="ICONS.move" /></button>
       <button type="button" class="vmd-mini-btn" :title="t('props.duplicate')" @click.stop="store.duplicateBlock(block.id)"><span class="vmd-ico" v-html="ICONS.duplicate" /></button>
@@ -57,7 +57,7 @@
           ...(block.borderRadius ? { borderRadius: block.borderRadius + 'px' } : {}),
         }"
       />
-      <div v-else ref="imageDropEl" class="vmd-b-image-placeholder" :class="{ 'vmd-media-drop-active': isImageOver }"><span class="vmd-ico" v-html="ICONS.image" />Selecciona una imagen en el inspector</div>
+      <div v-else ref="imageDropEl" class="vmd-b-image-placeholder" :class="{ 'vmd-media-drop-active': isImageOver }"><span class="vmd-ico" v-html="ICONS.image" />{{ t('canvas.imagePlaceholder') }}</div>
     </div>
 
     <!-- button -->
@@ -130,7 +130,7 @@
         <img :src="block.thumbnailUrl" :alt="block.alt" style="width: 100%; display: block" />
         <span class="vmd-b-video-play" v-html="ICONS.play" />
       </div>
-      <div v-else class="vmd-b-image-placeholder"><span class="vmd-ico" v-html="ICONS.video" />Configura el video en el inspector</div>
+      <div v-else class="vmd-b-image-placeholder"><span class="vmd-ico" v-html="ICONS.video" />{{ t('canvas.videoPlaceholder') }}</div>
     </div>
 
     <!-- table -->
@@ -185,7 +185,7 @@
     <!-- custom -->
     <div v-else-if="block.type === 'custom'">
       <div v-if="customHtml !== null" v-html="customHtml" />
-      <div v-else class="vmd-b-image-placeholder">Bloque personalizado «{{ block.customType }}»</div>
+      <div v-else class="vmd-b-image-placeholder">{{ t('canvas.customBlock') }} «{{ block.customType }}»</div>
     </div>
   </div>
 </template>
@@ -278,7 +278,7 @@ const timerDaysText = computed(() => {
   const b = props.block
   if (b.type !== 'timer') return ''
   const days = Math.max(0, Math.ceil((new Date(b.endDate).getTime() - Date.now()) / 864e5))
-  return `${days} ${days === 1 ? 'día' : 'días'}`
+  return `${days} ${days === 1 ? t('canvas.day') : t('canvas.days')}`
 })
 
 function padCss(p: Padding): string {

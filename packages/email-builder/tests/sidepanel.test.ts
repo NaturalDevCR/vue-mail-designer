@@ -18,8 +18,8 @@ describe('SidePanel', () => {
   it('tab Body edita settings incluidos los nuevos', async () => {
     const wrapper = mount(EmailBuilder)
     await wrapper.find('[data-tab="body"]').trigger('click')
-    expect(wrapper.text()).toContain('Texto del preheader')
-    expect(wrapper.text()).toContain('Subrayado')
+    expect(wrapper.text()).toContain('Preheader text')
+    expect(wrapper.text()).toContain('Underline')
   })
 
   it('seleccionar un elemento muestra propiedades con acciones y cerrar vuelve al tab', async () => {
@@ -27,7 +27,7 @@ describe('SidePanel', () => {
     await wrapper.find('.vmd-canvas-empty button').trigger('click')
     await wrapper.find('.vmd-row').trigger('click')
     expect(wrapper.find('.vmd-props-header').exists()).toBe(true)
-    expect(wrapper.text()).toContain('Fila')
+    expect(wrapper.text()).toContain('Row')
     await wrapper.find('[data-action="props-close"]').trigger('click')
     expect(wrapper.find('.vmd-props-header').exists()).toBe(false)
     expect(wrapper.findAll('.vmd-content-item')).toHaveLength(13)
@@ -48,7 +48,7 @@ describe('SidePanel', () => {
     expect(wrapper.find('.vmd-props-header').exists()).toBe(true)
     await wrapper.find('[data-tab="body"]').trigger('click')
     expect(wrapper.find('.vmd-props-header').exists()).toBe(false)
-    expect(wrapper.text()).toContain('Texto del preheader')
+    expect(wrapper.text()).toContain('Preheader text')
   })
 
   it('re-seleccionar un elemento vuelve a propiedades', async () => {

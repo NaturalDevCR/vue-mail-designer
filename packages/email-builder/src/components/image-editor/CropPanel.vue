@@ -12,7 +12,7 @@
       />
     </div>
 
-    <div class="vmd-props-section-title">Aspect ratio</div>
+    <div class="vmd-props-section-title">{{ t('image.aspectRatio') }}</div>
     <div class="vmd-crop-ratio-grid">
       <button
         v-for="opt in RATIO_OPTIONS"
@@ -26,13 +26,13 @@
       </button>
     </div>
 
-    <div class="vmd-props-section-title">Rotar y voltear</div>
+    <div class="vmd-props-section-title">{{ t('image.rotateAndFlip') }}</div>
     <div class="vmd-crop-actions-grid">
       <button type="button" class="vmd-mini-btn vmd-mini-btn--text" @click="rotateLeft">
-        <span class="vmd-ico" v-html="ICONS.rotateLeft" />Rotar izquierda
+        <span class="vmd-ico" v-html="ICONS.rotateLeft" />{{ t('image.rotateLeft') }}
       </button>
       <button type="button" class="vmd-mini-btn vmd-mini-btn--text" @click="rotateRight">
-        <span class="vmd-ico" v-html="ICONS.rotateRight" />Rotar derecha
+        <span class="vmd-ico" v-html="ICONS.rotateRight" />{{ t('image.rotateRight') }}
       </button>
       <button
         type="button"
@@ -40,7 +40,7 @@
         :class="{ 'vmd-active': flippedH }"
         @click="toggleFlipH"
       >
-        <span class="vmd-ico" v-html="ICONS.flipHorizontal" />Flip horizontal
+        <span class="vmd-ico" v-html="ICONS.flipHorizontal" />{{ t('image.flipHorizontal') }}
       </button>
       <button
         type="button"
@@ -48,21 +48,21 @@
         :class="{ 'vmd-active': flippedV }"
         @click="toggleFlipV"
       >
-        <span class="vmd-ico" v-html="ICONS.flipVertical" />Flip vertical
+        <span class="vmd-ico" v-html="ICONS.flipVertical" />{{ t('image.flipVertical') }}
       </button>
     </div>
     <label class="vmd-field">
-      <span class="vmd-field-label">Enderezar</span>
+      <span class="vmd-field-label">{{ t('image.straighten') }}</span>
       <input type="range" class="vmd-range" min="-45" max="45" step="1" :value="straightenDeg" @input="onStraightenInput" />
     </label>
 
-    <div class="vmd-props-section-title">Esquinas</div>
+    <div class="vmd-props-section-title">{{ t('image.corners') }}</div>
     <label class="vmd-field">
-      <span class="vmd-field-label">Radio</span>
+      <span class="vmd-field-label">{{ t('image.radius') }}</span>
       <input type="range" class="vmd-range" min="0" max="60" step="1" v-model.number="radius" />
     </label>
 
-    <button type="button" class="vmd-mini-btn vmd-mini-btn--text" @click="reset">Restablecer</button>
+    <button type="button" class="vmd-mini-btn vmd-mini-btn--text" @click="reset">{{ t('common.reset') }}</button>
     <p v-if="errorMsg" class="vmd-image-error">{{ errorMsg }}</p>
   </div>
 </template>
@@ -71,6 +71,7 @@
 import { Cropper } from 'vue-advanced-cropper'
 import 'vue-advanced-cropper/dist/style.css'
 import { computed, ref } from 'vue'
+import { useI18n } from '../../i18n/useI18n'
 import type { ImageBlock } from '../../schema'
 import { useBuilderOptions } from '../../options'
 import { useDocumentStore } from '../../store/document'
@@ -83,6 +84,7 @@ const props = defineProps<{ block: ImageBlock }>()
 const store = useDocumentStore(useBuilderPinia())
 const ui = useUiStore(useBuilderPinia())
 const options = useBuilderOptions()
+const { t } = useI18n()
 
 type CropperExposed = {
   getResult: () => { canvas: HTMLCanvasElement }
@@ -102,14 +104,14 @@ function onCropperChange(result: { image?: { width: number; height: number } }) 
   }
 }
 function onCropperError() {
-  errorMsg.value = 'No se pudo cargar esta imagen en el editor (¿es de otro origen sin CORS habilitado?).'
+  errorMsg.value = t('image.loadError')
 }
 
 type RatioOption = { key: string; label: string; ratio: number | undefined }
 const RATIO_OPTIONS = computed<RatioOption[]>(() => [
-  { key: 'free', label: 'Free', ratio: undefined },
-  { key: 'original', label: 'Original', ratio: naturalRatio.value },
-  { key: 'square', label: 'Square', ratio: 1 },
+  { key: 'free', label: t('image.ratioFree'), ratio: undefined },
+  { key: 'original', label: t('image.ratioOriginal'), ratio: naturalRatio.value },
+  { key: 'square', label: t('image.ratioSquare'), ratio: 1 },
   { key: '4:3', label: '4:3', ratio: 4 / 3 },
   { key: '3:2', label: '3:2', ratio: 3 / 2 },
   { key: '16:9', label: '16:9', ratio: 16 / 9 },
@@ -163,11 +165,11 @@ async function save() {
     const { canvas } = cropperRef.value.getResult()
     blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
   } catch {
-    errorMsg.value = 'No se pudo procesar esta imagen (¿es de otro origen sin CORS habilitado?).'
+    errorMsg.value = t('image.processError')
     return
   }
   if (!blob) {
-    errorMsg.value = 'No se pudo procesar esta imagen (¿es de otro origen sin CORS habilitado?).'
+    errorMsg.value = t('image.processError')
     return
   }
   const file = new File([blob], 'cropped.png', { type: 'image/png' })
@@ -176,7 +178,7 @@ async function save() {
     store.updateBlock(props.block.id, { src: url, borderRadius: radius.value || undefined })
     ui.imageEditorBlockId = null
   } catch {
-    errorMsg.value = 'No se pudo subir la imagen recortada.'
+    errorMsg.value = t('image.uploadError')
   }
 }
 

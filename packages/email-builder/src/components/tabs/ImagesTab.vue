@@ -4,16 +4,16 @@
       <input
         v-model="query"
         type="text"
-        placeholder="Buscar imágenes…"
+        :placeholder="t('image.searchPlaceholder')"
         @input="onInput"
         @keydown.enter="runSearch"
       />
     </div>
 
-    <p v-if="status === 'idle'" class="vmd-tab-placeholder">Busca imágenes gratuitas (CC) para tu email</p>
-    <p v-else-if="status === 'loading'" class="vmd-tab-placeholder">Buscando…</p>
-    <p v-else-if="status === 'error'" class="vmd-image-error">No se pudo buscar imágenes.</p>
-    <p v-else-if="status === 'empty'" class="vmd-tab-placeholder">Sin resultados</p>
+    <p v-if="status === 'idle'" class="vmd-tab-placeholder">{{ t('image.searchIdle') }}</p>
+    <p v-else-if="status === 'loading'" class="vmd-tab-placeholder">{{ t('image.searchLoading') }}</p>
+    <p v-else-if="status === 'error'" class="vmd-image-error">{{ t('image.searchError') }}</p>
+    <p v-else-if="status === 'empty'" class="vmd-tab-placeholder">{{ t('image.searchEmpty') }}</p>
 
     <div v-else-if="status === 'results'" class="vmd-image-grid">
       <DraggableImageThumb
@@ -27,13 +27,14 @@
       />
     </div>
 
-    <p class="vmd-image-credit">Imágenes de Openverse (CC)</p>
+    <p class="vmd-image-credit">{{ t('image.credit') }}</p>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { openverseSearch, type ImageResult } from '../../imageSearch'
+import { useI18n } from '../../i18n/useI18n'
 import { useBuilderOptions } from '../../options'
 import DraggableImageThumb from './DraggableImageThumb.vue'
 import type { ImageSelection } from './imageTypes'
@@ -42,6 +43,7 @@ const DEBOUNCE_MS = 400
 
 const options = useBuilderOptions()
 const emit = defineEmits<{ select: [image: ImageSelection] }>()
+const { t } = useI18n()
 
 const query = ref('')
 const results = ref<ImageResult[]>([])

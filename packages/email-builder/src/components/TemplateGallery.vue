@@ -2,8 +2,8 @@
   <div class="vmd-modal" @click.self="ui.galleryOpen = false">
     <div class="vmd-modal-box vmd-gallery-box">
       <div class="vmd-preview-bar">
-        <h3 class="vmd-inspector-title" style="margin: 0">Elegir plantilla</h3>
-        <button type="button" class="vmd-btn vmd-btn--icon" title="Cerrar" @click="ui.galleryOpen = false"><span class="vmd-ico" v-html="ICONS.close" /></button>
+        <h3 class="vmd-inspector-title" style="margin: 0">{{ t('dialog.templateTitle') }}</h3>
+        <button type="button" class="vmd-btn vmd-btn--icon" :title="t('common.close')" @click="ui.galleryOpen = false"><span class="vmd-ico" v-html="ICONS.close" /></button>
       </div>
       <div class="vmd-gallery-grid">
         <button type="button" v-for="tpl in templates" :key="tpl.id" class="vmd-gallery-card" @click="pick(tpl)">
@@ -19,6 +19,7 @@
 <script setup lang="ts">
 import { ICONS } from './icons'
 import { computed } from 'vue'
+import { useI18n } from '../i18n/useI18n'
 import { useBuilderOptions } from '../options'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
@@ -29,6 +30,7 @@ const pinia = useBuilderPinia()
 const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
 const options = useBuilderOptions()
+const { t } = useI18n()
 const templates = computed(() => [...BUILTIN_TEMPLATES, ...(options.templates ?? [])])
 
 function pick(tpl: EmailTemplate) {

@@ -5,7 +5,7 @@
       <button
         type="button"
         class="vmd-mini-btn"
-        :title="linked ? 'Vincular lados' : 'Lados independientes'"
+        :title="linked ? t('field.linkSides') : t('field.unlinkSides')"
         @click="toggleLinked"
       ><span class="vmd-ico" v-html="linked ? ICONS.link : ICONS.unlink" /></button>
     </div>
@@ -17,26 +17,35 @@
       @input="onLinked($event)"
     />
     <div v-else class="vmd-padding-grid">
-      <input v-for="side in SIDES" :key="side.key" class="vmd-field-input" type="number" min="0"
-        :value="modelValue[side.key]" :title="side.label"
-        @input="onSide(side.key, $event)" />
+      <input
+        v-for="side in SIDES"
+        :key="side.key"
+        class="vmd-field-input"
+        type="number"
+        min="0"
+        :value="modelValue[side.key]"
+        :title="side.label"
+        @input="onSide(side.key, $event)"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { useI18n } from '../../i18n/useI18n'
 import type { Padding } from '../../schema'
 import { ICONS } from '../icons'
 
 const props = defineProps<{ label: string; modelValue: Padding }>()
 const emit = defineEmits<{ 'update:modelValue': [value: Padding] }>()
-const SIDES = [
-  { key: 'top', label: 'Arriba' },
-  { key: 'right', label: 'Derecha' },
-  { key: 'bottom', label: 'Abajo' },
-  { key: 'left', label: 'Izquierda' },
-] as const
+const { t } = useI18n()
+const SIDES = computed(() => [
+  { key: 'top', label: t('field.top') },
+  { key: 'right', label: t('field.right') },
+  { key: 'bottom', label: t('field.bottom') },
+  { key: 'left', label: t('field.left') },
+] as const)
 
 function isUniform(p: Padding): boolean {
   return p.top === p.right && p.right === p.bottom && p.bottom === p.left

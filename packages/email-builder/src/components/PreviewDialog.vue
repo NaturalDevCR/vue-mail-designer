@@ -23,9 +23,9 @@
         </div>
         <div class="vmd-toolbar-group">
           <button type="button" class="vmd-btn" @click="copyHtml">
-            <span v-if="copied" class="vmd-ico" v-html="ICONS.check" />{{ copied ? 'Copiado' : 'Copiar HTML' }}
+            <span v-if="copied" class="vmd-ico" v-html="ICONS.check" />{{ copied ? t('dialog.previewCopied') : t('dialog.previewCopyHtml') }}
           </button>
-          <button type="button" class="vmd-btn vmd-btn--icon" title="Cerrar" @click="ui.previewOpen = false"><span class="vmd-ico" v-html="ICONS.close" /></button>
+          <button type="button" class="vmd-btn vmd-btn--icon" :title="t('common.close')" @click="ui.previewOpen = false"><span class="vmd-ico" v-html="ICONS.close" /></button>
         </div>
       </div>
       <div class="vmd-preview-stage">
@@ -41,6 +41,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useI18n } from '../i18n/useI18n'
 import { renderHtml } from '../render/html'
 import { ICONS } from './icons'
 import { useBuilderOptions } from '../options'
@@ -52,13 +53,14 @@ const pinia = useBuilderPinia()
 const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
 const options = useBuilderOptions()
+const { t } = useI18n()
 const html = computed(() => renderHtml(store.doc, options.fonts, options.customBlocks))
 const copied = ref(false)
-const presets = [
-  { name: 'desktop', title: 'Escritorio', icon: 'desktop', width: 1000 },
-  { name: 'tablet', title: 'Tablet', icon: 'tablet', width: 768 },
-  { name: 'mobile', title: 'Móvil', icon: 'mobile', width: 375 },
-]
+const presets = computed(() => [
+  { name: 'desktop', title: t('dialog.previewDesktop'), icon: 'desktop', width: 1000 },
+  { name: 'tablet', title: t('dialog.previewTablet'), icon: 'tablet', width: 768 },
+  { name: 'mobile', title: t('dialog.previewMobile'), icon: 'mobile', width: 375 },
+])
 
 async function copyHtml() {
   try {
@@ -66,7 +68,7 @@ async function copyHtml() {
     copied.value = true
     setTimeout(() => (copied.value = false), 1500)
   } catch {
-    window.alert('No se pudo copiar al portapapeles.')
+    window.alert(t('dialog.previewCopyError'))
   }
 }
 </script>
