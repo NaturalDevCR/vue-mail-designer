@@ -143,3 +143,73 @@ Typecheck note:
 
 - The package typecheck remained red due to pre-existing `tests/i18n.test.ts` Node built-in type-resolution errors outside the Task 6 AI scope.
 - The new review-fix regressions no longer contribute additional typecheck failures.
+
+## Final hardening round
+
+Status: complete in scope for the final Task 6 hardening follow-up.
+
+Date: Tuesday, August 11, 2026
+
+Final hardening commit:
+
+- `a8ffce3` — `fix(ai): harden translate availability`
+
+Hardening items verified against the current review-fix state before changes:
+
+- `AiMenu` still allowed overlapping `translateAvailability()` promises to resolve out of order and commit stale source/target availability results.
+- Wrapper behavior already destroyed sessions after post-create request rejection, but the focused suite did not yet prove that for Rewriter, Summarizer, Translator, and LanguageDetector.
+
+Final hardening regression coverage added first:
+
+- `packages/email-builder/tests/ai-menu.test.ts`
+  - deferred-promise race regression proving an older translate availability lookup cannot overwrite a newer selected target language
+- `packages/email-builder/tests/chrome-ai.test.ts`
+  - destroy-after-post-create-request-rejection coverage for Rewriter, Summarizer, Translator, and LanguageDetector
+  - existing create-rejection coverage kept intact to prove no destroy attempt happens before session creation succeeds
+
+Final hardening RED command:
+
+```bash
+pnpm --filter @naturaldevcr/vue-mail-designer exec vitest run tests/public-api.test.ts tests/chrome-ai.test.ts tests/ai-menu.test.ts tests/rich-text-editor.test.ts
+```
+
+Final hardening RED output:
+
+```text
+Test Files  1 failed | 3 passed (4)
+Tests  1 failed | 32 passed (33)
+```
+
+Key RED symptom:
+
+- `AiMenu` let stale translate-availability state keep the Generate button disabled after a newer target-language availability result had already resolved.
+
+Final hardening GREEN command:
+
+```bash
+pnpm --filter @naturaldevcr/vue-mail-designer exec vitest run tests/public-api.test.ts tests/chrome-ai.test.ts tests/ai-menu.test.ts tests/rich-text-editor.test.ts
+```
+
+Final hardening GREEN output:
+
+```text
+Test Files  4 passed (4)
+Tests  33 passed (33)
+Duration  819ms
+```
+
+Final hardening diff check:
+
+```bash
+git diff --check
+```
+
+Result:
+
+```text
+(no output)
+```
+
+Implementation note:
+
+- `AiMenu` now invalidates in-flight translate availability lookups with a request id and applies results only when the response still matches the latest active translate source/target pair.
