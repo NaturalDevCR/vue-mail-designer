@@ -8,7 +8,7 @@ export interface AutosaveLocalStorage {
 
 export interface AutosaveCustomStorage {
   type: 'custom'
-  load: () => Promise<EmailDocument | undefined> | EmailDocument | undefined
+  load?: () => Promise<EmailDocument | undefined> | EmailDocument | undefined
   save: (document: EmailDocument) => Promise<void> | void
 }
 

@@ -19,7 +19,7 @@ export function resolveLocalStorage(storage?: Storage): Storage {
 
 export async function readAutosave(autosave: AutosaveStorage): Promise<EmailDocument | undefined> {
   if (autosave.type === 'custom') {
-    return autosave.load()
+    return autosave.load?.()
   }
 
   const storage = resolveLocalStorage(autosave.storage)

@@ -71,6 +71,20 @@ describe('autosave storage', () => {
     expect(saved).toEqual(design)
   })
 
+  it('accepts a save-only custom adapter', async () => {
+    const design = createDocument()
+    const save = vi.fn()
+    const autosave: AutosaveStorage = {
+      type: 'custom',
+      save,
+    }
+
+    await writeAutosave(autosave, design)
+
+    expect(save).toHaveBeenCalledWith(design)
+    expect('load' in autosave).toBe(false)
+  })
+
   it('throws an explicit error when browser storage is unavailable', async () => {
     const originalWindow = globalThis.window
     vi.stubGlobal('window', undefined)
