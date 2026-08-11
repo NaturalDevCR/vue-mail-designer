@@ -82,6 +82,19 @@ afterEach(() => {
 })
 
 describe('AiMenu', () => {
+  it('renders its popover above overflow containers with viewport positioning', async () => {
+    const wrapper = mountMenu(makeEditor())
+
+    await wrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
+
+    const popover = wrapper.find<HTMLElement>('.vmd-ai-popover').element
+    expect(popover).not.toBeNull()
+    expect(popover?.style.position).toBe('fixed')
+    expect(popover?.style.zIndex).toBe('2000')
+
+    wrapper.unmount()
+  })
+
   it('disables rewrite, summarize, and translate when no text is selected', async () => {
     const wrapper = mountMenu(makeEditor('<p>Hello</p>', false))
 
