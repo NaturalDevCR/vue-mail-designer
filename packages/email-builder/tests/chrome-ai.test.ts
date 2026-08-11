@@ -88,6 +88,79 @@ describe('chromeAi wrappers', () => {
 
   it.each([
     {
+      label: 'Rewriter',
+      install() {
+        const destroy = vi.fn()
+        ;(globalThis as Glob).Rewriter = {
+          create: vi.fn().mockResolvedValue({
+            rewrite: vi.fn().mockRejectedValue(new Error('boom')),
+            destroy,
+          }),
+        }
+        return destroy
+      },
+      run: () => rewrite('Hello'),
+      code: 'request-failed',
+      message: 'AI request failed.',
+    },
+    {
+      label: 'Summarizer',
+      install() {
+        const destroy = vi.fn()
+        ;(globalThis as Glob).Summarizer = {
+          create: vi.fn().mockResolvedValue({
+            summarize: vi.fn().mockRejectedValue(new Error('boom')),
+            destroy,
+          }),
+        }
+        return destroy
+      },
+      run: () => summarize('Hello'),
+      code: 'request-failed',
+      message: 'AI request failed.',
+    },
+    {
+      label: 'Translator',
+      install() {
+        const destroy = vi.fn()
+        ;(globalThis as Glob).Translator = {
+          availability: vi.fn().mockResolvedValue('readily'),
+          create: vi.fn().mockResolvedValue({
+            translate: vi.fn().mockRejectedValue(new Error('boom')),
+            destroy,
+          }),
+        }
+        return destroy
+      },
+      run: () => translate('Hello', 'en', 'es'),
+      code: 'request-failed',
+      message: 'AI request failed.',
+    },
+    {
+      label: 'LanguageDetector',
+      install() {
+        const destroy = vi.fn()
+        ;(globalThis as Glob).LanguageDetector = {
+          create: vi.fn().mockResolvedValue({
+            detect: vi.fn().mockRejectedValue(new Error('boom')),
+            destroy,
+          }),
+        }
+        return destroy
+      },
+      run: () => detectLanguage('Hola mundo'),
+      code: 'language-detection-failed',
+      message: 'Language detection failed.',
+    },
+  ])('destroys the $label session after a post-create request rejection', async ({ install, run, code, message }) => {
+    const destroy = install()
+
+    await expect(run()).rejects.toMatchObject({ code, message })
+    expect(destroy).toHaveBeenCalledTimes(1)
+  })
+
+  it.each([
+    {
       label: 'Writer',
       install() {
         ;(globalThis as Glob).Writer = { create: vi.fn().mockRejectedValue(new Error('boom')) }

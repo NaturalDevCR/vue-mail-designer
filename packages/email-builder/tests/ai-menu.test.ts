@@ -10,6 +10,15 @@ import AiMenu from '../src/components/AiMenu.vue'
 import * as chromeAi from '../src/ai/chromeAi'
 
 const editors: Editor[] = []
+const deferred = <T>() => {
+  let resolve!: (value: T) => void
+  let reject!: (reason?: unknown) => void
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res
+    reject = rej
+  })
+  return { promise, resolve, reject }
+}
 
 function makeEditor(content = '<p>Hello world</p>', selectAll = true) {
   const editor = new Editor({ extensions: [StarterKit], content })
@@ -109,6 +118,56 @@ describe('AiMenu', () => {
 
     expect(wrapper.find('.vmd-ai-error').text()).toContain('AI is not available in this browser.')
     expect(wrapper.find('[data-action="ai-run"]').attributes('disabled')).toBeDefined()
+  })
+
+  it('ignores stale translate availability results when the target language changes', async () => {
+    vi.spyOn(chromeAi, 'detectLanguage').mockResolvedValue('en')
+
+    const pendingByTarget = new Map<string, Array<ReturnType<typeof deferred<chromeAi.AiAvailability>>>>()
+    vi.spyOn(chromeAi, 'translateAvailability').mockImplementation(async (_source, target) => {
+      const pending = deferred<chromeAi.AiAvailability>()
+      pendingByTarget.set(target, [...(pendingByTarget.get(target) ?? []), pending])
+      return pending.promise
+    })
+
+    const wrapper = mountMenu(makeEditor('<p>Hello world</p>'), {
+      ai: {
+        enabled: true,
+        languages: [
+          { code: 'es', label: 'Spanish' },
+          { code: 'fr', label: 'French' },
+        ],
+      },
+      locale: 'en',
+    })
+
+    await wrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
+    await wrapper.find('[data-action="ai-item-translate"]').trigger('click')
+    await flushPromises()
+
+    expect((pendingByTarget.get('es') ?? []).length).toBeGreaterThan(0)
+
+    await wrapper.find('[data-field="ai-target-lang"]').setValue('fr')
+    await wrapper.vm.$nextTick()
+
+    const frenchRequests = pendingByTarget.get('fr') ?? []
+    expect(frenchRequests.length).toBeGreaterThan(0)
+
+    for (const request of frenchRequests) {
+      request.resolve('readily')
+    }
+    await flushPromises()
+
+    expect(wrapper.find('[data-action="ai-run"]').attributes('disabled')).toBeUndefined()
+    expect(wrapper.find('.vmd-ai-error').exists()).toBe(false)
+
+    for (const request of pendingByTarget.get('es') ?? []) {
+      request.resolve('no')
+    }
+    await flushPromises()
+
+    expect(wrapper.find('[data-action="ai-run"]').attributes('disabled')).toBeUndefined()
+    expect(wrapper.find('.vmd-ai-error').exists()).toBe(false)
   })
 
   it('disables only the unavailable browser capability', async () => {

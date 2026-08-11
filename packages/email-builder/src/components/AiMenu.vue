@@ -172,6 +172,7 @@ const summaryLength = ref<AiSummaryLength>('medium')
 const sourceLanguage = ref('')
 const targetLanguage = ref('')
 const translationAvailability = ref<AiAvailability | null>(null)
+let translationAvailabilityRequestId = 0
 
 const languages = computed(() => options.ai?.languages ?? [])
 const canRewrite = computed(() => isRewriterAvailable() && hasSelection.value)
@@ -214,6 +215,7 @@ function getEditor(): Editor | undefined {
 }
 
 function resetToolState(): void {
+  translationAvailabilityRequestId += 1
   activeTool.value = null
   loading.value = false
   progressPct.value = null
@@ -253,6 +255,7 @@ function close(): void {
 }
 
 function selectTool(tool: Tool): void {
+  translationAvailabilityRequestId += 1
   activeTool.value = tool
   errorMessage.value = ''
   resultText.value = ''
@@ -285,14 +288,19 @@ function localizeError(error: unknown): string {
 }
 
 async function refreshTranslateAvailability(): Promise<void> {
-  if (activeTool.value !== 'translate' || !targetLanguage.value || !sourceLanguage.value) {
+  const source = sourceLanguage.value
+  const target = targetLanguage.value
+  if (activeTool.value !== 'translate' || !target || !source) {
     translationAvailability.value = null
     return
   }
+  const requestId = ++translationAvailabilityRequestId
+  translationAvailability.value = null
 
   try {
-    const availability = await translateAvailability(sourceLanguage.value, targetLanguage.value)
-    if (activeTool.value !== 'translate') return
+    const availability = await translateAvailability(source, target)
+    if (requestId !== translationAvailabilityRequestId) return
+    if (activeTool.value !== 'translate' || sourceLanguage.value !== source || targetLanguage.value !== target) return
 
     translationAvailability.value = availability
     if (availability === 'no') {
@@ -301,6 +309,8 @@ async function refreshTranslateAvailability(): Promise<void> {
       errorMessage.value = ''
     }
   } catch (error) {
+    if (requestId !== translationAvailabilityRequestId) return
+    if (activeTool.value !== 'translate' || sourceLanguage.value !== source || targetLanguage.value !== target) return
     translationAvailability.value = 'no'
     errorMessage.value = localizeError(error)
   }
@@ -319,8 +329,6 @@ async function prepareTranslate(): Promise<void> {
     errorMessage.value = localizeError(error)
     sourceLanguage.value = locale
   }
-
-  await refreshTranslateAvailability()
 }
 
 async function run(): Promise<void> {
