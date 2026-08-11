@@ -10,6 +10,7 @@ All optional.
 | `uploadImage` | `(file: File) => Promise<string>` | Upload handler; returns the final URL. Without this prop, the Image block can't upload new files. |
 | `imageSearch` | `(query: string) => Promise<ImageResult[]>` | Search handler for the Search subtab in the unified Images panel; defaults to `openverseSearch` (Openverse, CC0/CC-BY). |
 | `mediaLibrary` | `MediaLibraryOptions` | Enables the Gallery subtab in the unified Images panel: `{ list: (cursor?) => Promise<{ items: MediaItem[], nextCursor? }>, upload: (file) => Promise<MediaItem>, delete: (id) => Promise<void>, rename: (id, name) => Promise<MediaItem> }`. Without this prop, only Search is shown. You implement each function against your own storage — the library assumes no particular backend. |
+| `timerImageUrlBuilder` | `(block: TimerBlock) => string \| undefined` | Optional email-safe timer image provider. Called during live preview and HTML export when the timer has no explicit `imageUrl`; return a remotely served GIF or generated image URL. Without it, exported timers are static snapshots because email clients cannot run a live countdown. |
 | `unlayerFetch` | `(slug: string) => Promise<unknown>` | Handler to load an Unlayer template by URL/slug; returns the design JSON. Defaults to hitting Unlayer's public API (fails via CORS without your own proxy). |
 | `theme` | `'light' \| 'dark'` | Builder UI theme (doesn't affect the email canvas). |
 | `showHeader` | `boolean` | Whether to show the builder header. Defaults to `true`; when `false`, the entire builder header is hidden. |

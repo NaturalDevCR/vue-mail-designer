@@ -84,7 +84,7 @@ function downloadFile(name: string, content: string, mime: string) {
 }
 
 function exportHtmlFile() {
-  downloadFile('email.html', renderHtml(store.doc, options.fonts, options.customBlocks), 'text/html')
+  downloadFile('email.html', renderHtml(store.doc, options.fonts, options.customBlocks, options.timerImageUrlBuilder), 'text/html')
   menuOpen.value = false
 }
 function exportJsonFile() {
@@ -94,7 +94,7 @@ function exportJsonFile() {
 async function exportImageFile() {
   menuOpen.value = false
   try {
-    const html = renderHtml(store.doc, options.fonts, options.customBlocks)
+    const html = renderHtml(store.doc, options.fonts, options.customBlocks, options.timerImageUrlBuilder)
     const dataUrl = await exportDocumentImage(html, store.doc.settings.contentWidth)
     const a = document.createElement('a')
     a.href = dataUrl

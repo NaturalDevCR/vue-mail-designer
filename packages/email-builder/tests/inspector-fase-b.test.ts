@@ -5,6 +5,7 @@ import { defineComponent, h, provide } from 'vue'
 import PropertiesPanel from '../src/components/PropertiesPanel.vue'
 import { useDocumentStore } from '../src/store/document'
 import { BUILDER_PINIA_KEY } from '../src/store/keys'
+import { useUiStore } from '../src/store/ui'
 
 function mountInspector() {
   const pinia = createPinia()
@@ -14,7 +15,7 @@ function mountInspector() {
       return () => h(PropertiesPanel)
     },
   })
-  return { wrapper: mount(Host), store: useDocumentStore(pinia) }
+  return { wrapper: mount(Host), store: useDocumentStore(pinia), ui: useUiStore(pinia) }
 }
 
 describe('PropertiesPanel — Fase B', () => {
@@ -51,6 +52,20 @@ describe('PropertiesPanel — Fase B', () => {
     expect(wrapper.text()).toContain('Label color')
     expect(wrapper.text()).toContain('Days label')
     expect(wrapper.text()).toContain('Font')
+  })
+
+  it('opens the unified image sources while keeping the image block selected', async () => {
+    const { wrapper, store, ui } = mountInspector()
+    const row = store.addRow([100])
+    const block = store.addBlockToColumn(row.columns[0].id, 'image')
+    store.select({ kind: 'block', id: block.id })
+    await wrapper.vm.$nextTick()
+
+    await wrapper.find('[data-action="choose-image-source"]').trigger('click')
+
+    expect(ui.panelMode).toBe('tab')
+    expect(ui.sidebarTab).toBe('images')
+    expect(store.selection).toEqual({ kind: 'block', id: block.id })
   })
 
   it('toggle "Hide on mobile" setea hideMobile en el bloque', async () => {

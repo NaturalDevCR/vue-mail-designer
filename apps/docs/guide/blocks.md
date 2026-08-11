@@ -14,8 +14,21 @@ Most blocks share, in their inspector:
 
 Countdown to a date. Two modes:
 
-- **Integrator-provided dynamic image**: you pass a function that generates the counter image (typically an external service like countdownmail).
+- **Integrator-provided dynamic image**: you pass a function that generates the counter image (typically an external service like countdownmail). The callback receives the complete `TimerBlock`, so the provider can use its `endDate` and return a recipient-specific or campaign-specific image URL.
 - **Static box**: without that function, it shows a styled days/hours/minutes/seconds snapshot — works in any client, with no JavaScript animation.
+
+Email clients cannot run a reliable JavaScript or CSS countdown inside an exported message. A live timer therefore needs a remotely served image (GIF or dynamically generated image), just as other email builders do. Configure the provider with `timerImageUrlBuilder`:
+
+```ts
+const timerImageUrlBuilder = (block: TimerBlock) =>
+  `https://your-domain.example/email-timer.gif?end=${encodeURIComponent(block.endDate)}`
+```
+
+```vue
+<EmailBuilder :timer-image-url-builder="timerImageUrlBuilder" />
+```
+
+An explicit `TimerBlock.imageUrl` always takes precedence over the callback. If neither is available, export uses the static fallback; the editor still renders its local countdown live while editing.
 
 The Timer inspector lets you customize the static box background, border color and thickness, corner radius, number color, label color, font family, and each unit label. These settings are stored in the design JSON and are applied to both the live canvas and exported HTML. Existing timers keep their previous appearance through schema defaults.
 

@@ -284,6 +284,7 @@ img.vmd-media-drop-active { outline: 2px solid var(--vmd-accent); outline-offset
 .vmd-checkbox-field .vmd-field-label { margin-bottom: 0; }
 .vmd-props-section-title { margin: 16px 0 8px; font-size: 12px; text-transform: uppercase; color: var(--vmd-muted); border-top: 1px solid var(--vmd-border); padding-top: 12px; }
 .vmd-props-subtitle { margin: 12px 0 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--vmd-muted); }
+.vmd-props-note { margin: 8px 0 12px; font-size: 12px; line-height: 1.5; color: var(--vmd-muted); }
 
 /* tabs de propiedades de columna en el inspector de fila */
 .vmd-col-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--vmd-border); margin-bottom: 12px; overflow-x: auto; }
