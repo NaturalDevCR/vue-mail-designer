@@ -76,12 +76,12 @@ describe('modal portals', () => {
     assertBodyPortal('.vmd-preview-box')
     await findInBody('.vmd-modal').trigger('click')
 
-    await wrapper.find('[data-action="export"]').trigger('click')
+    await wrapper.find('[data-tab="export"]').trigger('click')
     await wrapper.find('[data-action="import-unlayer"]').trigger('click')
     assertBodyPortal('.vmd-import-box')
     await findInBody('.vmd-modal').trigger('click')
 
-    await wrapper.find('[data-action="export"]').trigger('click')
+    await wrapper.find('[data-tab="export"]').trigger('click')
     await wrapper.find('[data-action="versions"]').trigger('click')
     assertBodyPortal('.vmd-versions-box')
     await findInBody('.vmd-modal').trigger('click')

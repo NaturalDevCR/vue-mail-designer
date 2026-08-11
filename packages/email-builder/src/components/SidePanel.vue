@@ -9,6 +9,7 @@
             <BlocksTab v-else-if="ui.sidebarTab === 'blocks'" />
             <BodyTab v-else-if="ui.sidebarTab === 'body'" />
             <ImagesPanel v-else-if="ui.sidebarTab === 'images'" />
+            <ExportPanel v-else-if="ui.sidebarTab === 'export'" />
           </template>
         </div>
       </Transition>
@@ -41,6 +42,7 @@ import BlocksTab from './tabs/BlocksTab.vue'
 import BodyTab from './tabs/BodyTab.vue'
 import ContentTab from './tabs/ContentTab.vue'
 import ImagesPanel from './tabs/ImagesPanel.vue'
+import ExportPanel from './tabs/ExportPanel.vue'
 
 const pinia = useBuilderPinia()
 const store = useDocumentStore(pinia)
@@ -53,7 +55,7 @@ const viewKey = computed(() =>
   store.selection && ui.panelMode === 'props' ? 'props' : ui.sidebarTab,
 )
 
-type TabKey = 'content' | 'blocks' | 'body' | 'images'
+type TabKey = 'content' | 'blocks' | 'body' | 'images' | 'export'
 
 const TABS = computed<{ key: TabKey; labelKey: string; icon: string }[]>(() => {
   return [
@@ -61,6 +63,7 @@ const TABS = computed<{ key: TabKey; labelKey: string; icon: string }[]>(() => {
     { key: 'blocks', labelKey: 'rail.blocks', icon: 'tabBlocks' },
     { key: 'body', labelKey: 'rail.body', icon: 'tabBody' },
     { key: 'images', labelKey: 'rail.images', icon: 'tabImages' },
+    { key: 'export', labelKey: 'rail.export', icon: 'tabExport' },
   ]
 })
 

@@ -30,6 +30,8 @@ function handleExport() {
 | `getAutosaveStatus` | `(): AutosaveStatus` | Current autosave lifecycle state: `'disabled'`, `'idle'`, `'restoring'`, `'saving'`, `'saved'`, or `'error'`. |
 | `exportImage` | `(): Promise<string>` | PNG of the design, as a data URL. **Limitation:** cross-origin images (CORS) can prevent the capture. |
 
+The right rail's **Export** tab exposes the same HTML, JSON, import, PNG, and version workflows for users who prefer the built-in UI. Use the ref methods when the host application needs to save or load designs from its own backend.
+
 ## Versions
 
 From the **Export → Versions…** menu, the user can save, load, and delete named versions of the design — in memory for the session, not persisted by the library (save them yourself if you need them across sessions).

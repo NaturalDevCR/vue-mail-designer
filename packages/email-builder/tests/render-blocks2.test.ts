@@ -24,6 +24,29 @@ describe('renderBlock — bloques avanzados', () => {
     expect(html).toContain('border-radius:50%')
   })
 
+  it('social: exporta iconos con URLs HTTPS en lugar de data URIs', () => {
+    const social = createBlock('social') as SocialBlock
+    social.networks = [{ kind: 'facebook', url: 'https://facebook.com/acme' }]
+
+    const html = render(social)
+
+    expect(html).toContain('src="https://cdn.simpleicons.org/facebook/ffffff"')
+    expect(html).not.toContain('data:image/svg+xml')
+  })
+
+  it('social: permite personalizar y escapar la URL de cada icono', () => {
+    const social = createBlock('social') as SocialBlock
+    social.networks = [{ kind: 'facebook', url: 'https://facebook.com/acme' }]
+    const doc = createDocument()
+    const row = createRow([100])
+    row.columns[0].blocks.push(social)
+    doc.rows.push(row)
+
+    const html = renderHtml(doc, undefined, undefined, undefined, () => 'https://assets.example.test/facebook.svg?theme=light&size=24')
+
+    expect(html).toContain('src="https://assets.example.test/facebook.svg?theme=light&amp;size=24"')
+  })
+
   it('menu: items con separador escapado', () => {
     const menu = createBlock('menu') as MenuBlock
     menu.items = [

@@ -3,10 +3,24 @@ import { describe, expect, it } from 'vitest'
 import EmailBuilder from '../src/components/EmailBuilder.vue'
 
 describe('SidePanel', () => {
-  it('riel con 4 tabs; Content activo por defecto muestra los 13 bloques', () => {
+  it('rail has five tabs; Content is active by default and shows the 13 blocks', () => {
     const wrapper = mount(EmailBuilder)
-    expect(wrapper.findAll('.vmd-rail [data-tab]')).toHaveLength(4)
+    expect(wrapper.findAll('.vmd-rail [data-tab]')).toHaveLength(5)
     expect(wrapper.findAll('.vmd-content-item')).toHaveLength(13)
+  })
+
+  it('Export tab exposes all native export and import actions', async () => {
+    const wrapper = mount(EmailBuilder)
+    await wrapper.find('[data-tab="export"]').trigger('click')
+
+    expect(wrapper.find('.vmd-export-panel').exists()).toBe(true)
+    expect(wrapper.findAll('.vmd-export-action')).toHaveLength(6)
+    expect(wrapper.find('[data-action="export-html"]').exists()).toBe(true)
+    expect(wrapper.find('[data-action="export-json"]').exists()).toBe(true)
+    expect(wrapper.find('[data-action="import-json"]').exists()).toBe(true)
+    expect(wrapper.find('[data-action="import-unlayer"]').exists()).toBe(true)
+    expect(wrapper.find('[data-action="export-image"]').exists()).toBe(true)
+    expect(wrapper.find('[data-action="versions"]').exists()).toBe(true)
   })
 
   it('tab Blocks muestra 6 miniaturas de layout', async () => {

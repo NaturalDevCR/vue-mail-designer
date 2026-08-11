@@ -1,6 +1,8 @@
 <template>
   <button type="button" :class="thumbClass" @click="$emit('click')">
-    <img ref="imageEl" :src="thumbnailUrl" :alt="alt" />
+    <span class="vmd-image-thumb-viewport">
+      <img ref="imageEl" :src="thumbnailUrl" :alt="alt" />
+    </span>
   </button>
 </template>
 

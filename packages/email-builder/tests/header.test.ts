@@ -33,21 +33,19 @@ describe('BuilderHeader', () => {
     expect(wrapper.find('.vmd-header-status-label').text()).toBe('Guardado')
   })
 
-  it('renderiza marca, plantillas, estado y exportar', () => {
+  it('renders brand, templates, and status without duplicating Export navigation', () => {
     const { wrapper } = mountHeader()
     expect(wrapper.find('.vmd-header').exists()).toBe(true)
     expect(wrapper.text()).toContain('Plantillas')
     expect(wrapper.text()).toContain('Guardado')
-    expect(wrapper.find('[data-action="export"]').text()).toContain('EXPORTAR')
+    expect(wrapper.find('[data-action="export"]').exists()).toBe(false)
   })
 
-  it('el menú de exportar abre y cierra', async () => {
+  it('keeps export actions in the side rail rather than the header', async () => {
     const { wrapper } = mountHeader()
     expect(wrapper.find('.vmd-export-menu').exists()).toBe(false)
-    await wrapper.find('[data-action="export"]').trigger('click')
-    expect(wrapper.find('.vmd-export-menu').exists()).toBe(true)
-    expect(wrapper.find('[data-action="export-html"]').exists()).toBe(true)
-    expect(wrapper.find('[data-action="import-json"]').exists()).toBe(true)
+    expect(wrapper.find('[data-action="export-html"]').exists()).toBe(false)
+    expect(wrapper.find('[data-action="import-json"]').exists()).toBe(false)
   })
 
   it('plantillas abre la galería y el store ui tiene los campos nuevos', async () => {

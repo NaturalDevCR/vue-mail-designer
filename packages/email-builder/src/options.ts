@@ -4,7 +4,7 @@ import type { ImageResult } from './imageSearch'
 import type { FontDef } from './fonts'
 import type { UnlayerFetch } from './import/unlayerUrl'
 import type { MediaLibraryOptions } from './mediaLibrary'
-import type { BlockType, TimerBlock } from './schema'
+import type { BlockType, SocialNetworkKind, TimerBlock } from './schema'
 import type { EmailTemplate } from './templates'
 
 export type MergeTagDef = { name: string; value: string }
@@ -13,6 +13,7 @@ export type MergeTagItem = MergeTagDef | MergeTagGroup
 export type AiLanguage = { code: string; label: string }
 export type AiOptions = { enabled: boolean; languages?: AiLanguage[] }
 export type TimerImageUrlBuilder = (block: TimerBlock) => string | undefined
+export type SocialIconUrlBuilder = (kind: SocialNetworkKind) => string | undefined
 
 /** Enlace especial insertable en el editor (ej. cancelar suscripción). */
 export type SpecialLink = { name: string; href: string }
@@ -73,6 +74,7 @@ export type BuilderOptions = {
   templates?: EmailTemplate[]
   imageSearch?: (query: string) => Promise<ImageResult[]>
   timerImageUrlBuilder?: TimerImageUrlBuilder
+  socialIconUrlBuilder?: SocialIconUrlBuilder
   unlayerFetch?: UnlayerFetch
   tools?: Partial<Record<BlockType, ToolConfig>>
   fonts?: FontDef[]

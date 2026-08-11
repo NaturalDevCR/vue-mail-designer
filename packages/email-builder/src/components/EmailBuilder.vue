@@ -40,7 +40,7 @@ import type { LocaleDict } from '../i18n/keys'
 import { provideI18n, type ResolvedLocale } from '../i18n/useI18n'
 import type { UnlayerFetch } from '../import/unlayerUrl'
 import type { MediaLibraryOptions } from '../mediaLibrary'
-import { BUILDER_OPTIONS_KEY, isThemeAppearance, type AiOptions, type Appearance, type CustomBlockDef, type MergeTagItem, type SpecialLink, type ThemeAppearance, type TimerImageUrlBuilder, type ToolConfig } from '../options'
+import { BUILDER_OPTIONS_KEY, isThemeAppearance, type AiOptions, type Appearance, type CustomBlockDef, type MergeTagItem, type SocialIconUrlBuilder, type SpecialLink, type ThemeAppearance, type TimerImageUrlBuilder, type ToolConfig } from '../options'
 import type { BlockType } from '../schema'
 import { renderHtml } from '../render/html'
 import { exportDocumentImage } from '../export/image'
@@ -68,6 +68,7 @@ const props = withDefaults(defineProps<{
   uploadImage?: (file: File) => Promise<string>
   imageSearch?: (query: string) => Promise<ImageResult[]>
   timerImageUrlBuilder?: TimerImageUrlBuilder
+  socialIconUrlBuilder?: SocialIconUrlBuilder
   unlayerFetch?: UnlayerFetch
   theme?: 'light' | 'dark'
   locale?: 'es' | 'en' | LocaleDict
@@ -187,6 +188,9 @@ provide(
     get timerImageUrlBuilder() {
       return props.timerImageUrlBuilder
     },
+    get socialIconUrlBuilder() {
+      return props.socialIconUrlBuilder
+    },
     get unlayerFetch() {
       return props.unlayerFetch
     },
@@ -276,7 +280,7 @@ watch(
 )
 
 function exportHtml(): string {
-  const html = renderHtml(store.doc, props.fonts ?? DEFAULT_FONTS, props.customBlocks, props.timerImageUrlBuilder)
+  const html = renderHtml(store.doc, props.fonts ?? DEFAULT_FONTS, props.customBlocks, props.timerImageUrlBuilder, props.socialIconUrlBuilder)
   emit('export-html', html)
   return html
 }
@@ -293,7 +297,7 @@ function getAutosaveStatus(): AutosaveStatus {
   return autosaveController.getStatus()
 }
 function exportImage(): Promise<string> {
-  const html = renderHtml(store.doc, props.fonts ?? DEFAULT_FONTS, props.customBlocks, props.timerImageUrlBuilder)
+  const html = renderHtml(store.doc, props.fonts ?? DEFAULT_FONTS, props.customBlocks, props.timerImageUrlBuilder, props.socialIconUrlBuilder)
   return exportDocumentImage(html, store.doc.settings.contentWidth)
 }
 
