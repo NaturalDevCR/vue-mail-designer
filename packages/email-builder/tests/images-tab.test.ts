@@ -24,6 +24,7 @@ describe('ImagesTab', () => {
     await searchIn(wrapper)
     expect(imageSearch).toHaveBeenCalledWith('futbol')
     expect(wrapper.findAll('.vmd-image-result')).toHaveLength(2)
+    expect(wrapper.findAll('.vmd-image-result')[0]?.attributes('draggable')).toBe('true')
     expect(wrapper.findAll('.vmd-image-result')[0]?.find('img').attributes('src')).toBe('https://img.example/t1.jpg')
   })
 

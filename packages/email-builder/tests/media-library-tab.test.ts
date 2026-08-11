@@ -9,6 +9,19 @@ const items: MediaItem[] = [
   { id: 'b', url: 'https://img.example/b.jpg', thumbnailUrl: 'https://img.example/b-thumb.jpg', name: 'Foto B' },
 ]
 
+const UI = {
+  empty: 'You have not uploaded images yet.',
+  uploadError: 'Could not upload the image.',
+  loadMoreError: 'Could not load more images.',
+  delete: 'Delete',
+  confirm: 'Confirm',
+  cancel: 'Cancel',
+  deleteError: 'Could not delete the image.',
+  rename: 'Rename',
+  renameError: 'Could not rename the image.',
+  reloadComplete: 'Reload full gallery',
+} as const
+
 function makeMediaLibrary(
   overrides: Partial<{
     list: ReturnType<typeof vi.fn>
@@ -33,7 +46,7 @@ async function openMediaTab(wrapper: ReturnType<typeof mount>) {
   await flushPromises()
 }
 
-function findButtonWithText(root: DOMWrapper<Element>, text: string) {
+  function findButtonWithText(root: DOMWrapper<Element>, text: string) {
   const btn = root.findAll('button').find((b) => b.text().trim() === text)
   if (!btn) throw new Error(`No se encontró el botón "${text}"`)
   return btn
@@ -52,6 +65,7 @@ describe('MediaLibraryTab', () => {
     await openMediaTab(wrapper)
     expect(mediaLibrary.list).toHaveBeenCalledWith()
     expect(wrapper.findAll('.vmd-media-item')).toHaveLength(2)
+    expect(wrapper.findAll('.vmd-media-item-thumb')[0]?.attributes('draggable')).toBe('true')
     expect(wrapper.findAll('.vmd-media-item-thumb')[0]?.find('img').attributes('src')).toBe(
       'https://img.example/a-thumb.jpg',
     )
@@ -130,7 +144,7 @@ describe('MediaLibraryTab', () => {
       props: { mediaLibrary: makeMediaLibrary({ list: vi.fn().mockResolvedValue({ items: [] }) }) },
     })
     await openMediaTab(wrapper)
-    expect(wrapper.find('.vmd-tab-placeholder').text()).toContain('Todavía no subiste imágenes')
+    expect(wrapper.find('.vmd-tab-placeholder').text()).toContain(UI.empty)
   })
 
   it('sube un archivo y antepone el ítem al grid sin volver a listar', async () => {
@@ -170,7 +184,7 @@ describe('MediaLibraryTab', () => {
     await input.trigger('change')
     await flushPromises()
 
-    expect(wrapper.find('.vmd-media-tab .vmd-image-error').text()).toContain('No se pudo subir la imagen')
+    expect(wrapper.find('.vmd-media-tab .vmd-image-error').text()).toContain(UI.uploadError)
     expect(wrapper.findAll('.vmd-media-item')).toHaveLength(2)
   })
 
@@ -207,7 +221,7 @@ describe('MediaLibraryTab', () => {
     await flushPromises()
 
     expect(wrapper.findAll('.vmd-media-item')).toHaveLength(2)
-    expect(wrapper.find('.vmd-media-tab .vmd-image-error').text()).toContain('No se pudo cargar más imágenes')
+    expect(wrapper.find('.vmd-media-tab .vmd-image-error').text()).toContain(UI.loadMoreError)
     expect(wrapper.find('.vmd-media-loadmore').exists()).toBe(true)
   })
 
@@ -218,10 +232,10 @@ describe('MediaLibraryTab', () => {
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem, 'Borrar').trigger('click')
+    await findButtonWithText(firstItem, UI.delete).trigger('click')
     expect(del).not.toHaveBeenCalled()
 
-    await findButtonWithText(firstItem, 'Confirmar').trigger('click')
+    await findButtonWithText(firstItem, UI.confirm).trigger('click')
     await flushPromises()
 
     expect(del).toHaveBeenCalledWith('a')
@@ -235,8 +249,8 @@ describe('MediaLibraryTab', () => {
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem, 'Borrar').trigger('click')
-    await findButtonWithText(firstItem, 'Cancelar').trigger('click')
+    await findButtonWithText(firstItem, UI.delete).trigger('click')
+    await findButtonWithText(firstItem, UI.cancel).trigger('click')
 
     expect(del).not.toHaveBeenCalled()
     expect(wrapper.findAll('.vmd-media-item')).toHaveLength(2)
@@ -249,12 +263,12 @@ describe('MediaLibraryTab', () => {
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem, 'Borrar').trigger('click')
-    await findButtonWithText(firstItem, 'Confirmar').trigger('click')
+    await findButtonWithText(firstItem, UI.delete).trigger('click')
+    await findButtonWithText(firstItem, UI.confirm).trigger('click')
     await flushPromises()
 
     expect(wrapper.findAll('.vmd-media-item')).toHaveLength(2)
-    expect(firstItem.find('.vmd-image-error').text()).toContain('No se pudo borrar la imagen')
+    expect(firstItem.find('.vmd-image-error').text()).toContain(UI.deleteError)
   })
 
   it('renombra un ítem con Enter y actualiza el nombre mostrado', async () => {
@@ -265,7 +279,7 @@ describe('MediaLibraryTab', () => {
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem, 'Renombrar').trigger('click')
+    await findButtonWithText(firstItem, UI.rename).trigger('click')
 
     const input = firstItem.find('.vmd-media-item-name-input')
     await input.setValue('Nuevo nombre')
@@ -283,7 +297,7 @@ describe('MediaLibraryTab', () => {
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem, 'Renombrar').trigger('click')
+    await findButtonWithText(firstItem, UI.rename).trigger('click')
 
     const input = firstItem.find('.vmd-media-item-name-input')
     await input.setValue('Otro nombre')
@@ -301,7 +315,7 @@ describe('MediaLibraryTab', () => {
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem, 'Renombrar').trigger('click')
+    await findButtonWithText(firstItem, UI.rename).trigger('click')
 
     const input = firstItem.find('.vmd-media-item-name-input')
     await input.setValue('Nuevo nombre')
@@ -309,7 +323,7 @@ describe('MediaLibraryTab', () => {
     await flushPromises()
 
     expect(rename).toHaveBeenCalledWith('a', 'Nuevo nombre')
-    expect(firstItem.find('.vmd-image-error').text()).toContain('No se pudo renombrar la imagen')
+    expect(firstItem.find('.vmd-image-error').text()).toContain(UI.renameError)
     expect(firstItem.find('.vmd-media-item-name-input').exists()).toBe(true)
   })
 
@@ -322,7 +336,7 @@ describe('MediaLibraryTab', () => {
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem, 'Renombrar').trigger('click')
+    await findButtonWithText(firstItem, UI.rename).trigger('click')
     await flushPromises()
 
     const input = firstItem.find('.vmd-media-item-name-input').element as HTMLInputElement
@@ -342,7 +356,7 @@ describe('MediaLibraryTab', () => {
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem, 'Renombrar').trigger('click')
+    await findButtonWithText(firstItem, UI.rename).trigger('click')
     await flushPromises()
 
     const input = firstItem.find('.vmd-media-item-name-input')
@@ -369,8 +383,8 @@ describe('MediaLibraryTab', () => {
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem, 'Borrar').trigger('click')
-    await findButtonWithText(firstItem, 'Confirmar').trigger('click')
+    await findButtonWithText(firstItem, UI.delete).trigger('click')
+    await findButtonWithText(firstItem, UI.confirm).trigger('click')
 
     expect(firstItem.classes()).toContain('vmd-media-item--busy')
 
@@ -409,7 +423,7 @@ describe('MediaLibraryTab', () => {
     await flushPromises()
 
     expect(wrapper.findAll('.vmd-media-item')).toHaveLength(1)
-    const reloadBtn = wrapper.findAll('button').find((b) => b.text().trim() === 'Recargar galería completa')
+    const reloadBtn = wrapper.findAll('button').find((b) => b.text().trim() === UI.reloadComplete)
     expect(reloadBtn).toBeTruthy()
 
     await reloadBtn!.trigger('click')
@@ -417,7 +431,7 @@ describe('MediaLibraryTab', () => {
 
     expect(list).toHaveBeenCalledTimes(2)
     expect(wrapper.findAll('.vmd-media-item')).toHaveLength(2)
-    expect(wrapper.findAll('button').some((b) => b.text().trim() === 'Recargar galería completa')).toBe(false)
+    expect(wrapper.findAll('button').some((b) => b.text().trim() === UI.reloadComplete)).toBe(false)
   })
 
   it('deshabilita el input de renombrado mientras rename está en curso', async () => {
@@ -433,7 +447,7 @@ describe('MediaLibraryTab', () => {
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem, 'Renombrar').trigger('click')
+    await findButtonWithText(firstItem, UI.rename).trigger('click')
 
     const input = firstItem.find('.vmd-media-item-name-input')
     await input.setValue('Nuevo nombre')
