@@ -22,7 +22,7 @@ Out of scope:
 
 - A Firestore dependency or vendor-specific adapter.
 - Remote deletion, conflict resolution, version history, multi-user synchronization, or optimistic locking.
-- Package version bumps, publishing, or npm release work. Those happen only after local validation and explicit approval.
+- Publishing the autosave feature, package version bumps, or an npm release. The repository will be prepared for publishing now, but versioning and release execution happen only after local validation and explicit approval.
 
 ## Public API
 
@@ -140,6 +140,17 @@ Document the API and examples in:
 - `apps/docs/scripts/build-llms.mjs`, so generated `llms.txt` and `llms-full.txt` include the guide.
 
 All new documentation and code comments are written in English. The runtime UI remains compatible with the existing English/Spanish locale system.
+
+## npm publishing readiness
+
+Prepare the repository for tokenless npm publishing through GitHub Actions without publishing or bumping the package version in this feature change.
+
+- Add `.github/workflows/publish.yml` with a `v*.*.*` tag trigger, `contents: read`, and `id-token: write` permissions.
+- Build and verify the package before publishing, and require the tag version to match `packages/email-builder/package.json` so a release cannot publish an unintended version.
+- Publish `@naturaldevcr/vue-mail-designer` from `packages/email-builder` with public scoped-package access using npm Trusted Publishing/OIDC; do not add an npm token or secret to the repository.
+- Use the `release` GitHub environment so the npm Trusted Publisher can be configured with organization `NaturalDevCR`, repository `vue-mail-designer`, workflow filename `publish.yml`, environment `release`, and `npm publish` allowed.
+- Add an English maintainer release guide documenting the one-time npm/GitHub configuration and the later version/tag release steps.
+- Keep the current package version unchanged and do not push a release tag or invoke the publish workflow as part of implementation.
 
 ## Acceptance criteria
 
