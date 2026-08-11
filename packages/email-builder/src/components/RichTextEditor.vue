@@ -55,6 +55,8 @@
               <option v-for="(l, i) in specialLinks" :key="i" :value="i">{{ l.name }}</option>
             </select>
           </template>
+          <span v-if="options.ai?.enabled" class="vmd-rte-sep" />
+          <AiMenu v-if="options.ai?.enabled" :editor="editor || undefined" />
         </div>
       </template>
     </div>
@@ -73,6 +75,7 @@ import { MergeTag, insertMergeTag } from '../editor/mergeTag'
 import { InlineStyle } from '../editor/inlineStyle'
 import { DEFAULT_FONTS } from '../fonts'
 import { useI18n } from '../i18n/useI18n'
+import AiMenu from './AiMenu.vue'
 import { ICONS } from './icons'
 import { DEFAULT_SPECIAL_LINKS, flattenMergeTags, isMergeTagGroup, useBuilderOptions } from '../options'
 

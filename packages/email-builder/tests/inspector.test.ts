@@ -37,6 +37,6 @@ describe('PropertiesPanel', () => {
     const row = store.addRow([100])
     store.select({ kind: 'row', id: row.id })
     await wrapper.vm.$nextTick()
-    expect(wrapper.text()).toContain('Fila')
+    expect(wrapper.text()).toContain('Row')
   })
 })

@@ -2,30 +2,30 @@
   <div class="vmd-modal" @click.self="close">
     <div class="vmd-modal-box vmd-import-box">
       <div class="vmd-preview-bar">
-        <h3 class="vmd-inspector-title" style="margin: 0">Importar de Unlayer</h3>
-        <button type="button" class="vmd-btn vmd-btn--icon" title="Cerrar" @click="close"><span class="vmd-ico" v-html="ICONS.close" /></button>
+        <h3 class="vmd-inspector-title" style="margin: 0">{{ t('dialog.unlayerTitle') }}</h3>
+        <button type="button" class="vmd-btn vmd-btn--icon" :title="t('common.close')" @click="close"><span class="vmd-ico" v-html="ICONS.close" /></button>
       </div>
       <div class="vmd-import-body">
-        <label class="vmd-field-label" for="vmd-import-json">Pega aquí el JSON de diseño de Unlayer</label>
+        <label class="vmd-field-label" for="vmd-import-json">{{ t('dialog.unlayerJsonLabel') }}</label>
         <textarea
           id="vmd-import-json"
           v-model="json"
           class="vmd-import-json"
           rows="8"
-          placeholder="Pega aquí el JSON de diseño de Unlayer"
+          :placeholder="t('dialog.unlayerJsonPlaceholder')"
         />
-        <label class="vmd-field-label" for="vmd-import-url">…o pega la URL de la plantilla del studio</label>
+        <label class="vmd-field-label" for="vmd-import-url">{{ t('dialog.unlayerUrlLabel') }}</label>
         <input
           id="vmd-import-url"
           v-model="url"
           type="text"
           class="vmd-import-url vmd-field-input"
-          placeholder="…o pega la URL de la plantilla del studio"
+          :placeholder="t('dialog.unlayerUrlPlaceholder')"
         />
 
         <div class="vmd-toolbar-group">
           <button type="button" class="vmd-btn" data-action="unlayer-load" :disabled="loading" @click="load">
-            {{ loading ? 'Cargando…' : 'Cargar' }}
+            {{ loading ? t('common.loading') : t('dialog.unlayerLoad') }}
           </button>
         </div>
 
@@ -37,7 +37,7 @@
           </ul>
           <div class="vmd-toolbar-group">
             <button type="button" class="vmd-btn vmd-btn--primary" data-action="unlayer-apply" @click="apply">
-              Aplicar
+              {{ t('common.apply') }}
             </button>
           </div>
         </template>
@@ -49,6 +49,7 @@
 <script setup lang="ts">
 import { ICONS } from './icons'
 import { ref } from 'vue'
+import { useI18n } from '../i18n/useI18n'
 import { defaultUnlayerFetch, unlayerSlugFromUrl } from '../import/unlayerUrl'
 import { unlayerToDocument } from '../import/unlayer'
 import { useBuilderOptions } from '../options'
@@ -61,6 +62,7 @@ const pinia = useBuilderPinia()
 const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
 const options = useBuilderOptions()
+const { t } = useI18n()
 
 const json = ref('')
 const url = ref('')
@@ -79,7 +81,7 @@ async function load() {
   try {
     if (url.value.trim()) {
       const slug = unlayerSlugFromUrl(url.value)
-      if (!slug) throw new Error('URL de Unlayer no válida.')
+      if (!slug) throw new Error(t('dialog.unlayerInvalidUrl'))
       const fetcher = options.unlayerFetch ?? defaultUnlayerFetch
       const design = await fetcher(slug)
       result.value = unlayerToDocument(design)
@@ -87,7 +89,7 @@ async function load() {
       const parsed = JSON.parse(json.value)
       result.value = unlayerToDocument(parsed)
     } else {
-      throw new Error('Pega un JSON o una URL de Unlayer.')
+      throw new Error(t('dialog.unlayerMissingInput'))
     }
   } catch (e) {
     error.value = e instanceof Error ? e.message : String(e)

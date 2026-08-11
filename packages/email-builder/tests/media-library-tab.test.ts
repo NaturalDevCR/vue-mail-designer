@@ -1,6 +1,9 @@
+import { monitorForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
 import { type DOMWrapper, flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
+import { nextTick } from 'vue'
 import EmailBuilder from '../src/components/EmailBuilder.vue'
+import { readDrag } from '../src/dnd/dragData'
 import type { MediaItem } from '../src/mediaLibrary'
 import { createBlock, createDocument, createRow } from '../src/schema'
 
@@ -8,6 +11,19 @@ const items: MediaItem[] = [
   { id: 'a', url: 'https://img.example/a.jpg', thumbnailUrl: 'https://img.example/a-thumb.jpg', name: 'Foto A' },
   { id: 'b', url: 'https://img.example/b.jpg', thumbnailUrl: 'https://img.example/b-thumb.jpg', name: 'Foto B' },
 ]
+
+const UI = {
+  empty: 'You have not uploaded images yet.',
+  uploadError: 'Could not upload the image.',
+  loadMoreError: 'Could not load more images.',
+  delete: 'Delete',
+  confirm: 'Confirm',
+  cancel: 'Cancel',
+  deleteError: 'Could not delete the image.',
+  rename: 'Rename',
+  renameError: 'Could not rename the image.',
+  reloadComplete: 'Reload full gallery',
+} as const
 
 function makeMediaLibrary(
   overrides: Partial<{
@@ -26,8 +42,44 @@ function makeMediaLibrary(
 }
 
 async function openMediaTab(wrapper: ReturnType<typeof mount>) {
-  await wrapper.find('[data-tab="media"]').trigger('click')
+  await wrapper.find('[data-tab="images"]').trigger('click')
+  const galleryTab = wrapper.find('[data-subtab="gallery"]')
+  expect(galleryTab.exists()).toBe(true)
+  await galleryTab.trigger('click')
   await flushPromises()
+}
+
+function endDragSession() {
+  const end = new Event('dragend', { bubbles: true, cancelable: true })
+  Object.defineProperty(end, 'clientX', { value: 1 })
+  Object.defineProperty(end, 'clientY', { value: 1 })
+  window.dispatchEvent(end)
+}
+
+function fireDragStart(el: Element): Event {
+  const ev = new Event('dragstart', { bubbles: true, cancelable: true })
+  Object.defineProperty(ev, 'dataTransfer', {
+    value: { types: [], items: [], setData: () => {}, getData: () => '', setDragImage: () => {} },
+  })
+  Object.defineProperty(ev, 'clientX', { value: 1 })
+  Object.defineProperty(ev, 'clientY', { value: 1 })
+  el.dispatchEvent(ev)
+  return ev
+}
+
+async function captureDragData(el: Element) {
+  await nextTick()
+  endDragSession()
+  let captured: ReturnType<typeof readDrag> = null
+  const cleanup = monitorForElements({
+    onGenerateDragPreview: ({ source }) => {
+      captured = readDrag(source.data as Record<string | symbol, unknown>)
+    },
+  })
+  const ev = fireDragStart(el)
+  cleanup()
+  if (!ev.defaultPrevented) endDragSession()
+  return captured
 }
 
 function findButtonWithText(root: DOMWrapper<Element>, text: string) {
@@ -37,23 +89,46 @@ function findButtonWithText(root: DOMWrapper<Element>, text: string) {
 }
 
 describe('MediaLibraryTab', () => {
-  it('no aparece la pestaña sin la prop mediaLibrary', () => {
+  it('oculta la subpestaña Gallery sin la prop mediaLibrary', async () => {
     const wrapper = mount(EmailBuilder)
-    expect(wrapper.find('[data-tab="media"]').exists()).toBe(false)
+    await wrapper.find('[data-tab="images"]').trigger('click')
+    expect(wrapper.find('[data-subtab="gallery"]').exists()).toBe(false)
   })
 
-  it('lista los ítems al abrir la pestaña', async () => {
+  it('lista los ítems al abrir la subpestaña Gallery', async () => {
     const mediaLibrary = makeMediaLibrary()
     const wrapper = mount(EmailBuilder, { props: { mediaLibrary } })
     await openMediaTab(wrapper)
     expect(mediaLibrary.list).toHaveBeenCalledWith()
     expect(wrapper.findAll('.vmd-media-item')).toHaveLength(2)
+    expect(wrapper.findAll('.vmd-media-item-thumb')[0]?.attributes('draggable')).toBe('true')
+    expect(wrapper.findAll('.vmd-media-item-thumb')[0]?.find('img').attributes('src')).toBe(
+      'https://img.example/a-thumb.jpg',
+    )
   })
 
-  it('click sin selección inserta un bloque imagen nuevo con el src y el name', async () => {
+  it('expone en el drag payload el src completo del ítem de Gallery', async () => {
+    const wrapper = mount(EmailBuilder, {
+      attachTo: document.body,
+      props: { mediaLibrary: makeMediaLibrary() },
+    })
+    await openMediaTab(wrapper)
+    const thumb = wrapper.findAll('.vmd-media-item-thumb')[0]
+    expect(thumb?.attributes('draggable')).toBe('true')
+
+    const drag = await captureDragData(thumb!.element)
+
+    expect(drag).toMatchObject({ kind: 'media-image', src: 'https://img.example/a.jpg', alt: 'Foto A' })
+  })
+
+  it('abre preview desde Gallery y solo inserta al presionar Add', async () => {
     const wrapper = mount(EmailBuilder, { props: { mediaLibrary: makeMediaLibrary() } })
     await openMediaTab(wrapper)
     await wrapper.find('.vmd-media-item-thumb').trigger('click')
+    expect(wrapper.find('.vmd-image-preview-dialog').exists()).toBe(true)
+    expect(wrapper.emitted('update:design')).toBeUndefined()
+
+    await wrapper.find('[data-action="image-preview-add"]').trigger('click')
 
     const emitted = wrapper.emitted('update:design')
     const design = emitted![emitted!.length - 1][0] as {
@@ -65,7 +140,7 @@ describe('MediaLibraryTab', () => {
     expect(image?.alt).toBe('Foto A')
   })
 
-  it('no pisa el alt existente al cambiar la imagen de un bloque seleccionado', async () => {
+  it('preserva el alt existente al agregar desde Gallery sobre un bloque seleccionado', async () => {
     const design = createDocument()
     const row = createRow([100])
     const img = createBlock('image')
@@ -79,6 +154,9 @@ describe('MediaLibraryTab', () => {
     await wrapper.find('.vmd-block').trigger('click')
     await openMediaTab(wrapper)
     await wrapper.find('.vmd-media-item-thumb').trigger('click')
+    expect(wrapper.emitted('update:design')).toBeUndefined()
+
+    await wrapper.find('[data-action="image-preview-add"]').trigger('click')
 
     const emitted = wrapper.emitted('update:design')
     const doc = emitted![emitted!.length - 1][0] as {
@@ -88,6 +166,16 @@ describe('MediaLibraryTab', () => {
     const image = blocks.find((b) => b.type === 'image')
     expect(image?.src).toBe('https://img.example/a.jpg')
     expect(image?.alt).toBe('Mi alt')
+  })
+
+  it('cerrar el preview de Gallery no muta el diseño', async () => {
+    const wrapper = mount(EmailBuilder, { props: { mediaLibrary: makeMediaLibrary() } })
+    await openMediaTab(wrapper)
+    await wrapper.find('.vmd-media-item-thumb').trigger('click')
+
+    await wrapper.find('[data-action="image-preview-cancel"]').trigger('click')
+    expect(wrapper.find('.vmd-image-preview-dialog').exists()).toBe(false)
+    expect(wrapper.emitted('update:design')).toBeUndefined()
   })
 
   it('muestra error y permite reintentar si list falla', async () => {
@@ -106,7 +194,7 @@ describe('MediaLibraryTab', () => {
       props: { mediaLibrary: makeMediaLibrary({ list: vi.fn().mockResolvedValue({ items: [] }) }) },
     })
     await openMediaTab(wrapper)
-    expect(wrapper.find('.vmd-tab-placeholder').text()).toContain('Todavía no subiste imágenes')
+    expect(wrapper.find('.vmd-tab-placeholder').text()).toContain(UI.empty)
   })
 
   it('sube un archivo y antepone el ítem al grid sin volver a listar', async () => {
@@ -146,7 +234,7 @@ describe('MediaLibraryTab', () => {
     await input.trigger('change')
     await flushPromises()
 
-    expect(wrapper.find('.vmd-media-tab .vmd-image-error').text()).toContain('No se pudo subir la imagen')
+    expect(wrapper.find('.vmd-media-tab .vmd-image-error').text()).toContain(UI.uploadError)
     expect(wrapper.findAll('.vmd-media-item')).toHaveLength(2)
   })
 
@@ -183,7 +271,7 @@ describe('MediaLibraryTab', () => {
     await flushPromises()
 
     expect(wrapper.findAll('.vmd-media-item')).toHaveLength(2)
-    expect(wrapper.find('.vmd-media-tab .vmd-image-error').text()).toContain('No se pudo cargar más imágenes')
+    expect(wrapper.find('.vmd-media-tab .vmd-image-error').text()).toContain(UI.loadMoreError)
     expect(wrapper.find('.vmd-media-loadmore').exists()).toBe(true)
   })
 
@@ -194,10 +282,10 @@ describe('MediaLibraryTab', () => {
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem, 'Borrar').trigger('click')
+    await findButtonWithText(firstItem, UI.delete).trigger('click')
     expect(del).not.toHaveBeenCalled()
 
-    await findButtonWithText(firstItem, 'Confirmar').trigger('click')
+    await findButtonWithText(firstItem, UI.confirm).trigger('click')
     await flushPromises()
 
     expect(del).toHaveBeenCalledWith('a')
@@ -211,8 +299,8 @@ describe('MediaLibraryTab', () => {
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem, 'Borrar').trigger('click')
-    await findButtonWithText(firstItem, 'Cancelar').trigger('click')
+    await findButtonWithText(firstItem, UI.delete).trigger('click')
+    await findButtonWithText(firstItem, UI.cancel).trigger('click')
 
     expect(del).not.toHaveBeenCalled()
     expect(wrapper.findAll('.vmd-media-item')).toHaveLength(2)
@@ -225,12 +313,12 @@ describe('MediaLibraryTab', () => {
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem, 'Borrar').trigger('click')
-    await findButtonWithText(firstItem, 'Confirmar').trigger('click')
+    await findButtonWithText(firstItem, UI.delete).trigger('click')
+    await findButtonWithText(firstItem, UI.confirm).trigger('click')
     await flushPromises()
 
     expect(wrapper.findAll('.vmd-media-item')).toHaveLength(2)
-    expect(firstItem.find('.vmd-image-error').text()).toContain('No se pudo borrar la imagen')
+    expect(firstItem.find('.vmd-image-error').text()).toContain(UI.deleteError)
   })
 
   it('renombra un ítem con Enter y actualiza el nombre mostrado', async () => {
@@ -241,7 +329,7 @@ describe('MediaLibraryTab', () => {
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem, 'Renombrar').trigger('click')
+    await findButtonWithText(firstItem, UI.rename).trigger('click')
 
     const input = firstItem.find('.vmd-media-item-name-input')
     await input.setValue('Nuevo nombre')
@@ -259,7 +347,7 @@ describe('MediaLibraryTab', () => {
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem, 'Renombrar').trigger('click')
+    await findButtonWithText(firstItem, UI.rename).trigger('click')
 
     const input = firstItem.find('.vmd-media-item-name-input')
     await input.setValue('Otro nombre')
@@ -277,7 +365,7 @@ describe('MediaLibraryTab', () => {
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem, 'Renombrar').trigger('click')
+    await findButtonWithText(firstItem, UI.rename).trigger('click')
 
     const input = firstItem.find('.vmd-media-item-name-input')
     await input.setValue('Nuevo nombre')
@@ -285,7 +373,7 @@ describe('MediaLibraryTab', () => {
     await flushPromises()
 
     expect(rename).toHaveBeenCalledWith('a', 'Nuevo nombre')
-    expect(firstItem.find('.vmd-image-error').text()).toContain('No se pudo renombrar la imagen')
+    expect(firstItem.find('.vmd-image-error').text()).toContain(UI.renameError)
     expect(firstItem.find('.vmd-media-item-name-input').exists()).toBe(true)
   })
 
@@ -298,7 +386,7 @@ describe('MediaLibraryTab', () => {
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem, 'Renombrar').trigger('click')
+    await findButtonWithText(firstItem, UI.rename).trigger('click')
     await flushPromises()
 
     const input = firstItem.find('.vmd-media-item-name-input').element as HTMLInputElement
@@ -318,7 +406,7 @@ describe('MediaLibraryTab', () => {
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem, 'Renombrar').trigger('click')
+    await findButtonWithText(firstItem, UI.rename).trigger('click')
     await flushPromises()
 
     const input = firstItem.find('.vmd-media-item-name-input')
@@ -345,8 +433,8 @@ describe('MediaLibraryTab', () => {
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem, 'Borrar').trigger('click')
-    await findButtonWithText(firstItem, 'Confirmar').trigger('click')
+    await findButtonWithText(firstItem, UI.delete).trigger('click')
+    await findButtonWithText(firstItem, UI.confirm).trigger('click')
 
     expect(firstItem.classes()).toContain('vmd-media-item--busy')
 
@@ -361,7 +449,7 @@ describe('MediaLibraryTab', () => {
 
     await wrapper.setProps({ mediaLibrary: undefined })
 
-    expect(wrapper.find('[data-tab="media"]').exists()).toBe(false)
+    expect(wrapper.find('[data-subtab="gallery"]').exists()).toBe(false)
     expect(wrapper.find('.vmd-media-tab').exists()).toBe(false)
   })
 
@@ -385,7 +473,7 @@ describe('MediaLibraryTab', () => {
     await flushPromises()
 
     expect(wrapper.findAll('.vmd-media-item')).toHaveLength(1)
-    const reloadBtn = wrapper.findAll('button').find((b) => b.text().trim() === 'Recargar galería completa')
+    const reloadBtn = wrapper.findAll('button').find((b) => b.text().trim() === UI.reloadComplete)
     expect(reloadBtn).toBeTruthy()
 
     await reloadBtn!.trigger('click')
@@ -393,7 +481,7 @@ describe('MediaLibraryTab', () => {
 
     expect(list).toHaveBeenCalledTimes(2)
     expect(wrapper.findAll('.vmd-media-item')).toHaveLength(2)
-    expect(wrapper.findAll('button').some((b) => b.text().trim() === 'Recargar galería completa')).toBe(false)
+    expect(wrapper.findAll('button').some((b) => b.text().trim() === UI.reloadComplete)).toBe(false)
   })
 
   it('deshabilita el input de renombrado mientras rename está en curso', async () => {
@@ -409,7 +497,7 @@ describe('MediaLibraryTab', () => {
 
     const firstItem = wrapper.findAll('.vmd-media-item')[0]
     await firstItem.find('.vmd-media-item-menu-btn').trigger('click')
-    await findButtonWithText(firstItem, 'Renombrar').trigger('click')
+    await findButtonWithText(firstItem, UI.rename).trigger('click')
 
     const input = firstItem.find('.vmd-media-item-name-input')
     await input.setValue('Nuevo nombre')

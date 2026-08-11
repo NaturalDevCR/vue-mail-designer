@@ -4,16 +4,16 @@
       <input
         v-model="query"
         type="text"
-        placeholder="Buscar imágenes…"
+        :placeholder="t('image.searchPlaceholder')"
         @input="onInput"
         @keydown.enter="runSearch"
       />
     </div>
 
-    <p v-if="status === 'idle'" class="vmd-tab-placeholder">Busca imágenes gratuitas (CC) para tu email</p>
-    <p v-else-if="status === 'loading'" class="vmd-tab-placeholder">Buscando…</p>
-    <p v-else-if="status === 'error'" class="vmd-image-error">No se pudo buscar imágenes.</p>
-    <p v-else-if="status === 'empty'" class="vmd-tab-placeholder">Sin resultados</p>
+    <p v-if="status === 'idle'" class="vmd-tab-placeholder">{{ t('image.searchIdle') }}</p>
+    <p v-else-if="status === 'loading'" class="vmd-tab-placeholder">{{ t('image.searchLoading') }}</p>
+    <p v-else-if="status === 'error'" class="vmd-image-error">{{ t('image.searchError') }}</p>
+    <p v-else-if="status === 'empty'" class="vmd-tab-placeholder">{{ t('image.searchEmpty') }}</p>
 
     <div v-else-if="status === 'results'" class="vmd-image-grid">
       <DraggableImageThumb
@@ -27,22 +27,23 @@
       />
     </div>
 
-    <p class="vmd-image-credit">Imágenes de Openverse (CC)</p>
+    <p class="vmd-image-credit">{{ t('image.credit') }}</p>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { openverseSearch, type ImageResult } from '../../imageSearch'
+import { useI18n } from '../../i18n/useI18n'
 import { useBuilderOptions } from '../../options'
-import { useDocumentStore } from '../../store/document'
-import { useBuilderPinia } from '../../store/keys'
 import DraggableImageThumb from './DraggableImageThumb.vue'
+import type { ImageSelection } from './imageTypes'
 
 const DEBOUNCE_MS = 400
 
-const store = useDocumentStore(useBuilderPinia())
 const options = useBuilderOptions()
+const emit = defineEmits<{ select: [image: ImageSelection] }>()
+const { t } = useI18n()
 
 const query = ref('')
 const results = ref<ImageResult[]>([])
@@ -85,14 +86,11 @@ async function runSearch() {
 }
 
 function selectImage(result: ImageResult) {
-  const selected = store.selectedBlock
-  if (selected && selected.type === 'image') {
-    // no pisar alt escrito por el usuario: solo setearlo si está vacío
-    store.updateBlock(selected.id, { src: result.url, ...(selected.alt ? {} : { alt: result.title ?? '' }) })
-    return
-  }
-  const row = store.addRow([100])
-  const block = store.addBlockToColumn(row.columns[0].id, 'image')
-  store.updateBlock(block.id, { src: result.url, alt: result.title ?? '' })
+  emit('select', {
+    src: result.url,
+    thumbnailUrl: result.thumbnailUrl,
+    alt: result.title ?? '',
+    title: result.title,
+  })
 }
 </script>

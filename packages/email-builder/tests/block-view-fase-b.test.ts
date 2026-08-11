@@ -46,7 +46,7 @@ describe('BlockView — Fase B', () => {
     block.endDate = new Date(Date.now() + 3 * 864e5).toISOString()
     const { wrapper } = mountBlock(block)
     expect(wrapper.find('.vmd-b-image-placeholder').exists()).toBe(true)
-    expect(wrapper.text()).toMatch(/día/)
+    expect(wrapper.text()).toContain('days')
   })
 
   it('timer con imageUrl muestra un img', () => {

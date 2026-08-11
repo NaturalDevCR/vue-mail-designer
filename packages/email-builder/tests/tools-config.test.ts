@@ -14,7 +14,7 @@ describe('config de herramientas (tools)', () => {
   it('position reordena la paleta', () => {
     const w = mount(EmailBuilder, { props: { tools: { image: { position: 0 } } } })
     const first = w.findAll('.vmd-content-item')[0].text()
-    expect(first).toContain('Imagen')
+    expect(first).toContain('Image')
   })
 
   it('usageLimit deshabilita el ítem cuando el documento alcanza el límite', () => {

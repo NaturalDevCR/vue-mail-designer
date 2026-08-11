@@ -57,8 +57,8 @@ describe('PaddingField', () => {
 
   it('el botón muestra el ícono y title correctos según el modo', async () => {
     const wrapper = mount(PaddingField, { props: { label: 'Padding', modelValue: uniform } })
-    expect(wrapper.find('button').attributes('title')).toBe('Vincular lados')
+    expect(wrapper.find('button').attributes('title')).toBe('Link sides')
     await wrapper.find('button').trigger('click')
-    expect(wrapper.find('button').attributes('title')).toBe('Lados independientes')
+    expect(wrapper.find('button').attributes('title')).toBe('Independent sides')
   })
 })

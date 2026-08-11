@@ -2,7 +2,7 @@
   <div class="vmd-media-tab">
     <div class="vmd-media-upload-row">
       <button type="button" class="vmd-btn" :disabled="uploading" @click="fileInput?.click()">
-        <span class="vmd-ico" v-html="ICONS.upload" />{{ uploading ? 'Subiendo…' : 'Subir imagen' }}
+        <span class="vmd-ico" v-html="ICONS.upload" />{{ uploading ? t('common.uploading') : t('image.upload') }}
       </button>
       <input ref="fileInput" type="file" accept="image/*" class="vmd-visually-hidden" @change="onUpload" />
     </div>
@@ -13,15 +13,15 @@
       class="vmd-mini-btn vmd-mini-btn--text"
       @click="load()"
     >
-      Recargar galería completa
+      {{ t('image.galleryReloadComplete') }}
     </button>
 
-    <p v-if="status === 'loading'" class="vmd-tab-placeholder">Cargando…</p>
+    <p v-if="status === 'loading'" class="vmd-tab-placeholder">{{ t('common.loading') }}</p>
     <template v-else-if="status === 'error'">
-      <p class="vmd-image-error">No se pudo cargar la galería.</p>
-      <button type="button" class="vmd-mini-btn vmd-mini-btn--text" @click="load()">Reintentar</button>
+      <p class="vmd-image-error">{{ t('image.galleryLoadError') }}</p>
+      <button type="button" class="vmd-mini-btn vmd-mini-btn--text" @click="load()">{{ t('common.retry') }}</button>
     </template>
-    <p v-else-if="status === 'empty'" class="vmd-tab-placeholder">Todavía no subiste imágenes.</p>
+    <p v-else-if="status === 'empty'" class="vmd-tab-placeholder">{{ t('image.galleryEmpty') }}</p>
 
     <div v-else-if="status === 'results'" class="vmd-media-grid">
       <div
@@ -56,22 +56,22 @@
 
         <button type="button" class="vmd-media-item-menu-btn" @click.stop="toggleMenu(item.id)">⋮</button>
         <div v-if="openMenuId === item.id" class="vmd-media-menu" @click.stop>
-          <button type="button" @click="startRename(item)">Renombrar</button>
-          <button type="button" class="vmd-media-menu-danger" @click="startDelete(item.id)">Borrar</button>
+          <button type="button" @click="startRename(item)">{{ t('common.rename') }}</button>
+          <button type="button" class="vmd-media-menu-danger" @click="startDelete(item.id)">{{ t('common.delete') }}</button>
         </div>
 
         <div v-if="confirmingDeleteId === item.id" class="vmd-media-confirm" @click.stop>
-          <p>¿Borrar esta imagen?</p>
+          <p>{{ t('image.galleryDeleteConfirm') }}</p>
           <p v-if="deleteError" class="vmd-image-error">{{ deleteError }}</p>
           <div class="vmd-media-confirm-actions">
-            <button type="button" class="vmd-mini-btn vmd-mini-btn--text" @click="cancelDelete">Cancelar</button>
+            <button type="button" class="vmd-mini-btn vmd-mini-btn--text" @click="cancelDelete">{{ t('common.cancel') }}</button>
             <button
               type="button"
               class="vmd-mini-btn vmd-mini-btn--text vmd-mini-btn--danger"
               :disabled="deleting"
               @click="confirmDelete(item.id)"
             >
-              Confirmar
+              {{ t('common.confirm') }}
             </button>
           </div>
         </div>
@@ -85,7 +85,7 @@
       :disabled="loadingMore"
       @click="loadMore"
     >
-      {{ loadingMore ? 'Cargando…' : 'Cargar más' }}
+      {{ loadingMore ? t('common.loading') : t('image.galleryLoadMore') }}
     </button>
     <p v-if="loadMoreError" class="vmd-image-error">{{ loadMoreError }}</p>
   </div>
@@ -93,15 +93,16 @@
 
 <script setup lang="ts">
 import { nextTick, onMounted, ref } from 'vue'
+import { useI18n } from '../../i18n/useI18n'
 import type { MediaItem } from '../../mediaLibrary'
 import { useBuilderOptions } from '../../options'
-import { useDocumentStore } from '../../store/document'
-import { useBuilderPinia } from '../../store/keys'
 import { ICONS } from '../icons'
 import DraggableImageThumb from './DraggableImageThumb.vue'
+import type { ImageSelection } from './imageTypes'
 
-const store = useDocumentStore(useBuilderPinia())
 const options = useBuilderOptions()
+const emit = defineEmits<{ select: [image: ImageSelection] }>()
+const { t } = useI18n()
 
 const items = ref<MediaItem[]>([])
 const status = ref<'loading' | 'error' | 'empty' | 'results'>('loading')
@@ -152,21 +153,19 @@ async function loadMore() {
     items.value = [...items.value, ...page.items]
     nextCursor.value = page.nextCursor
   } catch {
-    loadMoreError.value = 'No se pudo cargar más imágenes.'
+    loadMoreError.value = t('image.galleryLoadMoreError')
   } finally {
     loadingMore.value = false
   }
 }
 
 function insert(item: MediaItem) {
-  const selected = store.selectedBlock
-  if (selected && selected.type === 'image') {
-    store.updateBlock(selected.id, { src: item.url, ...(selected.alt ? {} : { alt: item.name ?? '' }) })
-    return
-  }
-  const row = store.addRow([100])
-  const block = store.addBlockToColumn(row.columns[0].id, 'image')
-  store.updateBlock(block.id, { src: item.url, alt: item.name ?? '' })
+  emit('select', {
+    src: item.url,
+    thumbnailUrl: item.thumbnailUrl,
+    alt: item.name ?? '',
+    title: item.name,
+  })
 }
 
 async function onUpload(e: Event) {
@@ -180,7 +179,7 @@ async function onUpload(e: Event) {
     items.value = [item, ...items.value]
     status.value = 'results'
   } catch {
-    uploadError.value = 'No se pudo subir la imagen.'
+    uploadError.value = t('image.galleryUploadError')
   } finally {
     uploading.value = false
     input.value = ''
@@ -212,7 +211,7 @@ async function confirmDelete(id: string) {
     confirmingDeleteId.value = null
     if (items.value.length === 0) status.value = 'empty'
   } catch {
-    deleteError.value = 'No se pudo borrar la imagen.'
+    deleteError.value = t('image.galleryDeleteError')
   } finally {
     deleting.value = false
   }
@@ -254,7 +253,7 @@ async function confirmRename(item: MediaItem) {
     if (idx !== -1) items.value = [...items.value.slice(0, idx), updated, ...items.value.slice(idx + 1)]
     renamingId.value = null
   } catch {
-    renameError.value = 'No se pudo renombrar la imagen.'
+    renameError.value = t('image.galleryRenameError')
   } finally {
     renaming.value = false
     if (renamingId.value === item.id) focusRenameInput()

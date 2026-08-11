@@ -1,6 +1,9 @@
+import { monitorForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
+import { nextTick } from 'vue'
 import EmailBuilder from '../src/components/EmailBuilder.vue'
+import { readDrag } from '../src/dnd/dragData'
 import { createBlock, createDocument, createRow } from '../src/schema'
 
 const results = [
@@ -10,10 +13,44 @@ const results = [
 
 async function searchIn(wrapper: ReturnType<typeof mount>) {
   await wrapper.find('[data-tab="images"]').trigger('click')
+  expect(wrapper.find('[data-subtab="search"]').exists()).toBe(true)
   const input = wrapper.find('.vmd-image-search input')
   await input.setValue('futbol')
   await new Promise((r) => setTimeout(r, 450)) // debounce
   await flushPromises()
+}
+
+function endDragSession() {
+  const end = new Event('dragend', { bubbles: true, cancelable: true })
+  Object.defineProperty(end, 'clientX', { value: 1 })
+  Object.defineProperty(end, 'clientY', { value: 1 })
+  window.dispatchEvent(end)
+}
+
+function fireDragStart(el: Element): Event {
+  const ev = new Event('dragstart', { bubbles: true, cancelable: true })
+  Object.defineProperty(ev, 'dataTransfer', {
+    value: { types: [], items: [], setData: () => {}, getData: () => '', setDragImage: () => {} },
+  })
+  Object.defineProperty(ev, 'clientX', { value: 1 })
+  Object.defineProperty(ev, 'clientY', { value: 1 })
+  el.dispatchEvent(ev)
+  return ev
+}
+
+async function captureDragData(el: Element) {
+  await nextTick()
+  endDragSession()
+  let captured: ReturnType<typeof readDrag> = null
+  const cleanup = monitorForElements({
+    onGenerateDragPreview: ({ source }) => {
+      captured = readDrag(source.data as Record<string | symbol, unknown>)
+    },
+  })
+  const ev = fireDragStart(el)
+  cleanup()
+  if (!ev.defaultPrevented) endDragSession()
+  return captured
 }
 
 describe('ImagesTab', () => {
@@ -23,16 +60,38 @@ describe('ImagesTab', () => {
     await searchIn(wrapper)
     expect(imageSearch).toHaveBeenCalledWith('futbol')
     expect(wrapper.findAll('.vmd-image-result')).toHaveLength(2)
+    expect(wrapper.findAll('.vmd-image-result')[0]?.attributes('draggable')).toBe('true')
+    expect(wrapper.findAll('.vmd-image-result')[0]?.find('img').attributes('src')).toBe('https://img.example/t1.jpg')
   })
 
-  it('click sin selección inserta un bloque imagen nuevo con el src', async () => {
+  it('expone en el drag payload el src completo del resultado de Search', async () => {
+    const wrapper = mount(EmailBuilder, {
+      attachTo: document.body,
+      props: { imageSearch: vi.fn().mockResolvedValue(results) },
+    })
+    await searchIn(wrapper)
+    const thumb = wrapper.findAll('.vmd-image-result')[0]
+    expect(thumb?.attributes('draggable')).toBe('true')
+
+    const drag = await captureDragData(thumb!.element)
+
+    expect(drag).toMatchObject({ kind: 'media-image', src: 'https://img.example/full1.jpg', alt: 'Uno' })
+  })
+
+  it('abre preview sin insertar hasta presionar Add', async () => {
     const wrapper = mount(EmailBuilder, { props: { imageSearch: vi.fn().mockResolvedValue(results) } })
     await searchIn(wrapper)
     await wrapper.find('.vmd-image-result').trigger('click')
+    expect(wrapper.find('.vmd-image-preview-dialog').exists()).toBe(true)
+    expect(wrapper.emitted('update:design')).toBeUndefined()
+
+    await wrapper.find('[data-action="image-preview-add"]').trigger('click')
+
     const emitted = wrapper.emitted('update:design')
     const design = emitted![emitted!.length - 1][0] as { rows: { columns: { blocks: { type: string; src?: string }[] }[] }[] }
     const blocks = design.rows.flatMap((r) => r.columns.flatMap((c) => c.blocks))
     expect(blocks.some((b) => b.type === 'image' && b.src === 'https://img.example/full1.jpg')).toBe(true)
+    expect(wrapper.find('.vmd-image-preview-dialog').exists()).toBe(false)
   })
 
   it('muestra error si la búsqueda falla', async () => {
@@ -41,7 +100,7 @@ describe('ImagesTab', () => {
     expect(wrapper.find('.vmd-image-error').exists()).toBe(true)
   })
 
-  it('no pisa el alt existente al cambiar la imagen de un bloque seleccionado', async () => {
+  it('preserva el alt existente al agregar desde preview sobre un bloque seleccionado', async () => {
     const design = createDocument()
     const row = createRow([100])
     const img = createBlock('image')
@@ -57,6 +116,9 @@ describe('ImagesTab', () => {
     await wrapper.find('.vmd-block').trigger('click') // selecciona el bloque imagen
     await searchIn(wrapper)
     await wrapper.find('.vmd-image-result').trigger('click')
+    expect(wrapper.emitted('update:design')).toBeUndefined()
+
+    await wrapper.find('[data-action="image-preview-add"]').trigger('click')
 
     const emitted = wrapper.emitted('update:design')
     const doc = emitted![emitted!.length - 1][0] as {
@@ -66,6 +128,21 @@ describe('ImagesTab', () => {
     const image = blocks.find((b) => b.type === 'image')
     expect(image?.src).toBe('https://img.example/full1.jpg')
     expect(image?.alt).toBe('Mi alt')
+  })
+
+  it('cerrar o cancelar el preview no muta el diseño', async () => {
+    const wrapper = mount(EmailBuilder, { props: { imageSearch: vi.fn().mockResolvedValue(results) } })
+    await searchIn(wrapper)
+    await wrapper.find('.vmd-image-result').trigger('click')
+
+    await wrapper.find('[data-action="image-preview-cancel"]').trigger('click')
+    expect(wrapper.find('.vmd-image-preview-dialog').exists()).toBe(false)
+    expect(wrapper.emitted('update:design')).toBeUndefined()
+
+    await wrapper.find('.vmd-image-result').trigger('click')
+    await wrapper.find('[data-action="image-preview-close"]').trigger('click')
+    expect(wrapper.find('.vmd-image-preview-dialog').exists()).toBe(false)
+    expect(wrapper.emitted('update:design')).toBeUndefined()
   })
 
   it('descarta respuestas fuera de orden', async () => {

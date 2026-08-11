@@ -60,6 +60,32 @@ function onHtml(html: string) {
 </script>
 ```
 
+## Localization
+
+English is the default UI language. Use `locale="es"` to switch the builder to Spanish, or pass a partial `LocaleDict` to override only the English labels you want to customize.
+
+```vue
+<EmailBuilder locale="en" />
+<EmailBuilder locale="es" />
+```
+
+```vue
+<script setup lang="ts">
+import { EmailBuilder, type LocaleDict } from '@naturaldevcr/vue-mail-designer'
+
+const partialLocale: LocaleDict = {
+  'images.gallery': 'Brand library',
+  'image.searchPlaceholder': 'Search product photos',
+}
+</script>
+
+<template>
+  <EmailBuilder :locale="partialLocale" />
+</template>
+```
+
+Any key you do not provide still falls back to the built-in English dictionary.
+
 To hide the builder header while using distinct colors for each mode:
 
 ```vue
@@ -83,12 +109,12 @@ The flat `Appearance` form remains supported. When the header is hidden, built-i
 | `mergeTags` | `MergeTagDef[]` | Variables insertable in text (`{ name, value }`). |
 | `templates` | `EmailTemplate[]` | Extra templates, in addition to the built-in ones. |
 | `uploadImage` | `(file: File) => Promise<string>` | Upload handler; returns the final URL. |
-| `imageSearch` | `(query: string) => Promise<ImageResult[]>` | Search handler for the Images tab; defaults to `openverseSearch`. |
-| `mediaLibrary` | `MediaLibraryOptions` | Enables the "Gallery" tab: `{ list: (cursor?) => Promise<{ items: MediaItem[], nextCursor? }>, upload: (file) => Promise<MediaItem>, delete: (id) => Promise<void>, rename: (id, name) => Promise<MediaItem> }`. Without this prop, the tab doesn't appear. Every function is implemented by the integrator against their own storage (e.g. Firebase Storage); the library assumes no particular backend. |
+| `imageSearch` | `(query: string) => Promise<ImageResult[]>` | Search handler for the Search subtab in the unified Images panel; defaults to `openverseSearch`. |
+| `mediaLibrary` | `MediaLibraryOptions` | Enables the Gallery subtab in the unified Images panel: `{ list: (cursor?) => Promise<{ items: MediaItem[], nextCursor? }>, upload: (file) => Promise<MediaItem>, delete: (id) => Promise<void>, rename: (id, name) => Promise<MediaItem> }`. Without this prop, only Search is shown. Every function is implemented by the integrator against their own storage (e.g. Firebase Storage); the library assumes no particular backend. |
 | `unlayerFetch` | `(slug: string) => Promise<unknown>` | Handler to load an Unlayer template by URL/slug; returns the design JSON. Defaults to hitting Unlayer's API directly (fails via CORS without a proxy). |
 | `theme` | `'light' \| 'dark'` | Builder UI theme. |
 | `showHeader` | `boolean` | Whether to show the builder header. Defaults to `true`; when `false`, the entire builder header is hidden. |
-| `locale` | `'es' \| 'en' \| LocaleDict` | UI language. An object is a dictionary merged on top of Spanish — translate only the keys you want. |
+| `locale` | `'en' \| 'es' \| LocaleDict` | Public UI language option. English (`'en'`) is the default, Spanish (`'es'`) is the built-in alternative, and a `LocaleDict` is merged on top of English so you can override only the keys you want. |
 | `appearance` | `Appearance \| ThemeAppearance` | Builder colors. A flat object (`{ accent, panel, border, background, foreground, muted }`) applies to both modes. The union Appearance or ThemeAppearance also accepts `{ light?: Appearance, dark?: Appearance }` for mode-specific values; omitted fields keep that mode's defaults. |
 | `tools` | `Partial<Record<BlockType, ToolConfig>>` | Per-block palette config: `{ enabled?, position?, usageLimit? }` to hide, reorder, or limit instances. |
 | `fonts` | `FontDef[]` | List of fonts (`{ label, value, url? }`); Google Fonts (`url`) are loaded both in the canvas and in the exported HTML. Defaults to a curated list. |
@@ -98,6 +124,15 @@ The flat `Appearance` form remains supported. When the header is hidden, built-i
 `mergeTags` also accepts groups: `{ name, tags: MergeTagDef[] }` (shown as optgroups in the editor).
 
 > **Custom block security:** your `render(data)` generates raw HTML. If `data` can come from an imported JSON, escape the values (the library exports `escapeHtml`) to avoid injection.
+
+## Images panel
+
+The builder uses one unified **Images** panel:
+
+- **Search** uses `imageSearch` (or the built-in `openverseSearch`) to find external images.
+- **Gallery** uses `mediaLibrary` to show your uploaded assets. This subtab only appears when you provide `mediaLibrary`.
+
+Clicking a thumbnail opens a preview dialog first. Choose **Add** to insert a new Image block on the canvas or replace the currently selected Image block. You can also drag thumbnails directly from Search or Gallery onto the canvas, onto an existing Image block, or onto a Gallery block slot.
 
 ## Extra methods (via ref)
 

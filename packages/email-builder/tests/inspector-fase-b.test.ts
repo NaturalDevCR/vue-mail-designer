@@ -24,7 +24,7 @@ describe('PropertiesPanel — Fase B', () => {
     const block = store.addBlockToColumn(row.columns[0].id, 'table')
     store.select({ kind: 'block', id: block.id })
     await wrapper.vm.$nextTick()
-    expect(wrapper.text()).toContain('Fila de encabezado')
+    expect(wrapper.text()).toContain('Header row')
     expect(wrapper.findAll('textarea.vmd-table-cell-input').length).toBeGreaterThan(0)
   })
 
@@ -34,8 +34,8 @@ describe('PropertiesPanel — Fase B', () => {
     const block = store.addBlockToColumn(row.columns[0].id, 'gallery')
     store.select({ kind: 'block', id: block.id })
     await wrapper.vm.$nextTick()
-    expect(wrapper.text()).toContain('Columnas')
-    expect(wrapper.text()).toContain('Espaciado')
+    expect(wrapper.text()).toContain('Columns')
+    expect(wrapper.text()).toContain('Spacing')
   })
 
   it('bloque timer muestra sus campos', async () => {
@@ -44,11 +44,11 @@ describe('PropertiesPanel — Fase B', () => {
     const block = store.addBlockToColumn(row.columns[0].id, 'timer')
     store.select({ kind: 'block', id: block.id })
     await wrapper.vm.$nextTick()
-    expect(wrapper.text()).toContain('Fecha y hora límite')
-    expect(wrapper.text()).toContain('URL de imagen')
+    expect(wrapper.text()).toContain('Deadline date and time')
+    expect(wrapper.text()).toContain('Image URL')
   })
 
-  it('toggle "Ocultar en móvil" setea hideMobile en el bloque', async () => {
+  it('toggle "Hide on mobile" setea hideMobile en el bloque', async () => {
     const { wrapper, store } = mountInspector()
     const row = store.addRow([100])
     const block = store.addBlockToColumn(row.columns[0].id, 'heading')
@@ -57,7 +57,7 @@ describe('PropertiesPanel — Fase B', () => {
 
     const checkboxes = wrapper.findAll('input[type="checkbox"]')
     expect(checkboxes.length).toBeGreaterThanOrEqual(2)
-    const mobileCheckbox = wrapper.findAll('.vmd-checkbox-field').filter((w) => w.text().includes('Ocultar en móvil'))[0]
+    const mobileCheckbox = wrapper.findAll('.vmd-checkbox-field').filter((w) => w.text().includes('Hide on mobile'))[0]
     expect(mobileCheckbox).toBeTruthy()
     await mobileCheckbox!.find('input[type="checkbox"]').setValue(true)
 
@@ -81,8 +81,8 @@ describe('PropertiesPanel — Fase B', () => {
     const row = store.addRow([100])
     store.select({ kind: 'row', id: row.id })
     await wrapper.vm.$nextTick()
-    expect(wrapper.text()).toContain('Ocultar en escritorio')
-    expect(wrapper.text()).toContain('Ocultar en móvil')
+    expect(wrapper.text()).toContain('Hide on desktop')
+    expect(wrapper.text()).toContain('Hide on mobile')
   })
 
   it('heading/text exponen selector de Fuente ligado a fontFamily', async () => {
@@ -91,6 +91,6 @@ describe('PropertiesPanel — Fase B', () => {
     const block = store.addBlockToColumn(row.columns[0].id, 'heading')
     store.select({ kind: 'block', id: block.id })
     await wrapper.vm.$nextTick()
-    expect(wrapper.text()).toContain('Fuente')
+    expect(wrapper.text()).toContain('Font')
   })
 })
