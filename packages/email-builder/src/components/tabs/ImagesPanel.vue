@@ -8,7 +8,7 @@
         data-subtab="search"
         @click="activeTab = 'search'"
       >
-        Search
+        {{ t('images.search') }}
       </button>
       <button
         v-if="options.mediaLibrary"
@@ -18,7 +18,7 @@
         data-subtab="gallery"
         @click="activeTab = 'gallery'"
       >
-        Gallery
+        {{ t('images.gallery') }}
       </button>
     </div>
 
@@ -36,6 +36,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useI18n } from '../../i18n/useI18n'
 import { useBuilderOptions } from '../../options'
 import { useDocumentStore } from '../../store/document'
 import { useBuilderPinia } from '../../store/keys'
@@ -46,6 +47,7 @@ import type { ImageSelection } from './imageTypes'
 
 const options = useBuilderOptions()
 const store = useDocumentStore(useBuilderPinia())
+const { t } = useI18n()
 
 const activeTab = ref<'search' | 'gallery'>('search')
 const previewImage = ref<ImageSelection | null>(null)

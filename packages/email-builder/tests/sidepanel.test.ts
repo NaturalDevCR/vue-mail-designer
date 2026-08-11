@@ -84,4 +84,26 @@ describe('SidePanel', () => {
     expect(wrapper.find('[data-subtab="gallery"]').exists()).toBe(true)
     expect(wrapper.find('[data-tab="media"]').exists()).toBe(false)
   })
+
+  it('localiza las etiquetas de subtabs de imágenes desde locale', async () => {
+    const mediaLibrary = {
+      list: async () => ({ items: [] }),
+      upload: async () => {
+        throw new Error('unused')
+      },
+      delete: async () => {
+        throw new Error('unused')
+      },
+      rename: async () => {
+        throw new Error('unused')
+      },
+    }
+    const wrapper = mount(EmailBuilder, { props: { mediaLibrary, locale: 'es' } })
+
+    await wrapper.find('[data-tab="images"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('[data-subtab="search"]').text()).toBe('Buscar')
+    expect(wrapper.find('[data-subtab="gallery"]').text()).toBe('Galería')
+  })
 })
