@@ -181,7 +181,7 @@ Run:
 pnpm --filter @naturaldevcr/vue-mail-designer test -- email-builder-config.test.ts
 ~~~
 
-Expected: all four configuration tests pass.
+Expected: all five configuration tests pass.
 
 - [ ] **Step 5: Commit the implementation**
 
