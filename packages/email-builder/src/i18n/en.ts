@@ -78,6 +78,8 @@ export const en: LocaleDict = {
   'versions.delete': 'Delete',
   'versions.empty': 'No versions yet.',
   'common.close': 'Close',
+  'images.cancel': 'Cancel',
+  'images.add': 'Add',
   'props.move': 'Move',
   'props.rowSettings': 'Row settings',
   'props.duplicate': 'Duplicate',

@@ -321,6 +321,23 @@ img.vmd-media-drop-active { outline: 2px solid var(--vmd-accent); outline-offset
 .vmd-gallery-card img, .vmd-gallery-thumb { width: 100%; height: 100px; border-radius: 6px; object-fit: cover; }
 .vmd-gallery-thumb { display: flex; align-items: center; justify-content: center; font-size: 32px; background: var(--vmd-panel); color: var(--vmd-muted); }
 
+.vmd-image-preview-box { width: min(90vw, 900px); max-height: 88vh; display: flex; flex-direction: column; }
+.vmd-image-preview-heading { min-width: 0; }
+.vmd-image-preview-heading .vmd-inspector-title { margin: 0; }
+.vmd-image-preview-alt { margin: 4px 0 0; font-size: 12px; color: var(--vmd-muted); }
+.vmd-image-preview-body {
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+  background: #e4e4e7; overflow: auto;
+}
+.vmd-image-preview-body img {
+  display: block; max-width: 100%; max-height: 60vh; object-fit: contain;
+  border-radius: 8px; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,.15);
+}
+.vmd-image-preview-actions {
+  display: flex; justify-content: flex-end; gap: 8px; padding: 12px;
+  border-top: 1px solid var(--vmd-border);
+}
+
 .vmd-header {
   display: flex; align-items: center; gap: 12px; padding: 0 16px; height: 52px;
   background: #0e1a2b; color: #e5e7eb; flex-shrink: 0;
