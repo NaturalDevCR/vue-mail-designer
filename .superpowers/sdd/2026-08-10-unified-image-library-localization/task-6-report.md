@@ -68,3 +68,78 @@ Notes:
 
 - The AI button uses a compact `AI` text label so the Task 6 implementation stays within the approved file list and does not require touching `icons.ts`.
 - Wrapper failures are localized in `AiMenu` through stable error codes, so English mode no longer risks surfacing Spanish literals.
+
+## Review fix round
+
+Status: complete in scope for the Task 6 review follow-up.
+
+Date: Tuesday, August 11, 2026
+
+Review fix commit:
+
+- `820af0f` — `fix(ai): harden chrome ai review issues`
+
+Review items verified against the feature worktree before changes:
+
+- `src/index.ts` did not re-export `AiOptions` or `AiLanguage`.
+- `chromeAi` normalized request-method failures, but `create()` rejections still surfaced raw errors.
+- `AiMenu` did not consult `translateAvailability`, so unsupported source/target pairs could still leave Translate runnable.
+
+Fix-round regression coverage added first:
+
+- `packages/email-builder/tests/public-api.test.ts`
+  - package-root type re-export coverage for `AiOptions` and `AiLanguage`
+- `packages/email-builder/tests/chrome-ai.test.ts`
+  - normalized `create()` rejection coverage for Writer, Rewriter, Summarizer, Translator, and LanguageDetector
+- `packages/email-builder/tests/ai-menu.test.ts`
+  - unsupported translate-pair gating with localized unavailable UI
+
+Fix-round RED command:
+
+```bash
+pnpm --filter @naturaldevcr/vue-mail-designer exec vitest run tests/public-api.test.ts tests/chrome-ai.test.ts tests/ai-menu.test.ts tests/rich-text-editor.test.ts
+```
+
+Fix-round RED output:
+
+```text
+Test Files  2 failed | 2 passed (4)
+Tests  6 failed | 22 passed (28)
+```
+
+Key RED symptoms:
+
+- `chromeAi` returned raw `Error: boom` for `create()` rejection instead of stable `ChromeAiError` instances.
+- `AiMenu` did not render a localized unavailable state for an unsupported translate pair, so the new translate gating assertion failed.
+
+Fix-round GREEN command:
+
+```bash
+pnpm --filter @naturaldevcr/vue-mail-designer exec vitest run tests/public-api.test.ts tests/chrome-ai.test.ts tests/ai-menu.test.ts tests/rich-text-editor.test.ts
+```
+
+Fix-round GREEN output:
+
+```text
+Test Files  4 passed (4)
+Tests  28 passed (28)
+Duration  1.07s
+```
+
+Package typecheck command:
+
+```bash
+pnpm typecheck
+```
+
+Package typecheck result:
+
+```text
+tests/i18n.test.ts(1,30): error TS2307: Cannot find module 'node:fs' or its corresponding type declarations.
+tests/i18n.test.ts(2,31): error TS2307: Cannot find module 'node:url' or its corresponding type declarations.
+```
+
+Typecheck note:
+
+- The package typecheck remained red due to pre-existing `tests/i18n.test.ts` Node built-in type-resolution errors outside the Task 6 AI scope.
+- The new review-fix regressions no longer contribute additional typecheck failures.
