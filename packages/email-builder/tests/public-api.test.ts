@@ -13,7 +13,8 @@ import {
   type AutosaveStatusPayload,
   type AutosaveStorage,
 } from '../src'
-import { createDocument, createRow } from '../src/schema'
+import { createBlock, createDocument, createRow } from '../src/schema'
+import type { TimerBlock } from '../src/schema'
 
 const packageRootAiLanguage: AiLanguage = { code: 'es', label: 'Spanish' }
 const packageRootAiOptions: AiOptions = { enabled: true, languages: [packageRootAiLanguage] }
@@ -91,6 +92,25 @@ describe('API pública de EmailBuilder', () => {
     vm.loadDesign(d)
     await wrapper.vm.$nextTick()
     expect(wrapper.find('.vmd-row').exists()).toBe(true)
+  })
+
+  it('uses the timer image builder when exporting email HTML', () => {
+    const design = createDocument()
+    const row = createRow([100])
+    const timer = createBlock('timer') as TimerBlock
+    timer.imageUrl = ''
+    row.columns[0].blocks.push(timer)
+    design.rows.push(row)
+
+    const wrapper = mount(EmailBuilder, {
+      props: {
+        design,
+        timerImageUrlBuilder: () => 'https://timers.example/live.gif',
+      },
+    })
+    const vm = wrapper.vm as unknown as { exportHtml: () => string }
+
+    expect(vm.exportHtml()).toContain('src="https://timers.example/live.gif"')
   })
 
   it('acepta autosave y expone el estado inicial del autosave', async () => {

@@ -13,6 +13,7 @@ export {
   type MergeTagItem,
   type SpecialLink,
   type ToolConfig,
+  type TimerImageUrlBuilder,
   type Appearance,
   type ThemeAppearance,
   type CustomBlockDef,

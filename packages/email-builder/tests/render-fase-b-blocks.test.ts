@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { renderHtml } from '../src/render/html'
 import { createBlock, createDocument, createRow } from '../src/schema'
+import type { TimerImageUrlBuilder } from '../src/options'
 import type { Block, GalleryBlock, TableBlock, TimerBlock } from '../src/schema'
 
-function render(block: Block): string {
+function render(block: Block, timerImageUrlBuilder?: TimerImageUrlBuilder): string {
   const doc = createDocument(); const row = createRow([100])
   row.columns[0].blocks.push(block); doc.rows.push(row)
-  return renderHtml(doc)
+  return renderHtml(doc, undefined, undefined, timerImageUrlBuilder)
 }
 
 describe('renderer fase B — bloques nuevos', () => {
@@ -54,6 +55,21 @@ describe('renderer fase B — bloques nuevos', () => {
     t.imageUrl = 'https://timers.x/abc.gif'
     const html = render(t)
     expect(html).toContain('src="https://timers.x/abc.gif"')
+  })
+
+  it('uses the configured timer image builder when the block has no image URL', () => {
+    const t = createBlock('timer') as TimerBlock
+    t.imageUrl = ''
+    const html = render(t, () => 'https://timers.example/countdown.gif?end=1')
+    expect(html).toContain('src="https://timers.example/countdown.gif?end=1"')
+  })
+
+  it('prefers an explicit timer image URL over the configured builder', () => {
+    const t = createBlock('timer') as TimerBlock
+    t.imageUrl = 'https://timers.example/explicit.gif'
+    const html = render(t, () => 'https://timers.example/generated.gif')
+    expect(html).toContain('src="https://timers.example/explicit.gif"')
+    expect(html).not.toContain('https://timers.example/generated.gif')
   })
 
   it('timer sin imageUrl renderiza caja estática con días restantes', () => {
