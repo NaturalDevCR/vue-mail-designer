@@ -28,7 +28,7 @@ jobs:
           fi
 
       # pnpm/action-setup v4.4.0
-      - uses: pnpm/action-setup@a15d269cd4658e1107c09f1fabf4cbd7bd1f308a
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320
         with:
           version: 11.11.0
           run_install: false
@@ -50,7 +50,7 @@ jobs:
 
           const requiredPins = [
             ['actions/checkout', '11d5960a326750d5838078e36cf38b85af677262'],
-            ['pnpm/action-setup', 'a15d269cd4658e1107c09f1fabf4cbd7bd1f308a'],
+            ['pnpm/action-setup', 'fc06bc1257f339d1d5d8b3a19a8cae5388b55320'],
             ['actions/setup-node', '49933ea5288caeca8642d1e84afbd3f7d6820020'],
           ];
 
