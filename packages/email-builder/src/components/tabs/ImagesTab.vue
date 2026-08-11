@@ -35,14 +35,13 @@
 import { ref } from 'vue'
 import { openverseSearch, type ImageResult } from '../../imageSearch'
 import { useBuilderOptions } from '../../options'
-import { useDocumentStore } from '../../store/document'
-import { useBuilderPinia } from '../../store/keys'
 import DraggableImageThumb from './DraggableImageThumb.vue'
+import type { ImageSelection } from './imageTypes'
 
 const DEBOUNCE_MS = 400
 
-const store = useDocumentStore(useBuilderPinia())
 const options = useBuilderOptions()
+const emit = defineEmits<{ select: [image: ImageSelection] }>()
 
 const query = ref('')
 const results = ref<ImageResult[]>([])
@@ -85,14 +84,11 @@ async function runSearch() {
 }
 
 function selectImage(result: ImageResult) {
-  const selected = store.selectedBlock
-  if (selected && selected.type === 'image') {
-    // no pisar alt escrito por el usuario: solo setearlo si está vacío
-    store.updateBlock(selected.id, { src: result.url, ...(selected.alt ? {} : { alt: result.title ?? '' }) })
-    return
-  }
-  const row = store.addRow([100])
-  const block = store.addBlockToColumn(row.columns[0].id, 'image')
-  store.updateBlock(block.id, { src: result.url, alt: result.title ?? '' })
+  emit('select', {
+    src: result.url,
+    thumbnailUrl: result.thumbnailUrl,
+    alt: result.title ?? '',
+    title: result.title,
+  })
 }
 </script>

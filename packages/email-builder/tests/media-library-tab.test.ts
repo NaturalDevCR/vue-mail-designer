@@ -26,7 +26,10 @@ function makeMediaLibrary(
 }
 
 async function openMediaTab(wrapper: ReturnType<typeof mount>) {
-  await wrapper.find('[data-tab="media"]').trigger('click')
+  await wrapper.find('[data-tab="images"]').trigger('click')
+  const galleryTab = wrapper.find('[data-subtab="gallery"]')
+  expect(galleryTab.exists()).toBe(true)
+  await galleryTab.trigger('click')
   await flushPromises()
 }
 
@@ -37,23 +40,31 @@ function findButtonWithText(root: DOMWrapper<Element>, text: string) {
 }
 
 describe('MediaLibraryTab', () => {
-  it('no aparece la pestaña sin la prop mediaLibrary', () => {
+  it('oculta la subpestaña Gallery sin la prop mediaLibrary', async () => {
     const wrapper = mount(EmailBuilder)
-    expect(wrapper.find('[data-tab="media"]').exists()).toBe(false)
+    await wrapper.find('[data-tab="images"]').trigger('click')
+    expect(wrapper.find('[data-subtab="gallery"]').exists()).toBe(false)
   })
 
-  it('lista los ítems al abrir la pestaña', async () => {
+  it('lista los ítems al abrir la subpestaña Gallery', async () => {
     const mediaLibrary = makeMediaLibrary()
     const wrapper = mount(EmailBuilder, { props: { mediaLibrary } })
     await openMediaTab(wrapper)
     expect(mediaLibrary.list).toHaveBeenCalledWith()
     expect(wrapper.findAll('.vmd-media-item')).toHaveLength(2)
+    expect(wrapper.findAll('.vmd-media-item-thumb')[0]?.find('img').attributes('src')).toBe(
+      'https://img.example/a-thumb.jpg',
+    )
   })
 
-  it('click sin selección inserta un bloque imagen nuevo con el src y el name', async () => {
+  it('abre preview desde Gallery y solo inserta al presionar Add', async () => {
     const wrapper = mount(EmailBuilder, { props: { mediaLibrary: makeMediaLibrary() } })
     await openMediaTab(wrapper)
     await wrapper.find('.vmd-media-item-thumb').trigger('click')
+    expect(wrapper.find('.vmd-image-preview-dialog').exists()).toBe(true)
+    expect(wrapper.emitted('update:design')).toBeUndefined()
+
+    await wrapper.find('[data-action="image-preview-add"]').trigger('click')
 
     const emitted = wrapper.emitted('update:design')
     const design = emitted![emitted!.length - 1][0] as {
@@ -65,7 +76,7 @@ describe('MediaLibraryTab', () => {
     expect(image?.alt).toBe('Foto A')
   })
 
-  it('no pisa el alt existente al cambiar la imagen de un bloque seleccionado', async () => {
+  it('preserva el alt existente al agregar desde Gallery sobre un bloque seleccionado', async () => {
     const design = createDocument()
     const row = createRow([100])
     const img = createBlock('image')
@@ -79,6 +90,9 @@ describe('MediaLibraryTab', () => {
     await wrapper.find('.vmd-block').trigger('click')
     await openMediaTab(wrapper)
     await wrapper.find('.vmd-media-item-thumb').trigger('click')
+    expect(wrapper.emitted('update:design')).toBeUndefined()
+
+    await wrapper.find('[data-action="image-preview-add"]').trigger('click')
 
     const emitted = wrapper.emitted('update:design')
     const doc = emitted![emitted!.length - 1][0] as {
@@ -88,6 +102,16 @@ describe('MediaLibraryTab', () => {
     const image = blocks.find((b) => b.type === 'image')
     expect(image?.src).toBe('https://img.example/a.jpg')
     expect(image?.alt).toBe('Mi alt')
+  })
+
+  it('cerrar el preview de Gallery no muta el diseño', async () => {
+    const wrapper = mount(EmailBuilder, { props: { mediaLibrary: makeMediaLibrary() } })
+    await openMediaTab(wrapper)
+    await wrapper.find('.vmd-media-item-thumb').trigger('click')
+
+    await wrapper.find('[data-action="image-preview-cancel"]').trigger('click')
+    expect(wrapper.find('.vmd-image-preview-dialog').exists()).toBe(false)
+    expect(wrapper.emitted('update:design')).toBeUndefined()
   })
 
   it('muestra error y permite reintentar si list falla', async () => {
@@ -361,7 +385,7 @@ describe('MediaLibraryTab', () => {
 
     await wrapper.setProps({ mediaLibrary: undefined })
 
-    expect(wrapper.find('[data-tab="media"]').exists()).toBe(false)
+    expect(wrapper.find('[data-subtab="gallery"]').exists()).toBe(false)
     expect(wrapper.find('.vmd-media-tab').exists()).toBe(false)
   })
 

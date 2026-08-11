@@ -95,13 +95,12 @@
 import { nextTick, onMounted, ref } from 'vue'
 import type { MediaItem } from '../../mediaLibrary'
 import { useBuilderOptions } from '../../options'
-import { useDocumentStore } from '../../store/document'
-import { useBuilderPinia } from '../../store/keys'
 import { ICONS } from '../icons'
 import DraggableImageThumb from './DraggableImageThumb.vue'
+import type { ImageSelection } from './imageTypes'
 
-const store = useDocumentStore(useBuilderPinia())
 const options = useBuilderOptions()
+const emit = defineEmits<{ select: [image: ImageSelection] }>()
 
 const items = ref<MediaItem[]>([])
 const status = ref<'loading' | 'error' | 'empty' | 'results'>('loading')
@@ -159,14 +158,12 @@ async function loadMore() {
 }
 
 function insert(item: MediaItem) {
-  const selected = store.selectedBlock
-  if (selected && selected.type === 'image') {
-    store.updateBlock(selected.id, { src: item.url, ...(selected.alt ? {} : { alt: item.name ?? '' }) })
-    return
-  }
-  const row = store.addRow([100])
-  const block = store.addBlockToColumn(row.columns[0].id, 'image')
-  store.updateBlock(block.id, { src: item.url, alt: item.name ?? '' })
+  emit('select', {
+    src: item.url,
+    thumbnailUrl: item.thumbnailUrl,
+    alt: item.name ?? '',
+    title: item.name,
+  })
 }
 
 async function onUpload(e: Event) {

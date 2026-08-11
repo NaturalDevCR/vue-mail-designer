@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import EmailBuilder from '../src/components/EmailBuilder.vue'
 
@@ -60,5 +60,28 @@ describe('SidePanel', () => {
     // clickear el MISMO elemento otra vez debe re-abrir propiedades
     await wrapper.find('.vmd-row').trigger('click')
     expect(wrapper.find('.vmd-props-header').exists()).toBe(true)
+  })
+
+  it('usa un solo tab Images con subtabs Search y Gallery opcional', async () => {
+    const mediaLibrary = {
+      list: async () => ({ items: [] }),
+      upload: async () => {
+        throw new Error('unused')
+      },
+      delete: async () => {
+        throw new Error('unused')
+      },
+      rename: async () => {
+        throw new Error('unused')
+      },
+    }
+    const wrapper = mount(EmailBuilder, { props: { mediaLibrary } })
+
+    await wrapper.find('[data-tab="images"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('[data-subtab="search"]').exists()).toBe(true)
+    expect(wrapper.find('[data-subtab="gallery"]').exists()).toBe(true)
+    expect(wrapper.find('[data-tab="media"]').exists()).toBe(false)
   })
 })
