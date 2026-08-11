@@ -44,14 +44,25 @@ describe('BlockView — Fase B', () => {
     if (block.type !== 'timer') throw new Error()
     block.imageUrl = ''
     block.endDate = new Date(Date.now() + 3 * 864e5).toISOString()
+    block.style.backgroundColor = '#111827'
+    block.style.borderRadius = 24
+    block.style.numberColor = '#f97316'
+    block.style.labelColor = '#fef3c7'
+    block.style.fontFamily = 'Georgia, serif'
+    block.labels = { days: 'D', hours: 'H', minutes: 'M', seconds: 'S' }
     const { wrapper } = mountBlock(block)
     expect(wrapper.find('.vmd-b-image-placeholder').exists()).toBe(false)
     expect(wrapper.find('.vmd-b-timer').exists()).toBe(true)
     expect(wrapper.findAll('.vmd-timer-unit')).toHaveLength(4)
-    expect(wrapper.text()).toContain('days')
-    expect(wrapper.text()).toContain('hours')
-    expect(wrapper.text()).toContain('minutes')
-    expect(wrapper.text()).toContain('seconds')
+    expect(wrapper.text()).toContain('D')
+    expect(wrapper.text()).toContain('H')
+    expect(wrapper.text()).toContain('M')
+    expect(wrapper.text()).toContain('S')
+    expect(wrapper.find('.vmd-timer-card').attributes('style')).toContain('background-color: rgb(17, 24, 39)')
+    expect(wrapper.find('.vmd-timer-card').attributes('style')).toContain('border-radius: 24px')
+    expect(wrapper.find('.vmd-timer-value').attributes('style')).toContain('color: rgb(249, 115, 22)')
+    expect(wrapper.find('.vmd-timer-label').attributes('style')).toContain('color: rgb(254, 243, 199)')
+    expect(wrapper.find('.vmd-timer-label').text()).toBe('D')
   })
 
   it('timer con imageUrl muestra un img', () => {

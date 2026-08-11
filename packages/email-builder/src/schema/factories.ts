@@ -139,7 +139,11 @@ export function createBlock(type: BlockType): Block {
         id, type,
         endDate: new Date(Date.now() + 7 * 864e5).toISOString(),
         imageUrl: '', alt: 'Cuenta regresiva', widthPct: 100,
-        style: { padding: pad(8, 24, 8, 24) },
+        style: {
+          backgroundColor: '#ffffff', borderColor: '#e5e7eb', borderWidth: 1, borderRadius: 12,
+          numberColor: '#111827', labelColor: '#718096',
+          padding: pad(8, 24, 8, 24),
+        },
       }
     case 'custom':
       // los bloques custom se crean con createCustomBlock(customType, defaultData)

@@ -180,10 +180,20 @@
     <div v-else-if="block.type === 'timer'" :style="{ padding: padCss(block.style.padding), textAlign: 'center' }">
       <img v-if="block.imageUrl" :src="block.imageUrl" :alt="block.alt" :style="{ width: block.widthPct + '%', display: 'inline-block' }" />
       <div v-else class="vmd-b-timer" role="timer" :aria-label="timerAriaLabel">
-        <div class="vmd-timer-card">
+        <div
+          class="vmd-timer-card"
+          :style="{
+            backgroundColor: block.style.backgroundColor ?? '#ffffff',
+            borderColor: block.style.borderColor ?? '#e5e7eb',
+            borderWidth: (block.style.borderWidth ?? 1) + 'px',
+            borderRadius: (block.style.borderRadius ?? 12) + 'px',
+            fontFamily: block.style.fontFamily || fontFamily,
+            '--vmd-timer-border': block.style.borderColor ?? '#e5e7eb',
+          }"
+        >
           <div v-for="part in timerParts" :key="part.key" class="vmd-timer-unit">
-            <strong class="vmd-timer-value">{{ part.value }}</strong>
-            <span class="vmd-timer-label">{{ part.label }}</span>
+            <strong class="vmd-timer-value" :style="{ color: block.style.numberColor ?? '#111827' }">{{ part.value }}</strong>
+            <span class="vmd-timer-label" :style="{ color: block.style.labelColor ?? '#718096' }">{{ part.label }}</span>
           </div>
         </div>
       </div>
@@ -301,10 +311,10 @@ const timerParts = computed(() => {
   const minutes = Math.floor((totalSeconds % 3600) / 60)
   const seconds = totalSeconds % 60
   return [
-    { key: 'days', value: days, label: days === 1 ? t('canvas.day') : t('canvas.days') },
-    { key: 'hours', value: String(hours).padStart(2, '0'), label: t('canvas.hours') },
-    { key: 'minutes', value: String(minutes).padStart(2, '0'), label: t('canvas.minutes') },
-    { key: 'seconds', value: String(seconds).padStart(2, '0'), label: t('canvas.seconds') },
+    { key: 'days', value: days, label: b.labels?.days ?? (days === 1 ? t('canvas.day') : t('canvas.days')) },
+    { key: 'hours', value: String(hours).padStart(2, '0'), label: b.labels?.hours ?? t('canvas.hours') },
+    { key: 'minutes', value: String(minutes).padStart(2, '0'), label: b.labels?.minutes ?? t('canvas.minutes') },
+    { key: 'seconds', value: String(seconds).padStart(2, '0'), label: b.labels?.seconds ?? t('canvas.seconds') },
   ]
 })
 

@@ -230,6 +230,13 @@ export const zGalleryBlock = z.object({
   hideMobile: z.boolean().optional(),
 })
 
+const zTimerLabels = z.object({
+  days: z.string().optional(),
+  hours: z.string().optional(),
+  minutes: z.string().optional(),
+  seconds: z.string().optional(),
+})
+
 export const zTimerBlock = z.object({
   id: z.string(),
   type: z.literal('timer'),
@@ -237,7 +244,17 @@ export const zTimerBlock = z.object({
   imageUrl: z.string(),
   alt: z.string(),
   widthPct: z.number().min(10).max(100),
-  style: z.object({ padding: zPadding }),
+  labels: zTimerLabels.optional(),
+  style: z.object({
+    backgroundColor: z.string().default('#ffffff'),
+    borderColor: z.string().default('#e5e7eb'),
+    borderWidth: z.number().min(0).max(12).default(1),
+    borderRadius: z.number().min(0).max(60).default(12),
+    numberColor: z.string().default('#111827'),
+    labelColor: z.string().default('#718096'),
+    fontFamily: z.string().optional(),
+    padding: zPadding,
+  }),
   hideDesktop: z.boolean().optional(),
   hideMobile: z.boolean().optional(),
 })

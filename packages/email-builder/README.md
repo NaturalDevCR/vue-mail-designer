@@ -253,6 +253,7 @@ Heading, Text (rich editor), Image, Button, Divider, Spacer, Social, Menu, HTML,
 - **Own font** per heading/text block (in addition to the document font).
 - Border and radius per column (supported in the model and the HTML; no dedicated inspector control yet).
 - **Image cropping** ("Crop" button in an image block's inspector, only visible with `uploadImage` configured) — aspect ratio, rotate/flip, straighten, and corner radius (`borderRadius`); the result is uploaded via `uploadImage`.
+- **Timer styling** — static timers expose card background, border, corner radius, number/label colors, font family, and editable Days/Hours/Minutes/Seconds labels in the inspector.
 
 ## Email compatibility
 

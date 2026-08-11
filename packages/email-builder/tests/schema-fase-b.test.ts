@@ -50,5 +50,10 @@ describe('schema fase B', () => {
     expect([2, 3, 4]).toContain(gallery.columns)
     const timer = createBlock('timer') as TimerBlock
     expect(typeof timer.endDate).toBe('string')
+    expect(timer.style.backgroundColor).toBe('#ffffff')
+    expect(timer.style.borderColor).toBe('#e5e7eb')
+    expect(timer.style.borderRadius).toBe(12)
+    expect(timer.style.numberColor).toBe('#111827')
+    expect(timer.style.labelColor).toBe('#718096')
   })
 })
