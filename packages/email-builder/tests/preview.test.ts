@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import EmailBuilder from '../src/components/EmailBuilder.vue'
+import { findInBody } from './modal-test-utils'
 
 describe('toolbar y preview', () => {
   it('deshacer está deshabilitado sin historial y se habilita al mutar', async () => {
@@ -14,7 +15,7 @@ describe('toolbar y preview', () => {
   it('abrir preview monta el iframe con srcdoc', async () => {
     const wrapper = mount(EmailBuilder)
     await wrapper.find('[data-action="preview"]').trigger('click')
-    const iframe = wrapper.find('iframe.vmd-preview-frame')
+    const iframe = findInBody('iframe.vmd-preview-frame')
     expect(iframe.exists()).toBe(true)
     expect(iframe.attributes('srcdoc')).toContain('<!doctype html>')
   })
@@ -22,12 +23,12 @@ describe('toolbar y preview', () => {
   it('presets y ancho custom cambian el iframe', async () => {
     const wrapper = mount(EmailBuilder)
     await wrapper.find('[data-action="preview"]').trigger('click')
-    await wrapper.find('[data-preset="mobile"]').trigger('click')
-    expect(wrapper.find('iframe.vmd-preview-frame').attributes('style')).toContain('375px')
-    await wrapper.find('[data-preset="tablet"]').trigger('click')
-    expect(wrapper.find('iframe.vmd-preview-frame').attributes('style')).toContain('768px')
-    const custom = wrapper.find('input.vmd-preview-width')
+    await findInBody('[data-preset="mobile"]').trigger('click')
+    expect(findInBody('iframe.vmd-preview-frame').attributes('style')).toContain('375px')
+    await findInBody('[data-preset="tablet"]').trigger('click')
+    expect(findInBody('iframe.vmd-preview-frame').attributes('style')).toContain('768px')
+    const custom = findInBody('input.vmd-preview-width')
     await custom.setValue('500')
-    expect(wrapper.find('iframe.vmd-preview-frame').attributes('style')).toContain('500px')
+    expect(findInBody('iframe.vmd-preview-frame').attributes('style')).toContain('500px')
   })
 })

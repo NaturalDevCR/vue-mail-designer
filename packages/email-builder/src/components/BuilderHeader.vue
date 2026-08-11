@@ -23,8 +23,12 @@
       </div>
     </div>
     <input ref="fileInput" type="file" accept="application/json,.json" style="display: none" @change="onFile" />
-    <UnlayerImportDialog v-if="ui.unlayerImportOpen" />
-    <VersionsDialog v-if="ui.versionsOpen" />
+    <ModalPortal v-if="ui.unlayerImportOpen">
+      <UnlayerImportDialog />
+    </ModalPortal>
+    <ModalPortal v-if="ui.versionsOpen">
+      <VersionsDialog />
+    </ModalPortal>
   </header>
 </template>
 
@@ -39,6 +43,7 @@ import { useBuilderPinia } from '../store/keys'
 import { useUiStore } from '../store/ui'
 import UnlayerImportDialog from './UnlayerImportDialog.vue'
 import VersionsDialog from './VersionsDialog.vue'
+import ModalPortal from './ModalPortal.vue'
 import { exportDocumentImage } from '../export/image'
 
 const pinia = useBuilderPinia()

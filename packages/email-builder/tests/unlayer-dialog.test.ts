@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import EmailBuilder from '../src/components/EmailBuilder.vue'
+import { findInBody, hasInBody } from './modal-test-utils'
 
 const VALID_DESIGN = {
   body: {
@@ -29,33 +30,33 @@ describe('UnlayerImportDialog', () => {
   it('pega JSON válido, carga, muestra advertencias/aplicar y llena el canvas al aplicar', async () => {
     const wrapper = mount(EmailBuilder)
     await openDialog(wrapper)
-    expect(wrapper.find('.vmd-import-json').exists()).toBe(true)
+    expect(findInBody('.vmd-import-json').exists()).toBe(true)
 
-    await wrapper.find('.vmd-import-json').setValue(JSON.stringify(VALID_DESIGN))
-    await wrapper.find('[data-action="unlayer-load"]').trigger('click')
+    await findInBody('.vmd-import-json').setValue(JSON.stringify(VALID_DESIGN))
+    await findInBody('[data-action="unlayer-load"]').trigger('click')
     await wrapper.vm.$nextTick()
     await new Promise((r) => setTimeout(r, 0))
 
     expect(
-      wrapper.find('.vmd-import-warnings').exists() || wrapper.find('[data-action="unlayer-apply"]').exists(),
+      hasInBody('.vmd-import-warnings') || hasInBody('[data-action="unlayer-apply"]'),
     ).toBe(true)
-    expect(wrapper.find('[data-action="unlayer-apply"]').exists()).toBe(true)
+    expect(findInBody('[data-action="unlayer-apply"]').exists()).toBe(true)
 
-    await wrapper.find('[data-action="unlayer-apply"]').trigger('click')
+    await findInBody('[data-action="unlayer-apply"]').trigger('click')
     expect(wrapper.find('.vmd-row').exists()).toBe(true)
-    expect(wrapper.find('.vmd-import-json').exists()).toBe(false)
+    expect(document.body.querySelector('.vmd-import-json')).toBeNull()
   })
 
   it('JSON inválido muestra error', async () => {
     const wrapper = mount(EmailBuilder)
     await openDialog(wrapper)
 
-    await wrapper.find('.vmd-import-json').setValue('{ esto no es json')
-    await wrapper.find('[data-action="unlayer-load"]').trigger('click')
+    await findInBody('.vmd-import-json').setValue('{ esto no es json')
+    await findInBody('[data-action="unlayer-load"]').trigger('click')
     await wrapper.vm.$nextTick()
     await new Promise((r) => setTimeout(r, 0))
 
-    expect(wrapper.find('.vmd-import-error').exists()).toBe(true)
+    expect(findInBody('.vmd-import-error').exists()).toBe(true)
   })
 
   it('modo URL usa el unlayerFetch inyectado y convierte el resultado', async () => {
@@ -63,15 +64,15 @@ describe('UnlayerImportDialog', () => {
     const wrapper = mount(EmailBuilder, { props: { unlayerFetch: fetchMock } })
     await openDialog(wrapper)
 
-    await wrapper.find('.vmd-import-url').setValue('https://studio.unlayer.com/create/foo')
-    await wrapper.find('[data-action="unlayer-load"]').trigger('click')
+    await findInBody('.vmd-import-url').setValue('https://studio.unlayer.com/create/foo')
+    await findInBody('[data-action="unlayer-load"]').trigger('click')
     await wrapper.vm.$nextTick()
     await new Promise((r) => setTimeout(r, 0))
 
     expect(fetchMock).toHaveBeenCalledWith('foo')
-    expect(wrapper.find('[data-action="unlayer-apply"]').exists()).toBe(true)
+    expect(findInBody('[data-action="unlayer-apply"]').exists()).toBe(true)
 
-    await wrapper.find('[data-action="unlayer-apply"]').trigger('click')
+    await findInBody('[data-action="unlayer-apply"]').trigger('click')
     expect(wrapper.find('.vmd-row').exists()).toBe(true)
   })
 })

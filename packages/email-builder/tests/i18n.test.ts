@@ -7,6 +7,7 @@ import { es } from '../src/i18n/es'
 import { useI18n } from '../src/i18n/useI18n'
 import { createBlock, createDocument, createRow } from '../src/schema'
 import type { MediaItem } from '../src/mediaLibrary'
+import './modal-test-utils'
 
 const TASK_4_COMPONENT_SOURCES = import.meta.glob<string>(
   [
@@ -214,7 +215,7 @@ describe('i18n', () => {
     vi.setSystemTime(new Date('2099-01-01T00:00:00.000Z'))
 
     const { wrapper: englishWrapper } = await openTask4Chrome('en')
-    const englishText = englishWrapper.text()
+    const englishText = `${englishWrapper.text()} ${document.body.textContent ?? ''}`
 
     for (const literal of TASK_4_SPANISH_LITERALS) {
       expect(englishText).not.toContain(literal)
@@ -225,8 +226,10 @@ describe('i18n', () => {
     expect(englishText).toContain('Hidden here')
     expect(englishText).toContain('days')
 
+    englishWrapper.unmount()
+
     const { wrapper: spanishWrapper } = await openTask4Chrome('es')
-    const spanishText = spanishWrapper.text()
+    const spanishText = `${spanishWrapper.text()} ${document.body.textContent ?? ''}`
 
     expect(spanishText).toContain('Importar de Unlayer')
     expect(spanishText).toContain('Elegir plantilla')

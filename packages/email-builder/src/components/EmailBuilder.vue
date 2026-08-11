@@ -1,7 +1,9 @@
 <template>
   <div class="vmd-root" :class="{ 'vmd-dark': ui.theme === 'dark', 'vmd-is-dragging': ui.isDragging }" :style="appearanceStyle">
     <BuilderHeader v-if="props.showHeader !== false" />
-    <PreviewDialog v-if="ui.previewOpen" />
+    <ModalPortal v-if="ui.previewOpen">
+      <PreviewDialog />
+    </ModalPortal>
     <div class="vmd-main">
       <section class="vmd-canvas-area">
         <CanvasBar />
@@ -9,8 +11,12 @@
       </section>
       <SidePanel />
     </div>
-    <TemplateGallery v-if="ui.galleryOpen" />
-    <ImageEditorModal v-if="ui.imageEditorBlockId" />
+    <ModalPortal v-if="ui.galleryOpen">
+      <TemplateGallery />
+    </ModalPortal>
+    <ModalPortal v-if="ui.imageEditorBlockId">
+      <ImageEditorModal />
+    </ModalPortal>
   </div>
 </template>
 
@@ -42,11 +48,13 @@ import type { EmailDocument } from '../schema'
 import { useDocumentStore } from '../store/document'
 import { BUILDER_PINIA_KEY } from '../store/keys'
 import { useUiStore } from '../store/ui'
+import { MODAL_CONTEXT_KEY } from '../modalContext'
 import type { EmailTemplate } from '../templates'
 import BuilderCanvas from './BuilderCanvas.vue'
 import BuilderHeader from './BuilderHeader.vue'
 import CanvasBar from './CanvasBar.vue'
 import ImageEditorModal from './ImageEditorModal.vue'
+import ModalPortal from './ModalPortal.vue'
 import PreviewDialog from './PreviewDialog.vue'
 import SidePanel from './SidePanel.vue'
 import TemplateGallery from './TemplateGallery.vue'
@@ -111,6 +119,10 @@ const pinia = createPinia()
 provide(BUILDER_PINIA_KEY, pinia)
 const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
+provide(MODAL_CONTEXT_KEY, {
+  theme: computed(() => ui.theme),
+  appearanceStyle,
+})
 
 function cloneDocument(document: EmailDocument): EmailDocument {
   return JSON.parse(JSON.stringify(document)) as EmailDocument
