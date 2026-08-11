@@ -53,4 +53,6 @@ Requests can show model-download progress. API failures are converted to localiz
 
 Chrome built-in AI APIs are experimental and may be unavailable, require model download, or support only some language pairs. Treat the AI menu as an optional enhancement: keep your editor usable when the APIs are missing, and do not assume that enabling the prop makes every action available.
 
+The public demo includes a deterministic local preview fallback when the browser does not expose these APIs. This keeps the interaction available for evaluation; it is demo-only and is not included in the package or used as a production AI provider.
+
 See the [`ai` prop](/reference/props#ai) for the public configuration shape.

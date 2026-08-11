@@ -1,128 +1,128 @@
 <template>
   <div ref="root" class="vmd-ai">
-    <button type="button" class="vmd-mini-btn vmd-ai-toggle" data-action="ai-menu-toggle" :title="t('ai.menu')" @click.stop="toggleMenu">
+    <button ref="toggleButton" type="button" class="vmd-mini-btn vmd-ai-toggle" data-action="ai-menu-toggle" :title="t('ai.menu')" @click.stop="toggleMenu">
       <span class="vmd-ai-toggle-label">AI</span>
     </button>
 
-    <div v-if="open" class="vmd-ai-popover" @click.stop>
-      <template v-if="!activeTool">
-        <button type="button" class="vmd-ai-item" data-action="ai-item-rewrite" :disabled="!canRewrite" :title="rewriteTooltip" @click="selectTool('rewrite')">
-          {{ t('ai.rewrite') }}
-        </button>
-        <button type="button" class="vmd-ai-item" data-action="ai-item-write" :disabled="!canWrite" :title="writeTooltip" @click="selectTool('write')">
-          {{ t('ai.write') }}
-        </button>
-        <button type="button" class="vmd-ai-item" data-action="ai-item-summarize" :disabled="!canSummarize" :title="summarizeTooltip" @click="selectTool('summarize')">
-          {{ t('ai.summarize') }}
-        </button>
-        <button type="button" class="vmd-ai-item" data-action="ai-item-translate" :disabled="!canTranslate" :title="translateTooltip" @click="selectTool('translate')">
-          {{ t('ai.translate') }}
-        </button>
-      </template>
-
-      <div v-else class="vmd-ai-panel">
-        <template v-if="!resultText">
-          <template v-if="activeTool === 'rewrite'">
-            <label class="vmd-ai-label">
-              {{ t('ai.tone') }}
-              <select v-model="rewriteTone" class="vmd-ai-select">
-                <option value="as-is">{{ t('ai.toneAsIs') }}</option>
-                <option value="more-formal">{{ t('ai.toneFormal') }}</option>
-                <option value="more-casual">{{ t('ai.toneCasual') }}</option>
-              </select>
-            </label>
-            <label class="vmd-ai-label">
-              {{ t('ai.length') }}
-              <select v-model="rewriteLength" class="vmd-ai-select">
-                <option value="as-is">{{ t('ai.lengthAsIs') }}</option>
-                <option value="shorter">{{ t('ai.lengthShorter') }}</option>
-                <option value="longer">{{ t('ai.lengthLonger') }}</option>
-              </select>
-            </label>
-          </template>
-
-          <template v-else-if="activeTool === 'write'">
-            <textarea v-model="writePrompt" class="vmd-ai-textarea" data-field="ai-prompt" :placeholder="t('ai.writePlaceholder')" />
-            <label class="vmd-ai-label">
-              {{ t('ai.tone') }}
-              <select v-model="writeTone" class="vmd-ai-select">
-                <option value="as-is">{{ t('ai.toneAsIs') }}</option>
-                <option value="more-formal">{{ t('ai.toneFormal') }}</option>
-                <option value="more-casual">{{ t('ai.toneCasual') }}</option>
-              </select>
-            </label>
-            <label class="vmd-ai-label">
-              {{ t('ai.length') }}
-              <select v-model="writeLength" class="vmd-ai-select">
-                <option value="as-is">{{ t('ai.lengthAsIs') }}</option>
-                <option value="shorter">{{ t('ai.lengthShorter') }}</option>
-                <option value="longer">{{ t('ai.lengthLonger') }}</option>
-              </select>
-            </label>
-            <label class="vmd-ai-label">
-              {{ t('ai.format') }}
-              <select v-model="writeFormat" class="vmd-ai-select">
-                <option value="plain-text">{{ t('ai.formatPlain') }}</option>
-                <option value="markdown">{{ t('ai.formatMarkdown') }}</option>
-              </select>
-            </label>
-          </template>
-
-          <template v-else-if="activeTool === 'summarize'">
-            <label class="vmd-ai-label">
-              {{ t('ai.summaryType') }}
-              <select v-model="summaryType" class="vmd-ai-select">
-                <option value="key-points">{{ t('ai.summaryKeyPoints') }}</option>
-                <option value="tldr">{{ t('ai.summaryTldr') }}</option>
-                <option value="teaser">{{ t('ai.summaryTeaser') }}</option>
-                <option value="headline">{{ t('ai.summaryHeadline') }}</option>
-              </select>
-            </label>
-            <label class="vmd-ai-label">
-              {{ t('ai.length') }}
-              <select v-model="summaryLength" class="vmd-ai-select">
-                <option value="short">{{ t('ai.lengthShort') }}</option>
-                <option value="medium">{{ t('ai.lengthMedium') }}</option>
-                <option value="long">{{ t('ai.lengthLong') }}</option>
-              </select>
-            </label>
-          </template>
-
-          <template v-else-if="activeTool === 'translate'">
-            <label class="vmd-ai-label">
-              {{ t('ai.language') }}
-              <select v-model="targetLanguage" class="vmd-ai-select" data-field="ai-target-lang">
-                <option v-for="language in languages" :key="language.code" :value="language.code">{{ language.label }}</option>
-              </select>
-            </label>
-          </template>
-
-          <p v-if="progressPct !== null" class="vmd-ai-progress">{{ t('ai.downloading') }} {{ progressPct }}%</p>
-          <p v-if="errorMessage" class="vmd-ai-error">{{ errorMessage }}</p>
-
-          <div class="vmd-ai-actions">
-            <button type="button" class="vmd-btn" @click="close">{{ t('common.close') }}</button>
-            <button type="button" class="vmd-btn vmd-btn--primary" data-action="ai-run" :disabled="!canRun" @click="run">
-              {{ t('ai.generate') }}
-            </button>
-          </div>
+    <div v-if="open" ref="popover" class="vmd-ai-popover" :style="popoverStyle" @click.stop>
+        <template v-if="!activeTool">
+          <button type="button" class="vmd-ai-item" data-action="ai-item-rewrite" :disabled="!canRewrite" :title="rewriteTooltip" @click="selectTool('rewrite')">
+            {{ t('ai.rewrite') }}
+          </button>
+          <button type="button" class="vmd-ai-item" data-action="ai-item-write" :disabled="!canWrite" :title="writeTooltip" @click="selectTool('write')">
+            {{ t('ai.write') }}
+          </button>
+          <button type="button" class="vmd-ai-item" data-action="ai-item-summarize" :disabled="!canSummarize" :title="summarizeTooltip" @click="selectTool('summarize')">
+            {{ t('ai.summarize') }}
+          </button>
+          <button type="button" class="vmd-ai-item" data-action="ai-item-translate" :disabled="!canTranslate" :title="translateTooltip" @click="selectTool('translate')">
+            {{ t('ai.translate') }}
+          </button>
         </template>
 
-        <template v-else>
-          <textarea v-model="resultText" class="vmd-ai-textarea vmd-ai-result" data-field="ai-result" />
-          <div class="vmd-ai-actions">
-            <button type="button" class="vmd-btn" data-action="ai-discard" @click="discard">{{ t('ai.discard') }}</button>
-            <button type="button" class="vmd-btn vmd-btn--primary" data-action="ai-apply" @click="apply">{{ t('ai.apply') }}</button>
-          </div>
-        </template>
-      </div>
+        <div v-else class="vmd-ai-panel">
+          <template v-if="!resultText">
+            <template v-if="activeTool === 'rewrite'">
+              <label class="vmd-ai-label">
+                {{ t('ai.tone') }}
+                <select v-model="rewriteTone" class="vmd-ai-select">
+                  <option value="as-is">{{ t('ai.toneAsIs') }}</option>
+                  <option value="more-formal">{{ t('ai.toneFormal') }}</option>
+                  <option value="more-casual">{{ t('ai.toneCasual') }}</option>
+                </select>
+              </label>
+              <label class="vmd-ai-label">
+                {{ t('ai.length') }}
+                <select v-model="rewriteLength" class="vmd-ai-select">
+                  <option value="as-is">{{ t('ai.lengthAsIs') }}</option>
+                  <option value="shorter">{{ t('ai.lengthShorter') }}</option>
+                  <option value="longer">{{ t('ai.lengthLonger') }}</option>
+                </select>
+              </label>
+            </template>
+
+            <template v-else-if="activeTool === 'write'">
+              <textarea v-model="writePrompt" class="vmd-ai-textarea" data-field="ai-prompt" :placeholder="t('ai.writePlaceholder')" />
+              <label class="vmd-ai-label">
+                {{ t('ai.tone') }}
+                <select v-model="writeTone" class="vmd-ai-select">
+                  <option value="as-is">{{ t('ai.toneAsIs') }}</option>
+                  <option value="more-formal">{{ t('ai.toneFormal') }}</option>
+                  <option value="more-casual">{{ t('ai.toneCasual') }}</option>
+                </select>
+              </label>
+              <label class="vmd-ai-label">
+                {{ t('ai.length') }}
+                <select v-model="writeLength" class="vmd-ai-select">
+                  <option value="as-is">{{ t('ai.lengthAsIs') }}</option>
+                  <option value="shorter">{{ t('ai.lengthShorter') }}</option>
+                  <option value="longer">{{ t('ai.lengthLonger') }}</option>
+                </select>
+              </label>
+              <label class="vmd-ai-label">
+                {{ t('ai.format') }}
+                <select v-model="writeFormat" class="vmd-ai-select">
+                  <option value="plain-text">{{ t('ai.formatPlain') }}</option>
+                  <option value="markdown">{{ t('ai.formatMarkdown') }}</option>
+                </select>
+              </label>
+            </template>
+
+            <template v-else-if="activeTool === 'summarize'">
+              <label class="vmd-ai-label">
+                {{ t('ai.summaryType') }}
+                <select v-model="summaryType" class="vmd-ai-select">
+                  <option value="key-points">{{ t('ai.summaryKeyPoints') }}</option>
+                  <option value="tldr">{{ t('ai.summaryTldr') }}</option>
+                  <option value="teaser">{{ t('ai.summaryTeaser') }}</option>
+                  <option value="headline">{{ t('ai.summaryHeadline') }}</option>
+                </select>
+              </label>
+              <label class="vmd-ai-label">
+                {{ t('ai.length') }}
+                <select v-model="summaryLength" class="vmd-ai-select">
+                  <option value="short">{{ t('ai.lengthShort') }}</option>
+                  <option value="medium">{{ t('ai.lengthMedium') }}</option>
+                  <option value="long">{{ t('ai.lengthLong') }}</option>
+                </select>
+              </label>
+            </template>
+
+            <template v-else-if="activeTool === 'translate'">
+              <label class="vmd-ai-label">
+                {{ t('ai.language') }}
+                <select v-model="targetLanguage" class="vmd-ai-select" data-field="ai-target-lang">
+                  <option v-for="language in languages" :key="language.code" :value="language.code">{{ language.label }}</option>
+                </select>
+              </label>
+            </template>
+
+            <p v-if="progressPct !== null" class="vmd-ai-progress">{{ t('ai.downloading') }} {{ progressPct }}%</p>
+            <p v-if="errorMessage" class="vmd-ai-error">{{ errorMessage }}</p>
+
+            <div class="vmd-ai-actions">
+              <button type="button" class="vmd-btn" @click="close">{{ t('common.close') }}</button>
+              <button type="button" class="vmd-btn vmd-btn--primary" data-action="ai-run" :disabled="!canRun" @click="run">
+                {{ t('ai.generate') }}
+              </button>
+            </div>
+          </template>
+
+          <template v-else>
+            <textarea v-model="resultText" class="vmd-ai-textarea vmd-ai-result" data-field="ai-result" />
+            <div class="vmd-ai-actions">
+              <button type="button" class="vmd-btn" data-action="ai-discard" @click="discard">{{ t('ai.discard') }}</button>
+              <button type="button" class="vmd-btn vmd-btn--primary" data-action="ai-apply" @click="apply">{{ t('ai.apply') }}</button>
+            </div>
+          </template>
+        </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { Editor } from '@tiptap/core'
-import { computed, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue'
 import {
   detectLanguage,
   isRewriterAvailable,
@@ -152,6 +152,9 @@ const options = useBuilderOptions()
 const { locale, t } = useI18n()
 
 const root = ref<HTMLElement | null>(null)
+const toggleButton = ref<HTMLButtonElement | null>(null)
+const popover = ref<HTMLElement | null>(null)
+const popoverStyle = ref<Record<string, string>>({})
 const open = ref(false)
 const activeTool = ref<Tool | null>(null)
 const hasSelection = ref(false)
@@ -249,6 +252,45 @@ function toggleMenu(): void {
   refreshSelection()
   resetToolState()
   open.value = true
+}
+
+function updatePopoverPosition(): void {
+  const button = toggleButton.value
+  if (!button || typeof window === 'undefined') return
+
+  const rect = button.getBoundingClientRect()
+  const viewportPadding = 12
+  const width = Math.min(280, Math.max(0, window.innerWidth - viewportPadding * 2))
+  const left = Math.min(
+    Math.max(viewportPadding, rect.right - width),
+    Math.max(viewportPadding, window.innerWidth - width - viewportPadding),
+  )
+  const availableHeight = Math.max(0, window.innerHeight - viewportPadding * 2)
+  const measuredHeight = popover.value?.getBoundingClientRect().height ?? 240
+  const belowTop = rect.bottom + 8
+  const top = belowTop + measuredHeight <= window.innerHeight - viewportPadding
+    ? belowTop
+    : Math.max(viewportPadding, rect.top - Math.min(measuredHeight, availableHeight) - 8)
+
+  popoverStyle.value = {
+    position: 'fixed',
+    top: `${Math.round(top)}px`,
+    left: `${Math.round(left)}px`,
+    width: `${Math.round(width)}px`,
+    maxHeight: `${Math.round(availableHeight)}px`,
+    zIndex: '2000',
+  }
+}
+
+function startPopoverTracking(): void {
+  void nextTick(() => updatePopoverPosition())
+  window.addEventListener('resize', updatePopoverPosition)
+  window.addEventListener('scroll', updatePopoverPosition, true)
+}
+
+function stopPopoverTracking(): void {
+  window.removeEventListener('resize', updatePopoverPosition)
+  window.removeEventListener('scroll', updatePopoverPosition, true)
 }
 
 function close(): void {
@@ -398,6 +440,16 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', onDocumentClick)
+  stopPopoverTracking()
+})
+
+watch(open, (isOpen) => {
+  if (isOpen) startPopoverTracking()
+  else stopPopoverTracking()
+})
+
+watch([activeTool, resultText], () => {
+  if (open.value) void nextTick(() => updatePopoverPosition())
 })
 
 watch([activeTool, sourceLanguage, targetLanguage], async ([tool, source, target]) => {

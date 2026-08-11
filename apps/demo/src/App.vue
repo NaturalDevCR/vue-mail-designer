@@ -16,7 +16,10 @@
 <script setup lang="ts">
 import { EmailBuilder, escapeHtml, type AiLanguage, type CustomBlockDef, type EmailDocument, type MergeTagItem, type SpecialLink } from '@naturaldevcr/vue-mail-designer'
 import { ref, watch } from 'vue'
+import { installDemoAiFallback } from './demoAi'
 import { createDemoMediaLibrary } from './mediaLibrary'
+
+installDemoAiFallback()
 
 const STORAGE_KEY = 'vmd-demo-design'
 const saved = localStorage.getItem(STORAGE_KEY)
