@@ -193,8 +193,8 @@ See the full [Autosave guide](https://naturaldevcr.github.io/vue-mail-designer/g
 
 The builder uses one unified **Images** panel:
 
-- **Search** uses `imageSearch` (or the built-in `openverseSearch`) to find external images.
-- **Gallery** uses `mediaLibrary` to show your uploaded assets. This subtab only appears when you provide `mediaLibrary`.
+- **Gallery** uses `mediaLibrary` to show your uploaded assets. When configured, it is the first and default subtab.
+- **Search** uses `imageSearch` (or the built-in `openverseSearch`) to find external images. Without `mediaLibrary`, Search is the only subtab.
 
 Clicking a thumbnail opens a preview dialog first. Choose **Add** to insert a new Image block on the canvas or replace the currently selected Image block. You can also drag thumbnails directly from Search or Gallery onto the canvas, onto an existing Image block, or onto a Gallery block slot.
 

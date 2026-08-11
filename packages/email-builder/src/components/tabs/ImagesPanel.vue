@@ -2,15 +2,6 @@
   <div class="vmd-images-panel">
     <div class="vmd-images-subtabs">
       <button
-        type="button"
-        class="vmd-images-subtab"
-        :class="{ 'vmd-active': activeTab === 'search' }"
-        data-subtab="search"
-        @click="activeTab = 'search'"
-      >
-        {{ t('images.search') }}
-      </button>
-      <button
         v-if="options.mediaLibrary"
         type="button"
         class="vmd-images-subtab"
@@ -19,6 +10,15 @@
         @click="activeTab = 'gallery'"
       >
         {{ t('images.gallery') }}
+      </button>
+      <button
+        type="button"
+        class="vmd-images-subtab"
+        :class="{ 'vmd-active': activeTab === 'search' }"
+        data-subtab="search"
+        @click="activeTab = 'search'"
+      >
+        {{ t('images.search') }}
       </button>
     </div>
 
@@ -51,13 +51,14 @@ const options = useBuilderOptions()
 const store = useDocumentStore(useBuilderPinia())
 const { t } = useI18n()
 
-const activeTab = ref<'search' | 'gallery'>('search')
+const activeTab = ref<'search' | 'gallery'>(options.mediaLibrary ? 'gallery' : 'search')
 const previewImage = ref<ImageSelection | null>(null)
 
 watch(
   () => options.mediaLibrary,
-  (mediaLibrary) => {
+  (mediaLibrary, previousMediaLibrary) => {
     if (!mediaLibrary && activeTab.value === 'gallery') activeTab.value = 'search'
+    else if (mediaLibrary && !previousMediaLibrary && activeTab.value === 'search') activeTab.value = 'gallery'
   },
 )
 

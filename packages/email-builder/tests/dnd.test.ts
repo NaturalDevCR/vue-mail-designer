@@ -597,6 +597,16 @@ describe('BlockView — la imagen del canvas es arrastrable', () => {
   })
 })
 
+describe('BuilderCanvas — fallback de drop de imágenes', () => {
+  it('registers the full canvas as a media-image drop target outside the rows', async () => {
+    const wrapper = mount(EmailBuilder, { attachTo: document.body })
+    mountedHosts.push(wrapper)
+    await nextTick()
+
+    expect(wrapper.find('.vmd-canvas').attributes('data-drop-target-for-element')).toBe('true')
+  })
+})
+
 describe('applyDrop — fusión de historial al llegar al límite (Hallazgo 1)', () => {
   beforeEach(() => setActivePinia(createPinia()))
 

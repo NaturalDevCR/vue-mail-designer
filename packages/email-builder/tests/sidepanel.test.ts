@@ -85,6 +85,23 @@ describe('SidePanel', () => {
     expect(wrapper.find('[data-tab="media"]').exists()).toBe(false)
   })
 
+  it('puts Gallery first and selects it by default when a media library is configured', async () => {
+    const mediaLibrary = {
+      list: async () => ({ items: [] }),
+      upload: async () => { throw new Error('unused') },
+      delete: async () => { throw new Error('unused') },
+      rename: async () => { throw new Error('unused') },
+    }
+    const wrapper = mount(EmailBuilder, { props: { mediaLibrary } })
+
+    await wrapper.find('[data-tab="images"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.findAll('.vmd-images-subtab').map((tab) => tab.attributes('data-subtab'))).toEqual(['gallery', 'search'])
+    expect(wrapper.find('[data-subtab="gallery"]').classes()).toContain('vmd-active')
+    expect(wrapper.find('[data-subtab="search"]').classes()).not.toContain('vmd-active')
+  })
+
   it('localiza las etiquetas de subtabs de imágenes desde locale', async () => {
     const mediaLibrary = {
       list: async () => ({ items: [] }),
