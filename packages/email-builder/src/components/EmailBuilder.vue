@@ -22,7 +22,7 @@ import type { ImageResult } from '../imageSearch'
 import { en } from '../i18n/en'
 import { es } from '../i18n/es'
 import type { LocaleDict } from '../i18n/keys'
-import { provideI18n } from '../i18n/useI18n'
+import { provideI18n, type ResolvedLocale } from '../i18n/useI18n'
 import type { UnlayerFetch } from '../import/unlayerUrl'
 import type { MediaLibraryOptions } from '../mediaLibrary'
 import { BUILDER_OPTIONS_KEY, type Appearance, type CustomBlockDef, type MergeTagItem, type SpecialLink, type ToolConfig } from '../options'
@@ -93,12 +93,12 @@ const ui = useUiStore(pinia)
 
 // diccionario i18n resuelto a partir de la prop `locale`
 const localeDict = computed<LocaleDict>(() => {
-  const locale = props.locale
-  if (locale === 'en') return { ...es, ...en }
-  if (locale === 'es' || locale === undefined) return { ...es }
-  return { ...es, ...locale }
+  if (props.locale === 'es') return { ...en, ...es }
+  if (props.locale === 'en' || props.locale === undefined) return { ...en }
+  return { ...en, ...props.locale }
 })
-provideI18n(() => localeDict.value)
+const resolvedLocale = computed<ResolvedLocale>(() => (props.locale === 'es' ? 'es' : 'en'))
+provideI18n(() => localeDict.value, () => resolvedLocale.value)
 
 // opciones reactivas para los hijos (getters mantienen la reactividad de props)
 provide(
