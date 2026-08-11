@@ -16,7 +16,16 @@
 
 <script setup lang="ts">
 import { createPinia } from 'pinia'
-import { computed, onMounted, provide, reactive, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, provide, reactive, watch } from 'vue'
+import { createAutosaveController } from '../autosave/controller'
+import type {
+  AutosaveErrorPayload,
+  AutosaveOptions,
+  AutosaveRestoredPayload,
+  AutosaveSavedPayload,
+  AutosaveStatus,
+  AutosaveStatusPayload,
+} from '../autosave/types'
 import { DEFAULT_FONTS, type FontDef } from '../fonts'
 import type { ImageResult } from '../imageSearch'
 import { en } from '../i18n/en'
@@ -60,6 +69,7 @@ const props = withDefaults(defineProps<{
   customBlocks?: CustomBlockDef[]
   mediaLibrary?: MediaLibraryOptions
   ai?: AiOptions
+  autosave?: AutosaveOptions
 }>(), {
   showHeader: true,
 })
@@ -91,12 +101,43 @@ const emit = defineEmits<{
   'update:design': [design: EmailDocument]
   change: [design: EmailDocument]
   'export-html': [html: string]
+  'autosave-status': [payload: AutosaveStatusPayload]
+  'autosave-saved': [payload: AutosaveSavedPayload]
+  'autosave-restored': [payload: AutosaveRestoredPayload]
+  'autosave-error': [payload: AutosaveErrorPayload]
 }>()
 
 const pinia = createPinia()
 provide(BUILDER_PINIA_KEY, pinia)
 const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
+
+function cloneDocument(document: EmailDocument): EmailDocument {
+  return JSON.parse(JSON.stringify(document)) as EmailDocument
+}
+
+let autosaveSuppressionDepth = 0
+const autosaveController = createAutosaveController({
+  applyRestoredDesign(design) {
+    autosaveSuppressionDepth += 1
+    store.loadDesign(design)
+    void nextTick(() => {
+      autosaveSuppressionDepth = Math.max(0, autosaveSuppressionDepth - 1)
+    })
+  },
+  onStatus(payload) {
+    emit('autosave-status', payload)
+  },
+  onSaved(payload) {
+    emit('autosave-saved', payload)
+  },
+  onRestored(payload) {
+    emit('autosave-restored', payload)
+  },
+  onError(payload) {
+    emit('autosave-error', payload)
+  },
+})
 
 // Resolve the i18n dictionary from the public locale prop.
 const localeDict = computed<LocaleDict>(() => {
@@ -160,6 +201,12 @@ onMounted(() => {
     link.href = font.url
     document.head.appendChild(link)
   }
+
+  void autosaveController.configure(props.autosave, cloneDocument(store.doc))
+})
+
+onUnmounted(() => {
+  autosaveController.dispose()
 })
 
 if (props.theme) ui.theme = props.theme
@@ -190,9 +237,20 @@ watch(
 watch(
   () => store.doc,
   (doc) => {
-    const snapshot = JSON.parse(JSON.stringify(doc)) as EmailDocument
+    const snapshot = cloneDocument(doc)
     emit('update:design', snapshot)
     emit('change', snapshot)
+    if (autosaveSuppressionDepth === 0) {
+      autosaveController.handleDesignChange(snapshot)
+    }
+  },
+  { deep: true },
+)
+
+watch(
+  () => props.autosave,
+  (nextAutosave) => {
+    void autosaveController.configure(nextAutosave, cloneDocument(store.doc))
   },
   { deep: true },
 )
@@ -206,15 +264,18 @@ function exportJson(): string {
   return store.exportJson()
 }
 function getDesign(): EmailDocument {
-  return JSON.parse(JSON.stringify(store.doc)) as EmailDocument
+  return cloneDocument(store.doc)
 }
 function loadDesign(doc: EmailDocument): void {
   store.loadDesign(doc)
+}
+function getAutosaveStatus(): AutosaveStatus {
+  return autosaveController.getStatus()
 }
 function exportImage(): Promise<string> {
   const html = renderHtml(store.doc, props.fonts ?? DEFAULT_FONTS, props.customBlocks)
   return exportDocumentImage(html, store.doc.settings.contentWidth)
 }
 
-defineExpose({ exportHtml, exportJson, getDesign, loadDesign, exportImage })
+defineExpose({ exportHtml, exportJson, getDesign, loadDesign, getAutosaveStatus, exportImage })
 </script>

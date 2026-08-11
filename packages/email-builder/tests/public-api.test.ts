@@ -1,6 +1,7 @@
-import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+import { describe, expect, it, vi } from 'vitest'
 import EmailBuilder from '../src/components/EmailBuilder.vue'
+import type { AutosaveStatus } from '../src/autosave/types'
 import type { AiLanguage, AiOptions } from '../src/index'
 import { createDocument, createRow } from '../src/schema'
 
@@ -37,16 +38,36 @@ describe('API pública de EmailBuilder', () => {
       exportHtml: () => string
       exportJson: () => string
       getDesign: () => unknown
+      getAutosaveStatus: () => AutosaveStatus
       loadDesign: (d: unknown) => void
     }
     expect(typeof vm.exportHtml).toBe('function')
     expect(vm.exportHtml()).toContain('<!doctype html>')
     expect(vm.exportJson()).toContain('"version"')
+    expect(typeof vm.getAutosaveStatus).toBe('function')
     const d = createDocument()
     d.rows.push(createRow([50, 50]))
     vm.loadDesign(d)
     await wrapper.vm.$nextTick()
     expect(wrapper.find('.vmd-row').exists()).toBe(true)
+  })
+
+  it('acepta autosave y expone el estado inicial del autosave', async () => {
+    const save = vi.fn()
+    const wrapper = mount(EmailBuilder, {
+      props: {
+        autosave: {
+          enabled: true,
+          storage: { type: 'custom', save },
+          mode: 'change',
+        },
+      },
+    })
+
+    await flushPromises()
+
+    const vm = wrapper.vm as unknown as { getAutosaveStatus: () => AutosaveStatus }
+    expect(vm.getAutosaveStatus()).toBe('idle')
   })
 
   it('aplica el theme de la prop', () => {
