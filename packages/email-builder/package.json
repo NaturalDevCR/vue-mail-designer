@@ -1,6 +1,6 @@
 {
   "name": "@naturaldevcr/vue-mail-designer",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "A visual drag & drop email builder for Vue 3. Exports email-client-compatible HTML and a re-editable design JSON.",
   "license": "MIT",
   "author": "Josue <josue@symphonycr.com>",
