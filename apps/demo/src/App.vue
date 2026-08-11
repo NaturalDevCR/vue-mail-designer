@@ -7,13 +7,14 @@
     :upload-image="uploadImage"
     :media-library="mediaLibrary"
     :unlayer-fetch="unlayerFetch"
+    :ai="{ enabled: true, languages: aiLanguages }"
     style="height: 100vh"
     @export-html="onExportHtml"
   />
 </template>
 
 <script setup lang="ts">
-import { EmailBuilder, escapeHtml, type CustomBlockDef, type EmailDocument, type MergeTagItem, type SpecialLink } from '@naturaldevcr/vue-mail-designer'
+import { EmailBuilder, escapeHtml, type AiLanguage, type CustomBlockDef, type EmailDocument, type MergeTagItem, type SpecialLink } from '@naturaldevcr/vue-mail-designer'
 import { ref, watch } from 'vue'
 import { createDemoMediaLibrary } from './mediaLibrary'
 
@@ -39,6 +40,11 @@ const mergeTags: MergeTagItem[] = [
 const specialLinks: SpecialLink[] = [
   { name: 'Cancelar suscripción', href: '{{unsubscribe_url}}' },
   { name: 'Ver en el navegador', href: '{{view_in_browser_url}}' },
+]
+
+const aiLanguages: AiLanguage[] = [
+  { code: 'en', label: 'English' },
+  { code: 'es', label: 'Spanish' },
 ]
 
 // bloque personalizado de ejemplo: una tarjeta con título + texto + color
