@@ -23,6 +23,7 @@ export const en: LocaleDict = {
   'rail.blocks': 'Blocks',
   'rail.body': 'Body',
   'rail.images': 'Images',
+  'rail.export': 'Export',
   'rail.media': 'Gallery',
 
   'palette.heading': 'Heading',
@@ -82,6 +83,7 @@ export const en: LocaleDict = {
   'rte.expand': 'Expand',
 
   'export.imageError': 'Could not export image (cross-origin images?).',
+  'export.description': 'Download, import, or manage your email design.',
 
   'versions.title': 'Versions',
   'versions.namePlaceholder': 'Version name',

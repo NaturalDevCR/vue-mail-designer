@@ -22,7 +22,7 @@ const VALID_DESIGN = {
 }
 
 async function openDialog(wrapper: ReturnType<typeof mount>) {
-  await wrapper.find('[data-action="export"]').trigger('click')
+  await wrapper.find('[data-tab="export"]').trigger('click')
   await wrapper.find('[data-action="import-unlayer"]').trigger('click')
 }
 

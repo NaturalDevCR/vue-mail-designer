@@ -1,6 +1,6 @@
 import type { Block, ButtonBlock, EmailDocument, GalleryBlock, Padding, Row, SocialNetworkKind, TableBlock, TimerBlock } from '../schema'
 import { DEFAULT_FONTS, usedFontUrls, type FontDef } from '../fonts'
-import type { CustomBlockDef, TimerImageUrlBuilder } from '../options'
+import type { CustomBlockDef, SocialIconUrlBuilder, TimerImageUrlBuilder } from '../options'
 
 export type RenderCtx = {
   fontFamily: string
@@ -8,6 +8,7 @@ export type RenderCtx = {
   linkUnderline: boolean
   customBlocks?: CustomBlockDef[]
   timerImageUrlBuilder?: TimerImageUrlBuilder
+  socialIconUrlBuilder?: SocialIconUrlBuilder
   /** Ancho en px del área de contenido de la columna actual (ya sin el padding de la columna).
    * Solo se conoce dentro de renderRow → renderColumnBlocks; sirve para calcular el ancho
    * exacto en px que necesita el VML de Outlook en botones con ancho fijo. */
@@ -30,7 +31,7 @@ export const SOCIAL_GLYPHS: Record<SocialNetworkKind, string> = {
   web: '<circle cx="12" cy="12" r="7.5" fill="none" stroke="#fff" stroke-width="1.6"/><path fill="none" stroke="#fff" stroke-width="1.6" d="M4.5 12h15M12 4.5c2.5 2.8 2.5 12.2 0 15M12 4.5c-2.5 2.8-2.5 12.2 0 15"/>',
 }
 
-/** SVG cuadrado con un glifo social centrado (para canvas y como data-URI en export). */
+/** SVG cuadrado con un glifo social centrado for the editor canvas. */
 export function socialSvg(kind: SocialNetworkKind): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">${SOCIAL_GLYPHS[kind]}</svg>`
 }
@@ -44,6 +45,32 @@ export const SOCIAL_BRANDS: Record<SocialNetworkKind, { color: string }> = {
   tiktok: { color: '#000000' },
   whatsapp: { color: '#25d366' },
   web: { color: '#6b7280' },
+}
+
+const DEFAULT_SOCIAL_ICON_URLS: Record<SocialNetworkKind, string> = {
+  facebook: 'https://cdn.simpleicons.org/facebook/ffffff',
+  instagram: 'https://cdn.simpleicons.org/instagram/ffffff',
+  x: 'https://cdn.simpleicons.org/x/ffffff',
+  linkedin: 'https://api.iconify.design/simple-icons:linkedin.svg?color=%23ffffff',
+  youtube: 'https://cdn.simpleicons.org/youtube/ffffff',
+  tiktok: 'https://cdn.simpleicons.org/tiktok/ffffff',
+  whatsapp: 'https://cdn.simpleicons.org/whatsapp/ffffff',
+  web: 'https://api.iconify.design/mdi:web.svg?color=%23ffffff',
+}
+
+/** Returns the default hosted icon URL used by email HTML exports. */
+export function defaultSocialIconUrl(kind: SocialNetworkKind): string {
+  return DEFAULT_SOCIAL_ICON_URLS[kind]
+}
+
+function socialIconUrl(kind: SocialNetworkKind, builder?: SocialIconUrlBuilder): string {
+  try {
+    const customUrl = builder?.(kind)
+    if (customUrl?.trim() && /^https?:\/\//i.test(customUrl.trim())) return customUrl.trim()
+  } catch {
+    // A consumer-provided asset service must not prevent the email from exporting.
+  }
+  return defaultSocialIconUrl(kind)
 }
 
 export const MERGE_TAG_RE = /<span[^>]*\bdata-mt="([^"]+)"[^>]*>.*?<\/span>/gs
@@ -153,12 +180,12 @@ function renderBlockInner(block: Block, ctx: RenderCtx): string {
       const icons = block.networks
         .map(({ kind, url }) => {
           const brand = SOCIAL_BRANDS[kind]
-          const dataUri = `data:image/svg+xml,${encodeURIComponent(socialSvg(kind))}`
-          // fondo de marca como color sólido (degrada bien si el cliente bloquea la imagen) + glifo SVG centrado
+          const iconUrl = socialIconUrl(kind, ctx.socialIconUrlBuilder)
+          // fondo de marca como color sólido (degrada bien si el cliente bloquea la imagen) + glifo alojado
           return (
             `<td style="padding:0 ${block.spacing / 2}px;">` +
             `<a href="${escapeHtml(url)}" target="_blank" style="display:inline-block;width:${block.iconSize}px;height:${block.iconSize}px;line-height:${block.iconSize}px;border-radius:${iconRadius};background-color:${brand.color};text-align:center;text-decoration:none;">` +
-            `<img src="${dataUri}" alt="${kind}" width="${glyphSize}" height="${glyphSize}" style="display:inline-block;vertical-align:middle;border:0;">` +
+            `<img src="${escapeHtml(iconUrl)}" alt="${kind}" width="${glyphSize}" height="${glyphSize}" style="display:inline-block;vertical-align:middle;border:0;">` +
             `</a>` +
             `</td>`
           )
@@ -424,13 +451,14 @@ export function renderHtml(
   fonts: FontDef[] = DEFAULT_FONTS,
   customBlocks?: CustomBlockDef[],
   timerImageUrlBuilder?: TimerImageUrlBuilder,
+  socialIconUrlBuilder?: SocialIconUrlBuilder,
 ): string {
   const fontUrls = usedFontUrls(doc, fonts)
   const fontLinks = fontUrls.length
     ? fontUrls.map((url) => `<link href="${escapeHtml(url)}" rel="stylesheet">`).join('\n') + '\n'
     : ''
   const { settings } = doc
-  const ctx: RenderCtx = { fontFamily: settings.fontFamily, linkColor: settings.linkColor, linkUnderline: settings.linkUnderline, customBlocks, timerImageUrlBuilder }
+  const ctx: RenderCtx = { fontFamily: settings.fontFamily, linkColor: settings.linkColor, linkUnderline: settings.linkUnderline, customBlocks, timerImageUrlBuilder, socialIconUrlBuilder }
   const preheader = settings.preheader
     ? `<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">${escapeHtml(settings.preheader)}</div>`
     : ''

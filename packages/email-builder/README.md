@@ -116,7 +116,7 @@ To hide the builder header while using distinct colors for each mode:
 />
 ```
 
-The flat `Appearance` form remains supported. When the header is hidden, built-in export and theme-toggle controls are also removed, so the host app should use the component's methods and events for those actions.
+The flat `Appearance` form remains supported. When the header is hidden, the header-only template, saved-status, and theme-toggle controls are removed; the Export actions remain available in the right rail, and the host app can also use the component's methods and events.
 
 ## Autosave
 
@@ -173,6 +173,7 @@ See the full [Autosave guide](https://naturaldevcr.github.io/vue-mail-designer/g
 | `imageSearch` | `(query: string) => Promise<ImageResult[]>` | Search handler for the Search subtab in the unified Images panel; defaults to `openverseSearch`. |
 | `mediaLibrary` | `MediaLibraryOptions` | Enables the Gallery subtab in the unified Images panel: `{ list: (cursor?) => Promise<{ items: MediaItem[], nextCursor? }>, upload: (file) => Promise<MediaItem>, delete: (id) => Promise<void>, rename: (id, name) => Promise<MediaItem> }`. Without this prop, only Search is shown. Every function is implemented by the integrator against their own storage (e.g. Firebase Storage); the library assumes no particular backend. |
 | `timerImageUrlBuilder` | `(block: TimerBlock) => string \| undefined` | Optional email-safe timer image provider. Called during preview and HTML export when `block.imageUrl` is empty; return a remotely served GIF or generated image URL. Without it, exported timers use a static snapshot because email clients cannot run a live countdown. An explicit `block.imageUrl` always takes precedence. |
+| `socialIconUrlBuilder` | `(kind: SocialNetworkKind) => string \| undefined` | Optional email asset provider for social icons. Exported email HTML uses hosted HTTPS icon URLs by default; return a self-hosted URL to control caching, privacy, and availability. Empty or throwing callbacks fall back to the built-in URL. |
 | `unlayerFetch` | `(slug: string) => Promise<unknown>` | Handler to load an Unlayer template by URL/slug; returns the design JSON. Defaults to hitting Unlayer's API directly (fails via CORS without a proxy). |
 | `theme` | `'light' \| 'dark'` | Builder UI theme. |
 | `showHeader` | `boolean` | Whether to show the builder header. Defaults to `true`; when `false`, the entire builder header is hidden. |
@@ -215,8 +216,27 @@ The callback receives the complete `TimerBlock`, so the host can use `endDate` a
 
 ## Extra methods (via ref)
 
+- `exportHtml(): string` — full email HTML ready for a sending provider.
+- `exportJson(): string` — the current editable design serialized as JSON.
+- `getDesign(): EmailDocument` — the current editable design object.
+- `loadDesign(doc): void` — replace the current design programmatically.
 - `exportImage(): Promise<string>` — PNG (data URL) of the design. Limitation: cross-origin images (CORS) can prevent the capture.
-- Versions: from **Export → Versions…**, named versions are saved/loaded/deleted (in memory for the session).
+- The **Export** tab in the right rail provides HTML, JSON, JSON import, Unlayer import, PNG, and version actions. Versions are saved/loaded/deleted in memory for the session.
+
+## Email-safe social icons
+
+Email clients commonly block `data:` image sources. Social blocks therefore use normal hosted HTTPS icon URLs in exported HTML while keeping inline SVG icons in the editor canvas. The default URLs use hosted Simple Icons-compatible assets; for production email delivery, self-host the files and provide a stable URL builder:
+
+```ts
+const socialIconUrlBuilder = (kind: SocialNetworkKind) =>
+  `https://cdn.example.com/email-icons/${kind}.svg`
+```
+
+```vue
+<EmailBuilder :social-icon-url-builder="socialIconUrlBuilder" />
+```
+
+The callback is used only for exported email HTML. The colored link background and accessible network `alt` text remain in the generated markup.
 
 ## Backgrounds
 

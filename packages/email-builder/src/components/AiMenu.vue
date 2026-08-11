@@ -4,7 +4,8 @@
       <span class="vmd-ai-toggle-label">AI</span>
     </button>
 
-    <div v-if="open" ref="popover" class="vmd-ai-popover" :style="popoverStyle" @click.stop>
+    <ModalPortal v-if="open">
+      <div ref="popover" class="vmd-ai-popover" :style="popoverStyle" @click.stop>
         <template v-if="!activeTool">
           <button type="button" class="vmd-ai-item" data-action="ai-item-rewrite" :disabled="!canRewrite" :title="rewriteTooltip" @click="selectTool('rewrite')">
             {{ t('ai.rewrite') }}
@@ -116,7 +117,8 @@
             </div>
           </template>
         </div>
-    </div>
+      </div>
+    </ModalPortal>
   </div>
 </template>
 
@@ -143,6 +145,7 @@ import {
 } from '../ai/chromeAi'
 import { useI18n } from '../i18n/useI18n'
 import { useBuilderOptions } from '../options'
+import ModalPortal from './ModalPortal.vue'
 
 type Tool = 'rewrite' | 'write' | 'summarize' | 'translate'
 
@@ -431,7 +434,8 @@ function discard(): void {
 }
 
 function onDocumentClick(event: MouseEvent): void {
-  if (open.value && root.value && !root.value.contains(event.target as Node)) close()
+  const target = event.target as Node
+  if (open.value && root.value && !root.value.contains(target) && !popover.value?.contains(target)) close()
 }
 
 onMounted(() => {

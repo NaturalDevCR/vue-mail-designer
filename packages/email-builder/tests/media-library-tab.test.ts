@@ -103,6 +103,7 @@ describe('MediaLibraryTab', () => {
     expect(mediaLibrary.list).toHaveBeenCalledWith()
     expect(wrapper.findAll('.vmd-media-item')).toHaveLength(2)
     expect(wrapper.findAll('.vmd-media-item-thumb')[0]?.find('img').attributes('draggable')).toBe('true')
+    expect(wrapper.findAll('.vmd-image-thumb-viewport')).toHaveLength(2)
     expect(wrapper.findAll('.vmd-media-item-thumb')[0]?.find('img').attributes('src')).toBe(
       'https://img.example/a-thumb.jpg',
     )

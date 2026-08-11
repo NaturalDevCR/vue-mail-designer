@@ -54,7 +54,7 @@ const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
 const options = useBuilderOptions()
 const { t } = useI18n()
-const html = computed(() => renderHtml(store.doc, options.fonts, options.customBlocks, options.timerImageUrlBuilder))
+const html = computed(() => renderHtml(store.doc, options.fonts, options.customBlocks, options.timerImageUrlBuilder, options.socialIconUrlBuilder))
 const copied = ref(false)
 const presets = computed(() => [
   { name: 'desktop', title: t('dialog.previewDesktop'), icon: 'desktop', width: 1000 },

@@ -102,7 +102,7 @@ function makeMediaLibrary(items: MediaItem[] = []) {
 }
 
 async function openExportMenu(wrapper: ReturnType<typeof mount>) {
-  await wrapper.find('[data-action="export"]').trigger('click')
+  await wrapper.find('[data-tab="export"]').trigger('click')
 }
 
 async function openImagesSearch(wrapper: ReturnType<typeof mount>) {
@@ -142,6 +142,7 @@ async function openTask4Chrome(locale: 'en' | 'es') {
 
   await openExportMenu(wrapper)
   await wrapper.find('[data-action="import-unlayer"]').trigger('click')
+  const importOverlayText = document.body.textContent ?? ''
 
   await wrapper.find('[data-action="templates"]').trigger('click')
 
@@ -169,7 +170,7 @@ async function openTask4Chrome(locale: 'en' | 'es') {
   await wrapper.find('[data-action="props-close"]').trigger('click')
   await blocks[3].trigger('click')
 
-  return { wrapper, cropImage, emptyImage, video, timer, rowId }
+  return { wrapper, cropImage, emptyImage, video, timer, rowId, importOverlayText }
 }
 
 function usedLocaleKeys(source: string): string[] {
@@ -185,7 +186,7 @@ describe('i18n', () => {
   it("locale 'en' cambia el chrome a inglés", () => {
     const w = mount(EmailBuilder, { props: { locale: 'en' } })
     expect(w.find('[data-action="templates"]').text()).toContain('Templates')
-    expect(w.find('[data-action="export"]').text().toLowerCase()).toContain('export')
+    expect(w.find('[data-tab="export"]').text().toLowerCase()).toContain('export')
   })
   it('uses English as the fallback for a partial custom dictionary', () => {
     const w = mount(EmailBuilder, { props: { locale: { 'rail.images': 'Assets' } } })
@@ -200,7 +201,7 @@ describe('i18n', () => {
     const w = mount(EmailBuilder, { props: { locale: { 'header.templates': 'Modelos' } } })
     expect(w.find('[data-action="templates"]').text()).toContain('Modelos')
     // the rest keeps the English fallback
-    expect(w.find('[data-action="export"]').text()).toContain('EXPORT')
+    expect(w.find('[data-tab="export"]').text()).toContain('Export')
   })
   it('la paleta usa labels traducidos', () => {
     const w = mount(EmailBuilder, { props: { locale: 'en' } })
@@ -214,8 +215,8 @@ describe('i18n', () => {
   it('localizes the Task 4 editor chrome in English and Spanish', async () => {
     vi.setSystemTime(new Date('2099-01-01T00:00:00.000Z'))
 
-    const { wrapper: englishWrapper } = await openTask4Chrome('en')
-    const englishText = `${englishWrapper.text()} ${document.body.textContent ?? ''}`
+    const { wrapper: englishWrapper, importOverlayText: englishImportText } = await openTask4Chrome('en')
+    const englishText = `${englishWrapper.text()} ${englishImportText} ${document.body.textContent ?? ''}`
 
     for (const literal of TASK_4_SPANISH_LITERALS) {
       expect(englishText).not.toContain(literal)
@@ -228,8 +229,8 @@ describe('i18n', () => {
 
     englishWrapper.unmount()
 
-    const { wrapper: spanishWrapper } = await openTask4Chrome('es')
-    const spanishText = `${spanishWrapper.text()} ${document.body.textContent ?? ''}`
+    const { wrapper: spanishWrapper, importOverlayText: spanishImportText } = await openTask4Chrome('es')
+    const spanishText = `${spanishWrapper.text()} ${spanishImportText} ${document.body.textContent ?? ''}`
 
     expect(spanishText).toContain('Importar de Unlayer')
     expect(spanishText).toContain('Elegir plantilla')

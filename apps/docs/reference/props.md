@@ -11,6 +11,7 @@ All optional.
 | `imageSearch` | `(query: string) => Promise<ImageResult[]>` | Search handler for the Search subtab in the unified Images panel; defaults to `openverseSearch` (Openverse, CC0/CC-BY). |
 | `mediaLibrary` | `MediaLibraryOptions` | Enables the Gallery subtab in the unified Images panel: `{ list: (cursor?) => Promise<{ items: MediaItem[], nextCursor? }>, upload: (file) => Promise<MediaItem>, delete: (id) => Promise<void>, rename: (id, name) => Promise<MediaItem> }`. Without this prop, only Search is shown. You implement each function against your own storage — the library assumes no particular backend. |
 | `timerImageUrlBuilder` | `(block: TimerBlock) => string \| undefined` | Optional email-safe timer image provider. Called during live preview and HTML export when the timer has no explicit `imageUrl`; return a remotely served GIF or generated image URL. Without it, exported timers are static snapshots because email clients cannot run a live countdown. |
+| `socialIconUrlBuilder` | `(kind: SocialNetworkKind) => string \| undefined` | Optional provider for hosted email social icon URLs. Defaults to HTTPS icon URLs; return self-hosted assets for production control. Empty or throwing callbacks use the default URL. |
 | `unlayerFetch` | `(slug: string) => Promise<unknown>` | Handler to load an Unlayer template by URL/slug; returns the design JSON. Defaults to hitting Unlayer's public API (fails via CORS without your own proxy). |
 | `theme` | `'light' \| 'dark'` | Builder UI theme (doesn't affect the email canvas). |
 | `showHeader` | `boolean` | Whether to show the builder header. Defaults to `true`; when `false`, the entire builder header is hidden. |
@@ -59,6 +60,10 @@ The builder has one **Images** panel with two subtabs:
 Clicking a thumbnail opens a preview dialog first. Select **Add** to insert a new Image block or replace the currently selected Image block. You can also drag thumbnails straight from Search or Gallery onto the canvas, onto an existing Image block, or onto a Gallery block slot.
 
 See also [Events](/reference/events) and [Methods](/reference/methods).
+
+## Export tab
+
+The right rail's **Export** tab contains the native HTML, JSON, JSON import, Unlayer import, PNG, and version actions. The same document operations are available programmatically through the component ref; see [Methods](/reference/methods).
 
 ## Chrome AI
 

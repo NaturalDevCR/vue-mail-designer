@@ -19,6 +19,8 @@ Two outputs, both under your control:
 1. **Email HTML** (`exportHtml()` or the `export-html` event) — tables with inline styles, MSO ghost tables for Outlook, a media query to stack columns on mobile. Meant to be pasted straight into your sending provider (SES, SendGrid, Postmark, etc.).
 2. **Design JSON** (`EmailDocument`, via `getDesign()`/`loadDesign()` or `v-model:design`) — the full editable model, to save in your database and reopen in the editor later.
 
+The right rail's **Export** tab provides HTML, JSON, JSON import, Unlayer import, PNG, and version actions. Social icons in exported email HTML use hosted HTTPS image URLs rather than `data:` URIs; provide `socialIconUrlBuilder` when your delivery system requires self-hosted assets.
+
 ## Localization
 
 English is the default public language option:

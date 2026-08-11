@@ -8,6 +8,7 @@ import { I18N_KEY } from '../src/i18n/useI18n'
 import { BUILDER_OPTIONS_KEY } from '../src/options'
 import AiMenu from '../src/components/AiMenu.vue'
 import * as chromeAi from '../src/ai/chromeAi'
+import { findInBody, hasInBody } from './modal-test-utils'
 
 const editors: Editor[] = []
 const deferred = <T>() => {
@@ -70,6 +71,14 @@ function mountMenu(
   })
 }
 
+function ai(selector: string) {
+  return findInBody(`.vmd-ai-popover ${selector}`)
+}
+
+function aiText(): string {
+  return findInBody('.vmd-ai-popover').text()
+}
+
 beforeEach(() => {
   vi.restoreAllMocks()
   setAvailability({ rewrite: true, write: true, summarize: true, translate: true })
@@ -84,13 +93,27 @@ afterEach(() => {
 describe('AiMenu', () => {
   it('renders its popover above overflow containers with viewport positioning', async () => {
     const wrapper = mountMenu(makeEditor())
+    const toggle = wrapper.find('[data-action="ai-menu-toggle"]').element as HTMLElement
+    vi.spyOn(toggle, 'getBoundingClientRect').mockReturnValue({
+      top: 72,
+      bottom: 108,
+      left: 120,
+      right: 220,
+      width: 100,
+      height: 36,
+      x: 120,
+      y: 72,
+      toJSON: () => ({}),
+    })
 
     await wrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
 
-    const popover = wrapper.find<HTMLElement>('.vmd-ai-popover').element
+    const popover = findInBody('.vmd-ai-popover').element as HTMLElement
     expect(popover).not.toBeNull()
     expect(popover?.style.position).toBe('fixed')
     expect(popover?.style.zIndex).toBe('2000')
+    expect(popover?.style.top).toBe('116px')
+    expect(popover.closest('.vmd-root')).toBeNull()
 
     wrapper.unmount()
   })
@@ -100,10 +123,10 @@ describe('AiMenu', () => {
 
     await wrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
 
-    expect(wrapper.find('[data-action="ai-item-rewrite"]').attributes('disabled')).toBeDefined()
-    expect(wrapper.find('[data-action="ai-item-summarize"]').attributes('disabled')).toBeDefined()
-    expect(wrapper.find('[data-action="ai-item-translate"]').attributes('disabled')).toBeDefined()
-    expect(wrapper.find('[data-action="ai-item-write"]').attributes('disabled')).toBeUndefined()
+    expect(ai('[data-action="ai-item-rewrite"]').attributes('disabled')).toBeDefined()
+    expect(ai('[data-action="ai-item-summarize"]').attributes('disabled')).toBeDefined()
+    expect(ai('[data-action="ai-item-translate"]').attributes('disabled')).toBeDefined()
+    expect(ai('[data-action="ai-item-write"]').attributes('disabled')).toBeUndefined()
   })
 
   it('disables translate when no target languages are configured', async () => {
@@ -111,7 +134,7 @@ describe('AiMenu', () => {
 
     await wrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
 
-    const translateButton = wrapper.find('[data-action="ai-item-translate"]')
+    const translateButton = ai('[data-action="ai-item-translate"]')
     expect(translateButton.attributes('disabled')).toBeDefined()
     expect(translateButton.attributes('title')).toContain('No languages configured')
   })
@@ -126,11 +149,11 @@ describe('AiMenu', () => {
     })
 
     await wrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
-    await wrapper.find('[data-action="ai-item-translate"]').trigger('click')
+    await ai('[data-action="ai-item-translate"]').trigger('click')
     await flushPromises()
 
-    expect(wrapper.find('.vmd-ai-error').text()).toContain('AI is not available in this browser.')
-    expect(wrapper.find('[data-action="ai-run"]').attributes('disabled')).toBeDefined()
+    expect(ai('.vmd-ai-error').text()).toContain('AI is not available in this browser.')
+    expect(ai('[data-action="ai-run"]').attributes('disabled')).toBeDefined()
   })
 
   it('ignores stale translate availability results when the target language changes', async () => {
@@ -155,12 +178,12 @@ describe('AiMenu', () => {
     })
 
     await wrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
-    await wrapper.find('[data-action="ai-item-translate"]').trigger('click')
+    await ai('[data-action="ai-item-translate"]').trigger('click')
     await flushPromises()
 
     expect((pendingByTarget.get('es') ?? []).length).toBeGreaterThan(0)
 
-    await wrapper.find('[data-field="ai-target-lang"]').setValue('fr')
+    await ai('[data-field="ai-target-lang"]').setValue('fr')
     await wrapper.vm.$nextTick()
 
     const frenchRequests = pendingByTarget.get('fr') ?? []
@@ -171,16 +194,16 @@ describe('AiMenu', () => {
     }
     await flushPromises()
 
-    expect(wrapper.find('[data-action="ai-run"]').attributes('disabled')).toBeUndefined()
-    expect(wrapper.find('.vmd-ai-error').exists()).toBe(false)
+    expect(ai('[data-action="ai-run"]').attributes('disabled')).toBeUndefined()
+    expect(hasInBody('.vmd-ai-error')).toBe(false)
 
     for (const request of pendingByTarget.get('es') ?? []) {
       request.resolve('no')
     }
     await flushPromises()
 
-    expect(wrapper.find('[data-action="ai-run"]').attributes('disabled')).toBeUndefined()
-    expect(wrapper.find('.vmd-ai-error').exists()).toBe(false)
+    expect(ai('[data-action="ai-run"]').attributes('disabled')).toBeUndefined()
+    expect(hasInBody('.vmd-ai-error')).toBe(false)
   })
 
   it('clears stale translate availability errors after a later successful availability result', async () => {
@@ -205,7 +228,7 @@ describe('AiMenu', () => {
     })
 
     await wrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
-    await wrapper.find('[data-action="ai-item-translate"]').trigger('click')
+    await ai('[data-action="ai-item-translate"]').trigger('click')
     await flushPromises()
 
     for (const request of pendingByTarget.get('es') ?? []) {
@@ -213,10 +236,10 @@ describe('AiMenu', () => {
     }
     await flushPromises()
 
-    expect(wrapper.find('.vmd-ai-error').text()).toContain('AI request failed.')
-    expect(wrapper.find('[data-action="ai-run"]').attributes('disabled')).toBeDefined()
+    expect(ai('.vmd-ai-error').text()).toContain('AI request failed.')
+    expect(ai('[data-action="ai-run"]').attributes('disabled')).toBeDefined()
 
-    await wrapper.find('[data-field="ai-target-lang"]').setValue('fr')
+    await ai('[data-field="ai-target-lang"]').setValue('fr')
     await wrapper.vm.$nextTick()
 
     for (const request of pendingByTarget.get('fr') ?? []) {
@@ -224,8 +247,8 @@ describe('AiMenu', () => {
     }
     await flushPromises()
 
-    expect(wrapper.find('.vmd-ai-error').exists()).toBe(false)
-    expect(wrapper.find('[data-action="ai-run"]').attributes('disabled')).toBeUndefined()
+    expect(hasInBody('.vmd-ai-error')).toBe(false)
+    expect(ai('[data-action="ai-run"]').attributes('disabled')).toBeUndefined()
   })
 
   it('ignores late detectLanguage failures after the menu closes', async () => {
@@ -238,18 +261,18 @@ describe('AiMenu', () => {
     })
 
     await wrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
-    await wrapper.find('[data-action="ai-item-translate"]').trigger('click')
+    await ai('[data-action="ai-item-translate"]').trigger('click')
     await wrapper.vm.$nextTick()
     await wrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
 
     pendingDetect.reject({ code: 'language-detection-failed', message: 'Language detection failed.' })
     await flushPromises()
 
-    expect(wrapper.find('.vmd-ai-popover').exists()).toBe(false)
+    expect(hasInBody('.vmd-ai-popover')).toBe(false)
 
     await wrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
 
-    expect(wrapper.find('.vmd-ai-error').exists()).toBe(false)
+    expect(hasInBody('.vmd-ai-error')).toBe(false)
   })
 
   it('disables only the unavailable browser capability', async () => {
@@ -258,10 +281,10 @@ describe('AiMenu', () => {
 
     await wrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
 
-    const rewriteButton = wrapper.find('[data-action="ai-item-rewrite"]')
+    const rewriteButton = ai('[data-action="ai-item-rewrite"]')
     expect(rewriteButton.attributes('disabled')).toBeDefined()
     expect(rewriteButton.attributes('title')).toContain('Not available in this browser')
-    expect(wrapper.find('[data-action="ai-item-write"]').attributes('disabled')).toBeUndefined()
+    expect(ai('[data-action="ai-item-write"]').attributes('disabled')).toBeUndefined()
   })
 
   it('keeps progress visible during a request and clears it when the request finishes', async () => {
@@ -278,17 +301,17 @@ describe('AiMenu', () => {
     const wrapper = mountMenu(editor)
 
     await wrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
-    await wrapper.find('[data-action="ai-item-rewrite"]').trigger('click')
-    await wrapper.find('[data-action="ai-run"]').trigger('click')
+    await ai('[data-action="ai-item-rewrite"]').trigger('click')
+    await ai('[data-action="ai-run"]').trigger('click')
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.text()).toContain('Downloading AI model… 42%')
+    expect(aiText()).toContain('Downloading AI model… 42%')
     expect(editor.getHTML()).toContain('Hello world')
 
     resolveRewrite('Rewritten copy')
     await flushPromises()
 
-    expect(wrapper.text()).not.toContain('Downloading AI model… 42%')
+    expect(aiText()).not.toContain('Downloading AI model… 42%')
     expect(editor.getHTML()).toContain('Hello world')
   })
 
@@ -299,18 +322,18 @@ describe('AiMenu', () => {
     const wrapper = mountMenu(editor)
 
     await wrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
-    await wrapper.find('[data-action="ai-item-rewrite"]').trigger('click')
-    await wrapper.find('[data-action="ai-run"]').trigger('click')
+    await ai('[data-action="ai-item-rewrite"]').trigger('click')
+    await ai('[data-action="ai-run"]').trigger('click')
     await flushPromises()
 
     expect(editor.getHTML()).toContain('Hello world')
-    expect(wrapper.find('[data-field="ai-result"]').exists()).toBe(true)
+    expect(hasInBody('[data-field="ai-result"]')).toBe(true)
 
-    await wrapper.find('[data-action="ai-apply"]').trigger('click')
+    await ai('[data-action="ai-apply"]').trigger('click')
 
     expect(editor.getHTML()).toContain('Rewritten copy')
     expect(editor.getHTML()).not.toContain('Hello world')
-    expect(wrapper.find('[data-field="ai-result"]').exists()).toBe(false)
+    expect(hasInBody('[data-field="ai-result"]')).toBe(false)
   })
 
   it('closes and resets the generated result when Discard is pressed without mutating the editor', async () => {
@@ -320,13 +343,13 @@ describe('AiMenu', () => {
     const wrapper = mountMenu(editor)
 
     await wrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
-    await wrapper.find('[data-action="ai-item-rewrite"]').trigger('click')
-    await wrapper.find('[data-action="ai-run"]').trigger('click')
+    await ai('[data-action="ai-item-rewrite"]').trigger('click')
+    await ai('[data-action="ai-run"]').trigger('click')
     await flushPromises()
-    await wrapper.find('[data-action="ai-discard"]').trigger('click')
+    await ai('[data-action="ai-discard"]').trigger('click')
 
     expect(editor.getHTML()).toContain('Hello world')
-    expect(wrapper.find('.vmd-ai-popover').exists()).toBe(false)
+    expect(hasInBody('.vmd-ai-popover')).toBe(false)
   })
 
   it('clears generated state when the menu is closed and reopened', async () => {
@@ -336,17 +359,17 @@ describe('AiMenu', () => {
     const wrapper = mountMenu(editor)
 
     await wrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
-    await wrapper.find('[data-action="ai-item-rewrite"]').trigger('click')
-    await wrapper.find('[data-action="ai-run"]').trigger('click')
+    await ai('[data-action="ai-item-rewrite"]').trigger('click')
+    await ai('[data-action="ai-run"]').trigger('click')
     await flushPromises()
     await wrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
 
-    expect(wrapper.find('.vmd-ai-popover').exists()).toBe(false)
+    expect(hasInBody('.vmd-ai-popover')).toBe(false)
 
     await wrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
 
-    expect(wrapper.find('[data-field="ai-result"]').exists()).toBe(false)
-    expect(wrapper.find('[data-action="ai-item-rewrite"]').exists()).toBe(true)
+    expect(hasInBody('[data-field="ai-result"]')).toBe(false)
+    expect(ai('[data-action="ai-item-rewrite"]').exists()).toBe(true)
   })
 
   it('maps wrapper failures to English and Spanish localized error labels', async () => {
@@ -354,18 +377,19 @@ describe('AiMenu', () => {
 
     const englishWrapper = mountMenu(makeEditor('<p>Hello world</p>'), { locale: 'en' })
     await englishWrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
-    await englishWrapper.find('[data-action="ai-item-rewrite"]').trigger('click')
-    await englishWrapper.find('[data-action="ai-run"]').trigger('click')
+    await ai('[data-action="ai-item-rewrite"]').trigger('click')
+    await ai('[data-action="ai-run"]').trigger('click')
     await flushPromises()
 
-    expect(englishWrapper.find('.vmd-ai-error').text()).toContain('AI request failed.')
+    expect(ai('.vmd-ai-error').text()).toContain('AI request failed.')
+    englishWrapper.unmount()
 
     const spanishWrapper = mountMenu(makeEditor('<p>Hello world</p>'), { locale: 'es' })
     await spanishWrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
-    await spanishWrapper.find('[data-action="ai-item-rewrite"]').trigger('click')
-    await spanishWrapper.find('[data-action="ai-run"]').trigger('click')
+    await ai('[data-action="ai-item-rewrite"]').trigger('click')
+    await ai('[data-action="ai-run"]').trigger('click')
     await flushPromises()
 
-    expect(spanishWrapper.find('.vmd-ai-error').text()).toContain('La solicitud de IA falló.')
+    expect(ai('.vmd-ai-error').text()).toContain('La solicitud de IA falló.')
   })
 })
