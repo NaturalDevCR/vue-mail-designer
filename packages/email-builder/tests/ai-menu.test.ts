@@ -170,6 +170,75 @@ describe('AiMenu', () => {
     expect(wrapper.find('.vmd-ai-error').exists()).toBe(false)
   })
 
+  it('clears stale translate availability errors after a later successful availability result', async () => {
+    vi.spyOn(chromeAi, 'detectLanguage').mockResolvedValue('en')
+
+    const pendingByTarget = new Map<string, Array<ReturnType<typeof deferred<chromeAi.AiAvailability>>>>()
+    vi.spyOn(chromeAi, 'translateAvailability').mockImplementation(async (_source, target) => {
+      const pending = deferred<chromeAi.AiAvailability>()
+      pendingByTarget.set(target, [...(pendingByTarget.get(target) ?? []), pending])
+      return pending.promise
+    })
+
+    const wrapper = mountMenu(makeEditor('<p>Hello world</p>'), {
+      ai: {
+        enabled: true,
+        languages: [
+          { code: 'es', label: 'Spanish' },
+          { code: 'fr', label: 'French' },
+        ],
+      },
+      locale: 'en',
+    })
+
+    await wrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
+    await wrapper.find('[data-action="ai-item-translate"]').trigger('click')
+    await flushPromises()
+
+    for (const request of pendingByTarget.get('es') ?? []) {
+      request.reject(new Error('boom'))
+    }
+    await flushPromises()
+
+    expect(wrapper.find('.vmd-ai-error').text()).toContain('AI request failed.')
+    expect(wrapper.find('[data-action="ai-run"]').attributes('disabled')).toBeDefined()
+
+    await wrapper.find('[data-field="ai-target-lang"]').setValue('fr')
+    await wrapper.vm.$nextTick()
+
+    for (const request of pendingByTarget.get('fr') ?? []) {
+      request.resolve('readily')
+    }
+    await flushPromises()
+
+    expect(wrapper.find('.vmd-ai-error').exists()).toBe(false)
+    expect(wrapper.find('[data-action="ai-run"]').attributes('disabled')).toBeUndefined()
+  })
+
+  it('ignores late detectLanguage failures after the menu closes', async () => {
+    const pendingDetect = deferred<string | undefined>()
+    vi.spyOn(chromeAi, 'detectLanguage').mockImplementation(async () => pendingDetect.promise)
+
+    const wrapper = mountMenu(makeEditor('<p>Hello world</p>'), {
+      ai: { enabled: true, languages: [{ code: 'es', label: 'Spanish' }] },
+      locale: 'en',
+    })
+
+    await wrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
+    await wrapper.find('[data-action="ai-item-translate"]').trigger('click')
+    await wrapper.vm.$nextTick()
+    await wrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
+
+    pendingDetect.reject({ code: 'language-detection-failed', message: 'Language detection failed.' })
+    await flushPromises()
+
+    expect(wrapper.find('.vmd-ai-popover').exists()).toBe(false)
+
+    await wrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
+
+    expect(wrapper.find('.vmd-ai-error').exists()).toBe(false)
+  })
+
   it('disables only the unavailable browser capability', async () => {
     setAvailability({ rewrite: false, write: true, summarize: true, translate: true })
     const wrapper = mountMenu(makeEditor())

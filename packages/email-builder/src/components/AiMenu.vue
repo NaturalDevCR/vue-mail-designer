@@ -172,6 +172,7 @@ const summaryLength = ref<AiSummaryLength>('medium')
 const sourceLanguage = ref('')
 const targetLanguage = ref('')
 const translationAvailability = ref<AiAvailability | null>(null)
+let translateFlowId = 0
 let translationAvailabilityRequestId = 0
 
 const languages = computed(() => options.ai?.languages ?? [])
@@ -215,6 +216,7 @@ function getEditor(): Editor | undefined {
 }
 
 function resetToolState(): void {
+  translateFlowId += 1
   translationAvailabilityRequestId += 1
   activeTool.value = null
   loading.value = false
@@ -255,6 +257,7 @@ function close(): void {
 }
 
 function selectTool(tool: Tool): void {
+  translateFlowId += 1
   translationAvailabilityRequestId += 1
   activeTool.value = tool
   errorMessage.value = ''
@@ -305,7 +308,7 @@ async function refreshTranslateAvailability(): Promise<void> {
     translationAvailability.value = availability
     if (availability === 'no') {
       errorMessage.value = t('ai.errorUnavailable')
-    } else if (errorMessage.value === t('ai.errorUnavailable')) {
+    } else {
       errorMessage.value = ''
     }
   } catch (error) {
@@ -317,6 +320,7 @@ async function refreshTranslateAvailability(): Promise<void> {
 }
 
 async function prepareTranslate(): Promise<void> {
+  const flowId = translateFlowId
   sourceLanguage.value = locale
   targetLanguage.value = languages.value[0]?.code ?? ''
   translationAvailability.value = null
@@ -324,8 +328,11 @@ async function prepareTranslate(): Promise<void> {
   if (!selectedText.value) return
 
   try {
-    sourceLanguage.value = (await detectLanguage(selectedText.value)) ?? locale
+    const detectedLanguage = await detectLanguage(selectedText.value)
+    if (flowId !== translateFlowId || activeTool.value !== 'translate') return
+    sourceLanguage.value = detectedLanguage ?? locale
   } catch (error) {
+    if (flowId !== translateFlowId || activeTool.value !== 'translate') return
     errorMessage.value = localizeError(error)
     sourceLanguage.value = locale
   }
