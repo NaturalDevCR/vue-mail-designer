@@ -25,12 +25,13 @@
     <ImagesTab v-if="activeTab === 'search'" @select="openPreview" />
     <MediaLibraryTab v-else-if="options.mediaLibrary" @select="openPreview" />
 
-    <ImagePreviewDialog
-      v-if="previewImage"
-      :image="previewImage"
-      @close="closePreview"
-      @add="addPreviewImage"
-    />
+    <ModalPortal v-if="previewImage">
+      <ImagePreviewDialog
+        :image="previewImage"
+        @close="closePreview"
+        @add="addPreviewImage"
+      />
+    </ModalPortal>
   </div>
 </template>
 
@@ -41,6 +42,7 @@ import { useBuilderOptions } from '../../options'
 import { useDocumentStore } from '../../store/document'
 import { useBuilderPinia } from '../../store/keys'
 import ImagePreviewDialog from '../ImagePreviewDialog.vue'
+import ModalPortal from '../ModalPortal.vue'
 import ImagesTab from './ImagesTab.vue'
 import MediaLibraryTab from './MediaLibraryTab.vue'
 import type { ImageSelection } from './imageTypes'

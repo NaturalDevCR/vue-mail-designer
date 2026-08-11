@@ -5,6 +5,7 @@ import { nextTick } from 'vue'
 import EmailBuilder from '../src/components/EmailBuilder.vue'
 import { readDrag } from '../src/dnd/dragData'
 import { createBlock, createDocument, createRow } from '../src/schema'
+import { findInBody, hasInBody } from './modal-test-utils'
 
 const results = [
   { url: 'https://img.example/full1.jpg', thumbnailUrl: 'https://img.example/t1.jpg', title: 'Uno' },
@@ -82,16 +83,16 @@ describe('ImagesTab', () => {
     const wrapper = mount(EmailBuilder, { props: { imageSearch: vi.fn().mockResolvedValue(results) } })
     await searchIn(wrapper)
     await wrapper.find('.vmd-image-result').trigger('click')
-    expect(wrapper.find('.vmd-image-preview-dialog').exists()).toBe(true)
+    expect(hasInBody('.vmd-image-preview-dialog')).toBe(true)
     expect(wrapper.emitted('update:design')).toBeUndefined()
 
-    await wrapper.find('[data-action="image-preview-add"]').trigger('click')
+    await findInBody('[data-action="image-preview-add"]').trigger('click')
 
     const emitted = wrapper.emitted('update:design')
     const design = emitted![emitted!.length - 1][0] as { rows: { columns: { blocks: { type: string; src?: string }[] }[] }[] }
     const blocks = design.rows.flatMap((r) => r.columns.flatMap((c) => c.blocks))
     expect(blocks.some((b) => b.type === 'image' && b.src === 'https://img.example/full1.jpg')).toBe(true)
-    expect(wrapper.find('.vmd-image-preview-dialog').exists()).toBe(false)
+    expect(hasInBody('.vmd-image-preview-dialog')).toBe(false)
   })
 
   it('muestra error si la búsqueda falla', async () => {
@@ -118,7 +119,7 @@ describe('ImagesTab', () => {
     await wrapper.find('.vmd-image-result').trigger('click')
     expect(wrapper.emitted('update:design')).toBeUndefined()
 
-    await wrapper.find('[data-action="image-preview-add"]').trigger('click')
+    await findInBody('[data-action="image-preview-add"]').trigger('click')
 
     const emitted = wrapper.emitted('update:design')
     const doc = emitted![emitted!.length - 1][0] as {
@@ -135,13 +136,13 @@ describe('ImagesTab', () => {
     await searchIn(wrapper)
     await wrapper.find('.vmd-image-result').trigger('click')
 
-    await wrapper.find('[data-action="image-preview-cancel"]').trigger('click')
-    expect(wrapper.find('.vmd-image-preview-dialog').exists()).toBe(false)
+    await findInBody('[data-action="image-preview-cancel"]').trigger('click')
+    expect(hasInBody('.vmd-image-preview-dialog')).toBe(false)
     expect(wrapper.emitted('update:design')).toBeUndefined()
 
     await wrapper.find('.vmd-image-result').trigger('click')
-    await wrapper.find('[data-action="image-preview-close"]').trigger('click')
-    expect(wrapper.find('.vmd-image-preview-dialog').exists()).toBe(false)
+    await findInBody('[data-action="image-preview-close"]').trigger('click')
+    expect(hasInBody('.vmd-image-preview-dialog')).toBe(false)
     expect(wrapper.emitted('update:design')).toBeUndefined()
   })
 

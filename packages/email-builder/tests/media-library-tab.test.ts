@@ -6,6 +6,7 @@ import EmailBuilder from '../src/components/EmailBuilder.vue'
 import { readDrag } from '../src/dnd/dragData'
 import type { MediaItem } from '../src/mediaLibrary'
 import { createBlock, createDocument, createRow } from '../src/schema'
+import { findInBody, hasInBody } from './modal-test-utils'
 
 const items: MediaItem[] = [
   { id: 'a', url: 'https://img.example/a.jpg', thumbnailUrl: 'https://img.example/a-thumb.jpg', name: 'Foto A' },
@@ -125,10 +126,10 @@ describe('MediaLibraryTab', () => {
     const wrapper = mount(EmailBuilder, { props: { mediaLibrary: makeMediaLibrary() } })
     await openMediaTab(wrapper)
     await wrapper.find('.vmd-media-item-thumb').trigger('click')
-    expect(wrapper.find('.vmd-image-preview-dialog').exists()).toBe(true)
+    expect(hasInBody('.vmd-image-preview-dialog')).toBe(true)
     expect(wrapper.emitted('update:design')).toBeUndefined()
 
-    await wrapper.find('[data-action="image-preview-add"]').trigger('click')
+    await findInBody('[data-action="image-preview-add"]').trigger('click')
 
     const emitted = wrapper.emitted('update:design')
     const design = emitted![emitted!.length - 1][0] as {
@@ -156,7 +157,7 @@ describe('MediaLibraryTab', () => {
     await wrapper.find('.vmd-media-item-thumb').trigger('click')
     expect(wrapper.emitted('update:design')).toBeUndefined()
 
-    await wrapper.find('[data-action="image-preview-add"]').trigger('click')
+    await findInBody('[data-action="image-preview-add"]').trigger('click')
 
     const emitted = wrapper.emitted('update:design')
     const doc = emitted![emitted!.length - 1][0] as {
@@ -173,8 +174,8 @@ describe('MediaLibraryTab', () => {
     await openMediaTab(wrapper)
     await wrapper.find('.vmd-media-item-thumb').trigger('click')
 
-    await wrapper.find('[data-action="image-preview-cancel"]').trigger('click')
-    expect(wrapper.find('.vmd-image-preview-dialog').exists()).toBe(false)
+    await findInBody('[data-action="image-preview-cancel"]').trigger('click')
+    expect(hasInBody('.vmd-image-preview-dialog')).toBe(false)
     expect(wrapper.emitted('update:design')).toBeUndefined()
   })
 

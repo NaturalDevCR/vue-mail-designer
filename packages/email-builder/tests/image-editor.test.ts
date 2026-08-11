@@ -5,6 +5,7 @@ import { defineComponent, h } from 'vue'
 import EmailBuilder from '../src/components/EmailBuilder.vue'
 import { createBlock, createDocument, createRow } from '../src/schema'
 import type { ImageBlock } from '../src/schema'
+import { findAllInBody, findInBody, hasInBody } from './modal-test-utils'
 
 function fakeCanvas(shouldFailToBlob = false) {
   return {
@@ -80,8 +81,8 @@ describe('ImageEditorModal — Crop', () => {
     })
     await openEditor(wrapper)
 
-    expect(wrapper.find('.vmd-image-editor').exists()).toBe(true)
-    const railButtons = wrapper.findAll('.vmd-image-editor-rail button')
+    expect(hasInBody('.vmd-image-editor')).toBe(true)
+    const railButtons = findAllInBody('.vmd-image-editor-rail button')
     expect(railButtons).toHaveLength(5)
     const disabled = railButtons.filter((b) => b.attributes('disabled') !== undefined)
     expect(disabled).toHaveLength(4)
@@ -95,10 +96,10 @@ describe('ImageEditorModal — Crop', () => {
     })
     await openEditor(wrapper)
 
-    const cancelBtn = wrapper.findAll('.vmd-image-editor .vmd-btn').find((b) => b.text() === 'Cancel')
+    const cancelBtn = findAllInBody('.vmd-image-editor .vmd-btn').find((b) => b.text() === 'Cancel')
     await cancelBtn!.trigger('click')
 
-    expect(wrapper.find('.vmd-image-editor').exists()).toBe(false)
+    expect(hasInBody('.vmd-image-editor')).toBe(false)
     expect(wrapper.emitted('update:design')).toBeUndefined()
   })
 
@@ -111,7 +112,7 @@ describe('ImageEditorModal — Crop', () => {
     })
     await openEditor(wrapper)
 
-    const saveBtn = wrapper.findAll('.vmd-image-editor .vmd-btn').find((b) => b.text().includes('Save'))
+    const saveBtn = findAllInBody('.vmd-image-editor .vmd-btn').find((b) => b.text().includes('Save'))
     await saveBtn!.trigger('click')
     await flushPromises()
 
@@ -127,7 +128,7 @@ describe('ImageEditorModal — Crop', () => {
     const blocks = doc.rows.flatMap((r) => r.columns.flatMap((c) => c.blocks))
     const image = blocks.find((b) => b.type === 'image')
     expect(image?.src).toBe('https://cdn.example.com/cropped.png')
-    expect(wrapper.find('.vmd-image-editor').exists()).toBe(false)
+    expect(hasInBody('.vmd-image-editor')).toBe(false)
   })
 
   it('persists the adjusted corner radius when saving', async () => {
@@ -140,10 +141,10 @@ describe('ImageEditorModal — Crop', () => {
     await openEditor(wrapper)
 
     // input[1] es el slider de "Radio" (input[0] es "Enderezar")
-    const radiusInput = wrapper.findAll('.vmd-crop-panel input[type="range"]')[1]
+    const radiusInput = findAllInBody('.vmd-crop-panel input[type="range"]')[1]
     await radiusInput.setValue('20')
 
-    const saveBtn = wrapper.findAll('.vmd-image-editor .vmd-btn').find((b) => b.text().includes('Save'))
+    const saveBtn = findAllInBody('.vmd-image-editor .vmd-btn').find((b) => b.text().includes('Save'))
     await saveBtn!.trigger('click')
     await flushPromises()
 
@@ -165,12 +166,12 @@ describe('ImageEditorModal — Crop', () => {
     })
     await openEditor(wrapper)
 
-    const saveBtn = wrapper.findAll('.vmd-image-editor .vmd-btn').find((b) => b.text().includes('Save'))
+    const saveBtn = findAllInBody('.vmd-image-editor .vmd-btn').find((b) => b.text().includes('Save'))
     await saveBtn!.trigger('click')
     await flushPromises()
 
-    expect(wrapper.find('.vmd-image-editor').exists()).toBe(true)
-    expect(wrapper.find('.vmd-image-editor .vmd-image-error').text()).toContain('Could not upload')
+    expect(hasInBody('.vmd-image-editor')).toBe(true)
+    expect(findInBody('.vmd-image-editor .vmd-image-error').text()).toContain('Could not upload')
   })
 
   it('shows an error without closing the modal when crop extraction fails', async () => {
@@ -182,13 +183,13 @@ describe('ImageEditorModal — Crop', () => {
     })
     await openEditor(wrapper)
 
-    const saveBtn = wrapper.findAll('.vmd-image-editor .vmd-btn').find((b) => b.text().includes('Save'))
+    const saveBtn = findAllInBody('.vmd-image-editor .vmd-btn').find((b) => b.text().includes('Save'))
     await saveBtn!.trigger('click')
     await flushPromises()
 
     expect(uploadImage).not.toHaveBeenCalled()
-    expect(wrapper.find('.vmd-image-editor').exists()).toBe(true)
-    expect(wrapper.find('.vmd-image-editor .vmd-image-error').text()).toContain('Could not process')
+    expect(hasInBody('.vmd-image-editor')).toBe(true)
+    expect(findInBody('.vmd-image-editor .vmd-image-error').text()).toContain('Could not process')
   })
 
   it('shows an error without calling uploadImage when toBlob returns null', async () => {
@@ -200,13 +201,13 @@ describe('ImageEditorModal — Crop', () => {
     })
     await openEditor(wrapper)
 
-    const saveBtn = wrapper.findAll('.vmd-image-editor .vmd-btn').find((b) => b.text().includes('Save'))
+    const saveBtn = findAllInBody('.vmd-image-editor .vmd-btn').find((b) => b.text().includes('Save'))
     await saveBtn!.trigger('click')
     await flushPromises()
 
     expect(uploadImage).not.toHaveBeenCalled()
-    expect(wrapper.find('.vmd-image-editor').exists()).toBe(true)
-    expect(wrapper.find('.vmd-image-editor .vmd-image-error').text()).toContain('Could not process')
+    expect(hasInBody('.vmd-image-editor')).toBe(true)
+    expect(findInBody('.vmd-image-editor .vmd-image-error').text()).toContain('Could not process')
   })
 
   it('calls the cropper methods from the rotate, flip, and reset buttons', async () => {
@@ -218,7 +219,7 @@ describe('ImageEditorModal — Crop', () => {
     })
     await openEditor(wrapper)
 
-    const buttons = wrapper.findAll('.vmd-crop-panel .vmd-mini-btn')
+    const buttons = findAllInBody('.vmd-crop-panel .vmd-mini-btn')
     const findByText = (text: string) => buttons.find((b) => b.text().includes(text))
 
     await findByText('Rotate left')!.trigger('click')
