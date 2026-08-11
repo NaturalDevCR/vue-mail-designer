@@ -49,8 +49,10 @@ const partialLocale: LocaleDict = {
 
 The builder uses one unified **Images** panel:
 
+- **Gallery** appears first when you provide `mediaLibrary`, shows your uploaded assets, and is selected by default.
 - **Search** runs `imageSearch` (or the built-in `openverseSearch`) and shows external image results.
-- **Gallery** appears when you provide `mediaLibrary` and shows your uploaded assets.
+
+When `mediaLibrary` is not provided, Search is the only Images subtab.
 
 Click a thumbnail to open the preview dialog, then choose **Add** to insert it as a new Image block or replace the currently selected Image block. You can also drag thumbnails directly from Search or Gallery onto the canvas, onto an existing Image block, or onto a Gallery block slot.
 

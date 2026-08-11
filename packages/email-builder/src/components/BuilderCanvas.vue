@@ -67,6 +67,19 @@ const { edge: containerEdge } = useDropTarget({
   },
 })
 
+// The rows container only covers the height of the existing content. Keep a second, ancestor
+// target on the full scrollable canvas so a media image dropped into blank space still creates a
+// new image block. Nested image/gallery/rows targets remain authoritative through the
+// innermost-target check inside useDropTarget.
+useDropTarget({
+  el: scrollEl,
+  getData: () => ({ vmdCanvasMediaDrop: true }),
+  accept: (d) => d.kind === 'media-image',
+  onDrop: (drag) => {
+    if (drag.kind === 'media-image') dropMediaImageOnEmptyCanvas(store, drag)
+  },
+})
+
 useDragMonitor({
   scrollEl,
   onStart: () => {

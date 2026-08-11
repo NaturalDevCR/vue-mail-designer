@@ -53,8 +53,8 @@ const partialLocale: LocaleDict = {
 
 The builder has one **Images** panel with two subtabs:
 
-- **Search** shows results from `imageSearch` (or `openverseSearch` if you do not provide one).
-- **Gallery** shows your uploaded assets from `mediaLibrary`.
+- **Gallery** shows your uploaded assets from `mediaLibrary` and is the first, default subtab when configured.
+- **Search** shows results from `imageSearch` (or `openverseSearch` if you do not provide one). Without `mediaLibrary`, Search is the only subtab.
 
 Clicking a thumbnail opens a preview dialog first. Select **Add** to insert a new Image block or replace the currently selected Image block. You can also drag thumbnails straight from Search or Gallery onto the canvas, onto an existing Image block, or onto a Gallery block slot.
 
