@@ -18,6 +18,7 @@ The codebase also has an i18n provider with English and Spanish dictionaries, bu
 5. Preserve the existing insertion rules and drag-and-drop behavior.
 6. Make the editor UI English-first and fully switchable between English and Spanish through the existing public `locale` option.
 7. Keep package documentation and GitHub-facing artifacts in English.
+8. Finish the existing Chrome AI editing feature by integrating it into the rich-text editor, exposing its configuration, and covering its user-facing states.
 
 ## Non-goals
 
@@ -26,6 +27,7 @@ The codebase also has an i18n provider with English and Spanish dictionaries, bu
 - Reordering images within a gallery by dragging one canvas image onto another; the existing canvas-image move behavior remains unchanged.
 - Supporting direct operating-system file drops onto the canvas.
 - Translating user-provided content, custom block labels, template copy, or special-link values automatically. Those values remain supplied by the integrator or template author.
+- Adding a browser-side AI polyfill or changing the Chrome AI APIs; the feature only wraps the available built-in APIs and degrades cleanly when they are unavailable.
 
 ## Design
 
@@ -97,6 +99,20 @@ Generated email content, template copy, user-entered text, custom block definiti
 
 The README and docs will document English as the default and show both `locale="en"` and `locale="es"` usage. All new and updated package/GitHub text will be written in English.
 
+### 5. Chrome AI editing
+
+The existing Chrome AI wrappers and `AiMenu` work will be completed as part of this change rather than left as an isolated component. `EmailBuilder.vue` will expose an optional `ai?: AiOptions` prop and provide it through `BuilderOptions`. `RichTextEditor.vue` will render `AiMenu` in the toolbar only when `options.ai?.enabled` is true, passing the live TipTap editor instance.
+
+The menu will preserve the four supported actions:
+
+- **Rewrite** and **Summarize** require a non-empty text selection.
+- **Write** requires only a configured Writer API and a non-empty prompt before running.
+- **Translate** requires a non-empty selection, a configured Translator API, and at least one configured `AiLanguage` target.
+
+The configured `AiLanguage[]` values populate the translation target selector. Language detection supplies the source language when available and falls back to the resolved editor locale. Download progress remains visible while a Chrome AI session is preparing. Each wrapper must destroy its session in a `finally` block, including rejected requests.
+
+The menu must provide localized unavailable/no-selection/no-language/error messages through `t(...)`; raw Spanish literals and raw low-level API messages must not leak into the English UI. Generated AI text is user content and is not translated by the editor locale. Apply replaces the selected text (or inserts generated text for Write), Discard removes the pending result, and closing the menu leaves the editor content unchanged.
+
 ## Data flow
 
 ```text
@@ -121,6 +137,8 @@ Existing media-image DnD payload ──► image block / gallery item / canvas d
 - A missing or invalid image URL still renders the browser image failure state; no document mutation happens until Add is pressed.
 - If the media library is absent, Gallery is hidden and the Search tab remains usable.
 - If a custom locale dictionary omits a key, the English translation is used.
+- If Chrome AI globals are unavailable, the AI menu remains disabled or hidden according to the configured `ai.enabled` value and does not throw during editor mount.
+- If a Chrome AI request fails, the menu remains open, stops loading, clears progress, and displays a localized error.
 
 ## Testing
 
@@ -149,6 +167,13 @@ Add or update tests to cover behavior rather than implementation details:
 - A custom dictionary overrides selected keys and falls back to English for omitted keys.
 - The English and Spanish dictionaries cover every UI key used by the editor.
 
+### Chrome AI
+
+- `ai.enabled` controls whether the menu is mounted in the rich-text toolbar.
+- Rewrite, Write, Summarize, and Translate enable/disable correctly based on API availability, selection, prompt, and configured languages.
+- Progress, rejected API calls, Apply, Discard, and session cleanup are covered.
+- The `ai` option and Chrome AI behavior are documented in English.
+
 Run the package test suite, typecheck, package build, demo build, and documentation build before opening the PR.
 
 ## Acceptance criteria
@@ -160,6 +185,6 @@ Run the package test suite, typecheck, package build, demo build, and documentat
 - Existing insertion, alt-preservation, and drop-target behavior is preserved.
 - English is the default editor language; Spanish is selectable through `locale`.
 - The editor UI has no remaining hard-coded Spanish strings in user-facing surfaces covered by this package.
+- Chrome AI is integrated into the rich-text editor, gated by `ai.enabled`, localized, tested, and documented.
 - README/docs, issue, PR, and code comments related to the change are in English.
 - Tests, typecheck, builds, and docs build pass.
-

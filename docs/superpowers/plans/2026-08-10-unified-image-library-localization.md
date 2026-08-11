@@ -18,6 +18,8 @@
 - Dragging a thumbnail continues to use the full image URL and existing media-image canvas destinations.
 - User-provided content, template copy, custom block labels, and special-link values are not automatically translated.
 - New and changed UI labels, code comments, documentation, issue text, and PR text are written in English.
+- Chrome AI is mounted in RichTextEditor only when ai.enabled is true; unavailable browser APIs must not throw during editor mount.
+- Chrome AI Rewrite, Write, Summarize, and Translate actions must preserve selection/prompt/language gating, progress, session cleanup, localized errors, Apply, and Discard behavior.
 - Every production behavior change follows TDD: write a failing test, run it to observe the expected failure, implement the smallest fix, then rerun the targeted and relevant full suites.
 - Do not add a new dependency or change the document schema.
 
@@ -39,17 +41,22 @@
 - packages/email-builder/src/components/tabs/MediaLibraryTab.vue — emit selection data, localize all visible strings, and retain upload/list/pagination/rename/delete/drag behavior.
 - packages/email-builder/src/components/tabs/DraggableImageThumb.vue — preserve drag payloads while forwarding thumbnail clicks to the preview flow; add accessible labels if required by the localized UI.
 - packages/email-builder/src/components/EmailBuilder.vue — default locale resolution to English and pass the resolved locale to the i18n provider.
+- packages/email-builder/src/components/RichTextEditor.vue — mount the configured Chrome AI menu beside the existing rich-text controls.
+- packages/email-builder/src/components/AiMenu.vue — complete the localized Chrome AI interaction and error states.
+- packages/email-builder/src/ai/chromeAi.ts — keep the pure Chrome AI wrappers, session cleanup, progress handling, and English internal errors.
+- packages/email-builder/src/options.ts — expose the ai builder option and its AiOptions/AiLanguage types.
 - packages/email-builder/src/i18n/useI18n.ts — make English the provider fallback and support a resolved en/es locale.
 - packages/email-builder/src/i18n/en.ts — add the canonical complete English key set for all editor-facing strings.
 - packages/email-builder/src/i18n/es.ts — add Spanish translations for every canonical key.
 - packages/email-builder/src/components/UnlayerImportDialog.vue, TemplateGallery.vue, PreviewDialog.vue, ImageEditorModal.vue, and components/image-editor/CropPanel.vue — replace hard-coded visible strings with i18n keys.
-- packages/email-builder/src/components/BlockView.vue, PropertiesPanel.vue, tabs/BodyTab.vue, components/fields/PaddingField.vue, and any other component found by the hard-coded-string audit — replace user-facing literals, titles, placeholders, and errors with i18n keys.
+- packages/email-builder/src/components/BlockView.vue, PropertiesPanel.vue, tabs/BodyTab.vue, and components/fields/PaddingField.vue — replace user-facing literals, titles, placeholders, and errors with i18n keys.
 - packages/email-builder/src/styles.css — square thumbnail frames, unified subtab styling, and preview-dialog layout.
 - packages/email-builder/tests/images-tab.test.ts — update click expectations to preview/Add and add square/search selection coverage.
 - packages/email-builder/tests/media-library-tab.test.ts — update unified-panel selectors and preview/Add behavior while retaining library CRUD coverage.
 - packages/email-builder/tests/sidepanel.test.ts — assert one Images rail entry and no separate Gallery rail entry.
 - packages/email-builder/tests/i18n.test.ts — change default-language expectations and add Spanish/custom fallback coverage.
 - packages/email-builder/tests/dnd.test.ts and/or a focused image-panel test — verify both sources still expose the full media-image drag payload.
+- packages/email-builder/tests/ai-menu.test.ts and packages/email-builder/tests/chrome-ai.test.ts — cover Chrome AI wrappers, editor integration, gating, progress, errors, Apply, Discard, and cleanup.
 - packages/email-builder/README.md, apps/docs/reference/props.md, and apps/docs/guide/introduction.md — document English as the default and English/Spanish locale configuration.
 
 ---
@@ -394,7 +401,61 @@ git add packages/email-builder/README.md apps/docs/reference/props.md apps/docs/
 git commit -m "docs: document English-first localization"
 ~~~
 
-### Task 6: Verify drag behavior and full package quality gates
+### Task 6: Complete Chrome AI integration in the rich-text editor
+
+**Files:**
+- Modify: packages/email-builder/src/components/EmailBuilder.vue
+- Modify: packages/email-builder/src/components/RichTextEditor.vue
+- Modify: packages/email-builder/src/components/AiMenu.vue
+- Modify: packages/email-builder/src/ai/chromeAi.ts
+- Modify: packages/email-builder/src/options.ts
+- Modify: packages/email-builder/src/i18n/en.ts
+- Modify: packages/email-builder/src/i18n/es.ts
+- Modify: packages/email-builder/src/styles.css
+- Test: packages/email-builder/tests/chrome-ai.test.ts
+- Test: packages/email-builder/tests/ai-menu.test.ts
+- Test: packages/email-builder/tests/rich-text-editor.test.ts
+
+**Interfaces:**
+- EmailBuilder accepts and provides `ai?: AiOptions`.
+- RichTextEditor renders `<AiMenu v-if="options.ai?.enabled" :editor="editor" />` in its toolbar.
+- AiMenu keeps the four tool actions and consumes `AiOptions.languages` for Translate targets.
+- chromeAi wrappers always destroy sessions in `finally` and expose English internal errors or stable error codes that AiMenu maps through `t(...)`.
+
+- [ ] Step 1: Write the failing integration and error-localization tests
+
+Add tests that mount RichTextEditor with an injected `ai` configuration and assert the AI menu is absent when disabled and present when enabled. Extend AiMenu tests to cover no selection, missing language configuration, unavailable APIs, rejected requests, progress reset, Apply replacing selection, Discard clearing the result, and English/Spanish error labels. Extend wrapper tests to assert English error behavior and cleanup after rejected API calls.
+
+Use real TipTap editors and the existing global API test setup; do not replace the editor with a mock that cannot verify document mutation.
+
+- [ ] Step 2: Run the focused tests to verify they fail
+
+~~~bash
+pnpm --filter @naturaldevcr/vue-mail-designer exec vitest run tests/chrome-ai.test.ts tests/ai-menu.test.ts tests/rich-text-editor.test.ts
+~~~
+
+Expected: the integration test fails because RichTextEditor does not mount AiMenu and the unfinished error/configuration cases are absent.
+
+- [ ] Step 3: Implement the smallest complete integration
+
+Add the `ai` prop to EmailBuilder's public props and getter, mount AiMenu in RichTextEditor only when `options.ai?.enabled`, and preserve the existing editor instance. Keep API availability checks and selection/prompt/language gating in AiMenu. Map wrapper failures to localized `ai.error` text without exposing Spanish literals in English mode. Keep progress visible during a request, clear it in finally, preserve the editor content until Apply, and close/reset state on Apply, Discard, and menu close. Translate comments and wrapper error text to English.
+
+- [ ] Step 4: Run the focused tests to verify they pass
+
+~~~bash
+pnpm --filter @naturaldevcr/vue-mail-designer exec vitest run tests/chrome-ai.test.ts tests/ai-menu.test.ts tests/rich-text-editor.test.ts
+~~~
+
+Expected: wrapper, integration, gating, localized error, progress, cleanup, Apply, and Discard tests pass.
+
+- [ ] Step 5: Commit
+
+~~~bash
+git add packages/email-builder/src/components/EmailBuilder.vue packages/email-builder/src/components/RichTextEditor.vue packages/email-builder/src/components/AiMenu.vue packages/email-builder/src/ai/chromeAi.ts packages/email-builder/src/options.ts packages/email-builder/src/i18n/en.ts packages/email-builder/src/i18n/es.ts packages/email-builder/src/styles.css packages/email-builder/tests/chrome-ai.test.ts packages/email-builder/tests/ai-menu.test.ts packages/email-builder/tests/rich-text-editor.test.ts
+git commit -m "feat(ai): integrate Chrome AI editor tools"
+~~~
+
+### Task 7: Verify drag behavior and full package quality gates
 
 **Files:**
 - Modify: packages/email-builder/tests/dnd.test.ts only if a missing regression assertion is found.
@@ -439,7 +500,7 @@ git diff --stat origin/main...HEAD
 
 Confirm there are no hard-coded Spanish UI strings left in the audited source, no unrelated file changes, and no generated build artifacts tracked by Git.
 
-### Task 7: Prepare and publish the pull request
+### Task 8: Prepare and publish the pull request
 
 **Files:**
 - No source files unless final review identifies a required fix.
