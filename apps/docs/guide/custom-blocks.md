@@ -1,6 +1,6 @@
 # Custom blocks
 
-Besides the built-in blocks, you can register your own blocks that appear in the palette with a generic inspector (generated from `fields`) and your own render in the exported HTML.
+Besides the built-in blocks, you can register your own blocks that appear in the palette with a generic inspector (generated from `fields`) and your own render in the exported HTML. The generic inspector also includes the shared outer padding control, so custom blocks support the same Top/Right/Bottom/Left spacing behavior as built-in blocks.
 
 ```ts
 import type { CustomBlockDef } from '@naturaldevcr/vue-mail-designer'

@@ -6,7 +6,7 @@ The palette includes: **Heading**, **Text** (rich editor), **Image**, **Button**
 
 Most blocks share, in their inspector:
 
-- **Padding** — linked by default (a single value for all 4 sides); a link-icon button unlinks it to edit each side separately.
+- **Padding** — available on every editable block, including Spacer and registered custom blocks. It is linked by default (a single value for all 4 sides); a link-icon button unlinks it to edit **Top**, **Right**, **Bottom**, and **Left** separately.
 - **Alignment** — left/center/right, where applicable.
 - **Hide per device** — `hideDesktop`/`hideMobile`, per block and per row. The exported HTML uses classes + a media query, no JS.
 
@@ -15,7 +15,7 @@ Most blocks share, in their inspector:
 Countdown to a date. Two modes:
 
 - **Integrator-provided dynamic image**: you pass a function that generates the counter image (typically an external service like countdownmail).
-- **Static box**: without that function, it shows the days remaining as plain text — works in any client, no animation.
+- **Static box**: without that function, it shows a styled days/hours/minutes/seconds snapshot — works in any client, with no JavaScript animation.
 
 ## Table and Gallery
 
@@ -25,6 +25,8 @@ Countdown to a date. Two modes:
 ## Custom blocks
 
 Besides the built-in blocks, you can register your own — see [Custom blocks](/guide/custom-blocks).
+
+Custom blocks also receive the shared outer padding control. It is stored in the block's `style.padding` and is applied in both the canvas and exported HTML.
 
 ## Corner radius in Outlook
 

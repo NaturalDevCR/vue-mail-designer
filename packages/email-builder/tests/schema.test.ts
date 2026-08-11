@@ -40,6 +40,31 @@ describe('schema', () => {
     }
   })
 
+  it('spacer and custom blocks include padding and accept legacy documents without it', () => {
+    const spacer = createBlock('spacer')
+    expect(spacer.type).toBe('spacer')
+    if (spacer.type === 'spacer') expect(spacer.style.padding).toEqual({ top: 0, right: 0, bottom: 0, left: 0 })
+
+    const legacy = {
+      version: 1,
+      settings: createDocument().settings,
+      rows: [{
+        id: 'row-legacy',
+        style: { backgroundColor: 'transparent', contentBackgroundColor: 'transparent', padding: { top: 0, right: 0, bottom: 0, left: 0 }, borderRadius: 0 },
+        columns: [{
+          id: 'column-legacy',
+          widthPct: 100,
+          style: { backgroundColor: 'transparent', padding: { top: 0, right: 0, bottom: 0, left: 0 } },
+          blocks: [{ id: 'spacer-legacy', type: 'spacer', height: 24 }],
+        }],
+      }],
+    }
+    expect(zEmailDocument.parse(legacy).rows[0].columns[0].blocks[0]).toMatchObject({
+      type: 'spacer',
+      style: { padding: { top: 0, right: 0, bottom: 0, left: 0 } },
+    })
+  })
+
   it('rechaza documentos malformados', () => {
     expect(zEmailDocument.safeParse({ rows: 'nope' }).success).toBe(false)
     expect(

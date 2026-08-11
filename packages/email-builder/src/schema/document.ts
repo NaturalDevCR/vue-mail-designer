@@ -127,6 +127,7 @@ export const zSpacerBlock = z.object({
   id: z.string(),
   type: z.literal('spacer'),
   height: z.number().min(4).max(200),
+  style: z.object({ padding: zPadding }).default({ padding: { top: 0, right: 0, bottom: 0, left: 0 } }),
   hideDesktop: z.boolean().optional(),
   hideMobile: z.boolean().optional(),
 })
@@ -246,6 +247,7 @@ export const zCustomBlock = z.object({
   type: z.literal('custom'),
   customType: z.string(),
   data: z.record(z.unknown()),
+  style: z.object({ padding: zPadding }).default({ padding: { top: 0, right: 0, bottom: 0, left: 0 } }),
   hideDesktop: z.boolean().optional(),
   hideMobile: z.boolean().optional(),
 })

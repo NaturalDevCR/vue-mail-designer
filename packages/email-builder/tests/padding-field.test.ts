@@ -17,6 +17,12 @@ describe('PaddingField', () => {
     const inputs = wrapper.findAll('input')
     expect(inputs).toHaveLength(4)
     expect(inputs.map((i) => (i.element as HTMLInputElement).value)).toEqual(['10', '20', '30', '40'])
+    expect(wrapper.findAll('.vmd-padding-side-label').map((label) => label.text())).toEqual(['Top', 'Right', 'Bottom', 'Left'])
+  })
+
+  it('labels the linked value as applying to all sides', () => {
+    const wrapper = mount(PaddingField, { props: { label: 'Padding', modelValue: uniform } })
+    expect(wrapper.find('.vmd-padding-side-label').text()).toBe('All sides')
   })
 
   it('vinculado, escribir en el campo único emite los 4 lados con ese valor', async () => {

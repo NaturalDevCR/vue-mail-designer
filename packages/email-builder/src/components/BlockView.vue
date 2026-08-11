@@ -87,7 +87,7 @@
     </div>
 
     <!-- spacer -->
-    <div v-else-if="block.type === 'spacer'" class="vmd-b-spacer" :style="{ height: block.height + 'px' }" />
+    <div v-else-if="block.type === 'spacer'" class="vmd-b-spacer" :style="{ height: block.height + 'px', padding: padCss(block.style.padding) }" />
 
     <!-- social -->
     <div v-else-if="block.type === 'social'" :style="{ padding: padCss(block.style.padding), textAlign: block.align }">
@@ -179,11 +179,18 @@
     <!-- timer -->
     <div v-else-if="block.type === 'timer'" :style="{ padding: padCss(block.style.padding), textAlign: 'center' }">
       <img v-if="block.imageUrl" :src="block.imageUrl" :alt="block.alt" :style="{ width: block.widthPct + '%', display: 'inline-block' }" />
-      <div v-else class="vmd-b-image-placeholder">{{ timerDaysText }}</div>
+      <div v-else class="vmd-b-timer" role="timer" :aria-label="timerAriaLabel">
+        <div class="vmd-timer-card">
+          <div v-for="part in timerParts" :key="part.key" class="vmd-timer-unit">
+            <strong class="vmd-timer-value">{{ part.value }}</strong>
+            <span class="vmd-timer-label">{{ part.label }}</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- custom -->
-    <div v-else-if="block.type === 'custom'">
+    <div v-else-if="block.type === 'custom'" :style="{ padding: padCss(block.style.padding) }">
       <div v-if="customHtml !== null" v-html="customHtml" />
       <div v-else class="vmd-b-image-placeholder">{{ t('canvas.customBlock') }} «{{ block.customType }}»</div>
     </div>
@@ -191,7 +198,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { SOCIAL_BRANDS, socialSvg, styleLinks } from '../render/html'
 import type { Block, Padding, SocialNetworkKind } from '../schema'
 import { useDocumentStore } from '../store/document'
@@ -274,12 +281,34 @@ const showHiddenBadge = computed(() => {
   return (ui.canvasDevice === 'mobile' && !!b.hideMobile) || (ui.canvasDevice === 'desktop' && !!b.hideDesktop)
 })
 
-const timerDaysText = computed(() => {
-  const b = props.block
-  if (b.type !== 'timer') return ''
-  const days = Math.max(0, Math.ceil((new Date(b.endDate).getTime() - Date.now()) / 864e5))
-  return `${days} ${days === 1 ? t('canvas.day') : t('canvas.days')}`
+const timerNow = ref(Date.now())
+let timerClock: ReturnType<typeof setInterval> | undefined
+
+onMounted(() => {
+  timerClock = setInterval(() => { timerNow.value = Date.now() }, 1000)
 })
+
+onBeforeUnmount(() => {
+  if (timerClock) clearInterval(timerClock)
+})
+
+const timerParts = computed(() => {
+  const b = props.block
+  if (b.type !== 'timer') return []
+  const totalSeconds = Math.max(0, Math.floor((new Date(b.endDate).getTime() - timerNow.value) / 1000))
+  const days = Math.floor(totalSeconds / 86400)
+  const hours = Math.floor((totalSeconds % 86400) / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+  return [
+    { key: 'days', value: days, label: days === 1 ? t('canvas.day') : t('canvas.days') },
+    { key: 'hours', value: String(hours).padStart(2, '0'), label: t('canvas.hours') },
+    { key: 'minutes', value: String(minutes).padStart(2, '0'), label: t('canvas.minutes') },
+    { key: 'seconds', value: String(seconds).padStart(2, '0'), label: t('canvas.seconds') },
+  ]
+})
+
+const timerAriaLabel = computed(() => timerParts.value.map((part) => `${part.value} ${part.label}`).join(', '))
 
 function padCss(p: Padding): string {
   return `${p.top}px ${p.right}px ${p.bottom}px ${p.left}px`

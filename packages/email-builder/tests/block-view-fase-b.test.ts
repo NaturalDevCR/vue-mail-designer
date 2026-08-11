@@ -39,14 +39,19 @@ describe('BlockView — Fase B', () => {
     expect(wrapper.findAll('.vmd-b-gallery-placeholder')).toHaveLength(3)
   })
 
-  it('timer sin imageUrl muestra el texto de días', () => {
+  it('timer sin imageUrl muestra un countdown segmentado', () => {
     const block = createBlock('timer')
     if (block.type !== 'timer') throw new Error()
     block.imageUrl = ''
     block.endDate = new Date(Date.now() + 3 * 864e5).toISOString()
     const { wrapper } = mountBlock(block)
-    expect(wrapper.find('.vmd-b-image-placeholder').exists()).toBe(true)
+    expect(wrapper.find('.vmd-b-image-placeholder').exists()).toBe(false)
+    expect(wrapper.find('.vmd-b-timer').exists()).toBe(true)
+    expect(wrapper.findAll('.vmd-timer-unit')).toHaveLength(4)
     expect(wrapper.text()).toContain('days')
+    expect(wrapper.text()).toContain('hours')
+    expect(wrapper.text()).toContain('minutes')
+    expect(wrapper.text()).toContain('seconds')
   })
 
   it('timer con imageUrl muestra un img', () => {

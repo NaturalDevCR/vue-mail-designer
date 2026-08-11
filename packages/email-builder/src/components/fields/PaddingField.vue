@@ -16,17 +16,19 @@
       :value="modelValue.top"
       @input="onLinked($event)"
     />
+    <span v-if="linked" class="vmd-padding-side-label">{{ t('field.allSides') }}</span>
     <div v-else class="vmd-padding-grid">
-      <input
-        v-for="side in SIDES"
-        :key="side.key"
-        class="vmd-field-input"
-        type="number"
-        min="0"
-        :value="modelValue[side.key]"
-        :title="side.label"
-        @input="onSide(side.key, $event)"
-      />
+      <label v-for="side in SIDES" :key="side.key" class="vmd-padding-side">
+        <span class="vmd-padding-side-label">{{ side.label }}</span>
+        <input
+          class="vmd-field-input"
+          type="number"
+          min="0"
+          :value="modelValue[side.key]"
+          :aria-label="side.label"
+          @input="onSide(side.key, $event)"
+        />
+      </label>
     </div>
   </div>
 </template>

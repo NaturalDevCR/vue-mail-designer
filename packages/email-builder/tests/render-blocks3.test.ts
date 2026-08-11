@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { renderHtml } from '../src/render/html'
 import { createBlock, createDocument, createRow } from '../src/schema'
-import type { Block, ButtonBlock, DividerBlock, HeadingBlock, ImageBlock, MenuBlock, TableBlock, TextBlock } from '../src/schema'
+import type { Block, ButtonBlock, CustomBlock, DividerBlock, HeadingBlock, ImageBlock, MenuBlock, SpacerBlock, TableBlock, TextBlock } from '../src/schema'
 
 function render(block: Block): string {
   const doc = createDocument()
@@ -70,5 +70,22 @@ describe('renderBlock — paridad con Unlayer (campos nuevos)', () => {
     const html = render(t)
     expect(html).toContain('rgba(0,0,0,.03)')
     expect(html).toContain('color:#ffffff')
+  })
+
+  it('spacer: exports configurable padding', () => {
+    const spacer = createBlock('spacer') as SpacerBlock
+    spacer.style.padding = { top: 1, right: 2, bottom: 3, left: 4 }
+    expect(render(spacer)).toContain('padding:1px 2px 3px 4px;')
+  })
+
+  it('custom block: exports configurable padding', () => {
+    const custom = {
+      id: 'custom-1',
+      type: 'custom',
+      customType: 'promo',
+      data: {},
+      style: { padding: { top: 1, right: 2, bottom: 3, left: 4 } },
+    } as CustomBlock
+    expect(render(custom)).toContain('padding:1px 2px 3px 4px;')
   })
 })

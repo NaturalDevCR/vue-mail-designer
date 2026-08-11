@@ -120,6 +120,8 @@
 
       <template v-else-if="block.type === 'spacer'">
         <NumberField :label="t('props.height')" :model-value="block.height" :min="4" :max="200" @update:model-value="upd({ height: $event })" />
+        <div class="vmd-props-section-title">{{ t('props.general') }}</div>
+        <PaddingField :label="t('props.padding')" :model-value="block.style.padding" @update:model-value="upd({ style: { padding: $event } })" />
       </template>
 
       <template v-else-if="block.type === 'social'">
@@ -245,6 +247,8 @@
           </label>
           <TextField v-else :label="field.label" :model-value="String(block.data[field.key] ?? '')" @update:model-value="updData(field.key, $event)" />
         </template>
+        <div class="vmd-props-section-title">{{ t('props.general') }}</div>
+        <PaddingField :label="t('props.padding')" :model-value="block.style.padding" @update:model-value="upd({ style: { padding: $event } })" />
       </template>
 
       <div class="vmd-props-section-title">{{ t('props.visibility') }}</div>

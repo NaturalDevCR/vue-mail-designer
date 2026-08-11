@@ -3,6 +3,7 @@ import { createPinia } from 'pinia'
 import { describe, expect, it } from 'vitest'
 import { defineComponent, h, provide } from 'vue'
 import PropertiesPanel from '../src/components/PropertiesPanel.vue'
+import { createCustomBlock } from '../src/schema'
 import { useDocumentStore } from '../src/store/document'
 import { BUILDER_PINIA_KEY } from '../src/store/keys'
 
@@ -38,5 +39,20 @@ describe('PropertiesPanel', () => {
     store.select({ kind: 'row', id: row.id })
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Row')
+  })
+
+  it('shows padding controls for spacer and custom alert-style blocks', async () => {
+    const { wrapper, store } = mountInspector()
+    const row = store.addRow([100])
+    const spacer = store.addBlockToColumn(row.columns[0].id, 'spacer')
+    store.select({ kind: 'block', id: spacer.id })
+    await wrapper.vm.$nextTick()
+    expect(wrapper.text()).toContain('Padding')
+
+    const custom = createCustomBlock('callout', { title: 'Title' })
+    row.columns[0].blocks.push(custom)
+    store.select({ kind: 'block', id: custom.id })
+    await wrapper.vm.$nextTick()
+    expect(wrapper.text()).toContain('Padding')
   })
 })
