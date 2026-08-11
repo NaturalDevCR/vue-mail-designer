@@ -25,7 +25,7 @@ import type { LocaleDict } from '../i18n/keys'
 import { provideI18n, type ResolvedLocale } from '../i18n/useI18n'
 import type { UnlayerFetch } from '../import/unlayerUrl'
 import type { MediaLibraryOptions } from '../mediaLibrary'
-import { BUILDER_OPTIONS_KEY, type Appearance, type CustomBlockDef, type MergeTagItem, type SpecialLink, type ToolConfig } from '../options'
+import { BUILDER_OPTIONS_KEY, type AiOptions, type Appearance, type CustomBlockDef, type MergeTagItem, type SpecialLink, type ToolConfig } from '../options'
 import type { BlockType } from '../schema'
 import { renderHtml } from '../render/html'
 import { exportDocumentImage } from '../export/image'
@@ -58,6 +58,7 @@ const props = defineProps<{
   fonts?: FontDef[]
   customBlocks?: CustomBlockDef[]
   mediaLibrary?: MediaLibraryOptions
+  ai?: AiOptions
 }>()
 
 const APPEARANCE_VARS: Record<keyof Appearance, string> = {
@@ -91,7 +92,7 @@ provide(BUILDER_PINIA_KEY, pinia)
 const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
 
-// diccionario i18n resuelto a partir de la prop `locale`
+// Resolve the i18n dictionary from the public locale prop.
 const localeDict = computed<LocaleDict>(() => {
   if (props.locale === 'es') return { ...en, ...es }
   if (props.locale === 'en' || props.locale === undefined) return { ...en }
@@ -100,12 +101,15 @@ const localeDict = computed<LocaleDict>(() => {
 const resolvedLocale = computed<ResolvedLocale>(() => (props.locale === 'es' ? 'es' : 'en'))
 provideI18n(() => localeDict.value, () => resolvedLocale.value)
 
-// opciones reactivas para los hijos (getters mantienen la reactividad de props)
+// Provide reactive child options while preserving prop reactivity through getters.
 provide(
   BUILDER_OPTIONS_KEY,
   reactive({
     get mergeTags() {
       return props.mergeTags ?? []
+    },
+    get ai() {
+      return props.ai
     },
     get uploadImage() {
       return props.uploadImage
@@ -137,7 +141,7 @@ provide(
   }),
 )
 
-// inyecta los <link> de Google Fonts en el documento host para WYSIWYG en el canvas
+// Inject Google Fonts links into the host document for canvas WYSIWYG rendering.
 onMounted(() => {
   const fonts = props.fonts ?? DEFAULT_FONTS
   for (const font of fonts) {
@@ -162,11 +166,11 @@ watch(
 
 if (props.design) {
   store.loadDesign(props.design)
-  // la carga inicial es la línea base: no debe quedar en el historial de undo
+  // The initial load is the baseline and should not enter undo history.
   store.resetHistory()
 }
 
-// prop → store
+// Prop -> store.
 watch(
   () => props.design,
   (next) => {
@@ -176,7 +180,7 @@ watch(
   },
 )
 
-// store → emits
+// Store -> emits.
 watch(
   () => store.doc,
   (doc) => {

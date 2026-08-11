@@ -10,6 +10,8 @@ import type { EmailTemplate } from './templates'
 export type MergeTagDef = { name: string; value: string }
 export type MergeTagGroup = { name: string; tags: MergeTagDef[] }
 export type MergeTagItem = MergeTagDef | MergeTagGroup
+export type AiLanguage = { code: string; label: string }
+export type AiOptions = { enabled: boolean; languages?: AiLanguage[] }
 
 /** Enlace especial insertable en el editor (ej. cancelar suscripción). */
 export type SpecialLink = { name: string; href: string }
@@ -56,6 +58,7 @@ export type Appearance = {
 
 export type BuilderOptions = {
   mergeTags: MergeTagItem[]
+  ai?: AiOptions
   uploadImage?: (file: File) => Promise<string>
   templates?: EmailTemplate[]
   imageSearch?: (query: string) => Promise<ImageResult[]>
