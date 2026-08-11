@@ -28,6 +28,7 @@ export default defineConfig({
           { text: 'Blocks', link: '/guide/blocks' },
           { text: 'Backgrounds', link: '/guide/backgrounds' },
           { text: 'Rich text editor', link: '/guide/rich-text' },
+          { text: 'Chrome AI tools', link: '/guide/chrome-ai' },
           { text: 'Custom blocks', link: '/guide/custom-blocks' },
           { text: 'Importing from Unlayer', link: '/guide/unlayer-import' },
           { text: 'Email compatibility', link: '/guide/email-compatibility' },

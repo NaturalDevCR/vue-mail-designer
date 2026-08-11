@@ -116,6 +116,7 @@ The flat `Appearance` form remains supported. When the header is hidden, built-i
 | `showHeader` | `boolean` | Whether to show the builder header. Defaults to `true`; when `false`, the entire builder header is hidden. |
 | `locale` | `'en' \| 'es' \| LocaleDict` | Public UI language option. English (`'en'`) is the default, Spanish (`'es'`) is the built-in alternative, and a `LocaleDict` is merged on top of English so you can override only the keys you want. |
 | `appearance` | `Appearance \| ThemeAppearance` | Builder colors. A flat object (`{ accent, panel, border, background, foreground, muted }`) applies to both modes. The union Appearance or ThemeAppearance also accepts `{ light?: Appearance, dark?: Appearance }` for mode-specific values; omitted fields keep that mode's defaults. |
+| `ai` | `AiOptions` | Optional Chrome built-in AI tools for the rich text editor: `{ enabled: boolean, languages?: AiLanguage[] }`. The menu is rendered only when enabled; `languages` configures Translate targets. Browser API availability is checked at runtime. |
 | `tools` | `Partial<Record<BlockType, ToolConfig>>` | Per-block palette config: `{ enabled?, position?, usageLimit? }` to hide, reorder, or limit instances. |
 | `fonts` | `FontDef[]` | List of fonts (`{ label, value, url? }`); Google Fonts (`url`) are loaded both in the canvas and in the exported HTML. Defaults to a curated list. |
 | `specialLinks` | `SpecialLink[]` | Special links insertable from the editor (`{ name, href }`, e.g. an unsubscribe link). |
@@ -146,6 +147,12 @@ The **body background color and image** are edited in the **Body** tab (`setting
 ## Rich text editor
 
 The rich text editor includes bold, italic, underline, strikethrough, lists (bullet/numbered), alignment, **text color**, **font size**, links, variables (merge tags), and clear formatting.
+
+## Chrome AI tools
+
+Set `ai.enabled` to `true` to show optional Chrome built-in AI actions in the rich text toolbar. The menu supports Rewrite, Write, Summarize, and Translate. Configure Translate targets with `languages: [{ code, label }]`. Selection-based actions require selected text, results remain uncommitted until **Apply**, and unavailable browser APIs disable the corresponding action.
+
+See the [Chrome AI tools guide](https://naturaldevcr.github.io/vue-mail-designer/guide/chrome-ai) for the full configuration and availability behavior.
 
 ## Importing from Unlayer
 

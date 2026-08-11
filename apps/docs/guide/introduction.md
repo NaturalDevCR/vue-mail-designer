@@ -10,6 +10,7 @@ For embedding an email editor inside your own application (a marketing SaaS, a C
 - **Which variables can be inserted** — `mergeTags` defines the variables available in the text editor.
 - **Which blocks appear** — the `tools` prop hides, reorders, or limits blocks in the palette.
 - **The editor's look** — `theme`, `appearance`, and `locale` (English by default, Spanish as the built-in alternative, or your own partial dictionary over English).
+- **Optional writing assistance** — enable Chrome built-in AI tools for rewrite, write, summarize, and translate in the rich text editor.
 
 ## What does it generate?
 
@@ -57,6 +58,7 @@ Click a thumbnail to open the preview dialog, then choose **Add** to insert it a
 
 - [Installation](/guide/installation)
 - [Quickstart](/guide/quickstart)
+- [Chrome AI tools](/guide/chrome-ai)
 - [Props reference](/reference/props)
 
 ::: tip Using an AI coding assistant?

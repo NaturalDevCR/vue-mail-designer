@@ -15,6 +15,7 @@ All optional.
 | `showHeader` | `boolean` | Whether to show the builder header. Defaults to `true`; when `false`, the entire builder header is hidden. |
 | `locale` | `'en' \| 'es' \| LocaleDict` | Public UI language option. English (`'en'`) is the default, Spanish (`'es'`) is the built-in alternative, and a `LocaleDict` is merged on top of English so you can override only the keys you want. |
 | `appearance` | `Appearance \| ThemeAppearance` | Builder colors. A flat object (`{ accent, panel, border, background, foreground, muted }`) applies to both modes. The union Appearance or ThemeAppearance also accepts `{ light?: Appearance, dark?: Appearance }` for mode-specific values; omitted fields keep that mode's defaults. |
+| `ai` | `AiOptions` | Optional Chrome built-in AI tools for the rich text editor: `{ enabled: boolean, languages?: AiLanguage[] }`. The menu is rendered only when enabled; `languages` configures Translate targets. Browser API availability is checked at runtime. |
 | `tools` | `Partial<Record<BlockType, ToolConfig>>` | Per-block palette config: `{ enabled?, position?, usageLimit? }` to hide, reorder, or limit instances of a block type. |
 | `fonts` | `FontDef[]` | List of available fonts (`{ label, value, url? }`); the ones with `url` (Google Fonts) are loaded both in the canvas and in the exported HTML. Defaults to a curated list. |
 | `specialLinks` | `SpecialLink[]` | Predefined links insertable from the text editor (`{ name, href }`) — for example, an unsubscribe link resolved by your sending platform. |
@@ -56,6 +57,10 @@ The builder has one **Images** panel with two subtabs:
 Clicking a thumbnail opens a preview dialog first. Select **Add** to insert a new Image block or replace the currently selected Image block. You can also drag thumbnails straight from Search or Gallery onto the canvas, onto an existing Image block, or onto a Gallery block slot.
 
 See also [Events](/reference/events) and [Methods](/reference/methods).
+
+## Chrome AI
+
+See [Chrome AI tools](/guide/chrome-ai) for the complete configuration, action behavior, browser-availability notes, and Apply/Discard flow.
 
 For example, use the per-mode form to configure a dark builder with distinct light and dark palettes:
 
