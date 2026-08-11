@@ -1,4 +1,4 @@
-import type { EmailDocument } from '../schema'
+import { zEmailDocument, type EmailDocument } from '../schema'
 import type { AutosaveStorage } from './types'
 
 export function resolveLocalStorage(storage?: Storage): Storage {
@@ -17,15 +17,31 @@ export function resolveLocalStorage(storage?: Storage): Storage {
   }
 }
 
+function createInvalidAutosaveDocumentError(cause?: unknown) {
+  return new Error('Autosave document is invalid.', {
+    cause: cause instanceof Error ? cause : undefined,
+  })
+}
+
+function validateAutosaveDocument(value: unknown): EmailDocument | undefined {
+  if (value === undefined) return undefined
+
+  const parsed = zEmailDocument.safeParse(value)
+  if (parsed.success) return parsed.data
+
+  throw createInvalidAutosaveDocumentError(parsed.error)
+}
+
 export async function readAutosave(autosave: AutosaveStorage): Promise<EmailDocument | undefined> {
   if (autosave.type === 'custom') {
-    return autosave.load?.()
+    const loaded = await autosave.load?.()
+    return validateAutosaveDocument(loaded)
   }
 
   const storage = resolveLocalStorage(autosave.storage)
   const raw = storage.getItem(autosave.key)
   if (raw === null) return undefined
-  return JSON.parse(raw) as EmailDocument
+  return validateAutosaveDocument(JSON.parse(raw) as unknown)
 }
 
 export async function writeAutosave(autosave: AutosaveStorage, document: EmailDocument): Promise<void> {

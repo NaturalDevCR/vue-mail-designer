@@ -116,6 +116,10 @@ function cloneDocument(document: EmailDocument): EmailDocument {
   return JSON.parse(JSON.stringify(document)) as EmailDocument
 }
 
+function getExplicitInitialDesign() {
+  return props.design ? cloneDocument(props.design) : undefined
+}
+
 let autosaveSuppressionDepth = 0
 const autosaveController = createAutosaveController({
   applyRestoredDesign(design) {
@@ -202,7 +206,7 @@ onMounted(() => {
     document.head.appendChild(link)
   }
 
-  void autosaveController.configure(props.autosave, cloneDocument(store.doc))
+  void autosaveController.configure(props.autosave, getExplicitInitialDesign())
 })
 
 onUnmounted(() => {
@@ -250,7 +254,7 @@ watch(
 watch(
   () => props.autosave,
   (nextAutosave) => {
-    void autosaveController.configure(nextAutosave, cloneDocument(store.doc))
+    void autosaveController.configure(nextAutosave, getExplicitInitialDesign())
   },
   { deep: true },
 )

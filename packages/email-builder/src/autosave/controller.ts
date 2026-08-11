@@ -28,8 +28,11 @@ type RuntimeConfig = {
   storage: AutosaveStorage
   mode: AutosaveMode
   delay: number
+  restore: boolean
   restorePrecedence: 'initial-design' | 'saved-design'
 }
+
+type NormalizedConfig = RuntimeConfig
 
 function cloneDocument(document: EmailDocument): EmailDocument {
   return JSON.parse(JSON.stringify(document)) as EmailDocument
@@ -40,6 +43,7 @@ export function createAutosaveController(callbacks: AutosaveControllerCallbacks)
   let disposed = false
   let status: AutosaveStatus = 'disabled'
   let runtime: RuntimeConfig | undefined
+  let configured: NormalizedConfig | undefined
   let timer: ReturnType<typeof setTimeout> | undefined
   let intervalTimer: ReturnType<typeof setInterval> | undefined
   let pendingSnapshot: EmailDocument | undefined
@@ -179,37 +183,76 @@ export function createAutosaveController(callbacks: AutosaveControllerCallbacks)
       storage: options.storage,
       mode,
       delay,
+      restore: options.restore ?? false,
       restorePrecedence: options.restorePrecedence ?? 'initial-design',
     }
   }
 
+  function normalizeConfig(options: AutosaveOptions | undefined): NormalizedConfig | undefined {
+    if (!options?.enabled) return undefined
+    return normalizeRuntime(options)
+  }
+
+  function isEquivalentStorage(left: AutosaveStorage, right: AutosaveStorage) {
+    if (left.type !== right.type) return false
+
+    if (left.type === 'local' && right.type === 'local') {
+      return left.key === right.key && left.storage === right.storage
+    }
+
+    if (left.type === 'custom' && right.type === 'custom') {
+      return left.load === right.load && left.save === right.save
+    }
+
+    return false
+  }
+
+  function isEquivalentConfig(left: NormalizedConfig | undefined, right: NormalizedConfig | undefined) {
+    if (!left || !right) return left === right
+
+    return (
+      left.mode === right.mode &&
+      left.delay === right.delay &&
+      left.restore === right.restore &&
+      left.restorePrecedence === right.restorePrecedence &&
+      isEquivalentStorage(left.storage, right.storage)
+    )
+  }
+
   return {
     async configure(options, initialDesign) {
+      const nextConfig = normalizeConfig(options)
+      if (isEquivalentConfig(configured, nextConfig)) return
+
+      configured = nextConfig
       generation += 1
       const expectedGeneration = generation
       disposed = false
       clearSchedulingState()
       runtime = undefined
 
-      if (!options?.enabled) {
+      if (!nextConfig) {
         emitStatus('disabled')
         return
       }
 
-      runtime = normalizeRuntime(options)
+      runtime = nextConfig
 
       const startActiveScheduling = () => {
         if (!isActive(expectedGeneration) || !runtime) return
         if (runtime.mode === 'interval') scheduleInterval(expectedGeneration)
       }
 
-      if (options.restore && (options.storage.type !== 'custom' || options.storage.load)) {
+      const hasExplicitInitialDesign = initialDesign !== undefined
+      const shouldRestore = runtime.restore && (runtime.storage.type !== 'custom' || runtime.storage.load)
+
+      if (shouldRestore) {
         restoringGeneration = expectedGeneration
         dirtyDuringRestore = false
         emitStatus('restoring')
 
         try {
-          const restored = await readAutosave(options.storage)
+          const restored = await readAutosave(runtime.storage)
 
           if (!isActive(expectedGeneration) || !runtime) return
 
@@ -217,7 +260,7 @@ export function createAutosaveController(callbacks: AutosaveControllerCallbacks)
             restoringGeneration === expectedGeneration &&
             !dirtyDuringRestore &&
             restored !== undefined &&
-            runtime.restorePrecedence === 'saved-design'
+            (!hasExplicitInitialDesign || runtime.restorePrecedence === 'saved-design')
 
           restoringGeneration = undefined
           const preserveCurrentStatus = dirtyDuringRestore && status !== 'restoring'
@@ -289,6 +332,7 @@ export function createAutosaveController(callbacks: AutosaveControllerCallbacks)
     dispose() {
       generation += 1
       disposed = true
+      configured = undefined
       runtime = undefined
       clearSchedulingState()
       emitStatus('disabled')
