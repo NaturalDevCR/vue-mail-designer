@@ -96,25 +96,39 @@ function generateDemoCopy(prompt: string, tone: DemoTone = 'as-is', length: Demo
   return applyLength(casual, length, 'Find inspiration and start planning today.')
 }
 
-function rewriteDemoText(text: string, tone: DemoTone = 'as-is', length: DemoLength = 'as-is'): string {
+export function rewriteDemoText(text: string, tone: DemoTone = 'as-is', length: DemoLength = 'as-is'): string {
   const original = text.trim()
   const spanish = isSpanish(original)
   const hotel = /hotel|spa/i.test(original)
+  const tourism = /tourism|travel|destination|experience|journey|turismo|viaje|destino|experiencia|aventura/i.test(original)
 
   if (spanish) {
     const rewritten = hotel
       ? 'Te damos la bienvenida a nuestro hotel y spa, donde cada detalle está pensado para que descanses y disfrutes tu estancia.'
-      : `Hemos preparado este mensaje para que sea más claro, cercano y fácil de leer: ${sentenceCase(original)}`
+      : tourism
+        ? 'Descubre destinos inolvidables, experiencias auténticas y todo lo necesario para planificar tu próxima escapada.'
+        : sentenceCase(original)
     const formal = tone === 'more-formal' ? rewritten.replace('Te damos la bienvenida', 'Nos complace darte la bienvenida') : rewritten
-    const casual = tone === 'more-casual' ? formal.replace('nuestro hotel y spa', 'este hotel y spa') : formal
+    const casual = tone === 'more-casual'
+      ? formal.replace('nuestro hotel y spa', 'este hotel y spa').replace('Descubre destinos inolvidables', 'Encuentra destinos increíbles')
+      : formal
     return applyLength(casual, length, 'Esperamos recibirte muy pronto.')
   }
 
   const rewritten = hotel
     ? 'Welcome to our hotel and spa, where every detail is designed to help you relax and enjoy your stay.'
-    : `We refined this message to make it clearer, warmer, and easier to read: ${sentenceCase(original)}`
-  const formal = tone === 'more-formal' ? rewritten.replace('Welcome to', 'We are pleased to welcome you to') : rewritten
-  const casual = tone === 'more-casual' ? formal.replace('We refined this message', 'Here is a smoother version') : formal
+    : tourism
+      ? 'Discover unforgettable destinations, meaningful experiences, and everything you need to plan your next getaway.'
+      : sentenceCase(original)
+  const formal = tone === 'more-formal'
+    ? rewritten.replace('Welcome to', 'We are pleased to welcome you to').replace('Discover unforgettable destinations', 'Explore remarkable destinations')
+    : rewritten
+  const casual = tone === 'more-casual'
+    ? formal
+      .replace('Welcome to', 'Visit')
+      .replace('Discover unforgettable destinations', 'Find amazing destinations')
+      .replace('meaningful experiences', 'great experiences')
+    : formal
   return applyLength(casual, length, 'We look forward to welcoming you soon.')
 }
 

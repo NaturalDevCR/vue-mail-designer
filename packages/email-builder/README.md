@@ -212,7 +212,7 @@ The rich text editor includes bold, italic, underline, strikethrough, lists (bul
 
 ## Chrome AI tools
 
-Set `ai.enabled` to `true` to show optional Chrome built-in AI actions in the rich text toolbar. The menu supports Rewrite, Write, Summarize, and Translate. Configure Translate targets with `languages: [{ code, label }]`. Selection-based actions require selected text, results remain uncommitted until **Apply**, and unavailable browser APIs disable the corresponding action.
+Set `ai.enabled` to `true` to show optional Chrome built-in AI actions in the rich text toolbar. The menu supports Rewrite, Write, Summarize, and Translate. Configure Translate targets with `languages: [{ code, label }]`. Selection-based actions require selected text, results remain uncommitted until **Apply**, and unavailable browser APIs disable the corresponding action. Chrome manages the local model cache; Summarizer sessions are reused for the same configuration during the page lifetime and are recreated after a failure.
 
 See the [Chrome AI tools guide](https://naturaldevcr.github.io/vue-mail-designer/guide/chrome-ai) for the full configuration and availability behavior.
 
