@@ -57,4 +57,4 @@ When you are ready to publish a new version:
 6. Push the tag to GitHub.
 7. Review the `Publish package` workflow run in the protected `release` environment and complete the required reviewer approval.
 
-This task intentionally does not bump the package version, create a release tag, push a tag, or run `npm publish`.
+Do not publish from a local workstation. The release PR should be merged first; then create the matching tag from the merged `main` commit so GitHub Actions can publish through OIDC.
