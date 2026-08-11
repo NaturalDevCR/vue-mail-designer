@@ -64,6 +64,14 @@ describe('renderer fase B — bloques nuevos', () => {
     expect(html).toContain('src="https://timers.example/countdown.gif?end=1"')
   })
 
+  it('prefers an explicit timer image URL over the configured builder', () => {
+    const t = createBlock('timer') as TimerBlock
+    t.imageUrl = 'https://timers.example/explicit.gif'
+    const html = render(t, () => 'https://timers.example/generated.gif')
+    expect(html).toContain('src="https://timers.example/explicit.gif"')
+    expect(html).not.toContain('https://timers.example/generated.gif')
+  })
+
   it('timer sin imageUrl renderiza caja estática con días restantes', () => {
     const t = createBlock('timer') as TimerBlock
     t.imageUrl = ''

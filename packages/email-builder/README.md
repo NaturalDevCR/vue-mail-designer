@@ -172,6 +172,7 @@ See the full [Autosave guide](https://naturaldevcr.github.io/vue-mail-designer/g
 | `uploadImage` | `(file: File) => Promise<string>` | Upload handler; returns the final URL. |
 | `imageSearch` | `(query: string) => Promise<ImageResult[]>` | Search handler for the Search subtab in the unified Images panel; defaults to `openverseSearch`. |
 | `mediaLibrary` | `MediaLibraryOptions` | Enables the Gallery subtab in the unified Images panel: `{ list: (cursor?) => Promise<{ items: MediaItem[], nextCursor? }>, upload: (file) => Promise<MediaItem>, delete: (id) => Promise<void>, rename: (id, name) => Promise<MediaItem> }`. Without this prop, only Search is shown. Every function is implemented by the integrator against their own storage (e.g. Firebase Storage); the library assumes no particular backend. |
+| `timerImageUrlBuilder` | `(block: TimerBlock) => string \| undefined` | Optional email-safe timer image provider. Called during preview and HTML export when `block.imageUrl` is empty; return a remotely served GIF or generated image URL. Without it, exported timers use a static snapshot because email clients cannot run a live countdown. An explicit `block.imageUrl` always takes precedence. |
 | `unlayerFetch` | `(slug: string) => Promise<unknown>` | Handler to load an Unlayer template by URL/slug; returns the design JSON. Defaults to hitting Unlayer's API directly (fails via CORS without a proxy). |
 | `theme` | `'light' \| 'dark'` | Builder UI theme. |
 | `showHeader` | `boolean` | Whether to show the builder header. Defaults to `true`; when `false`, the entire builder header is hidden. |
@@ -196,6 +197,21 @@ The builder uses one unified **Images** panel:
 - **Gallery** uses `mediaLibrary` to show your uploaded assets. This subtab only appears when you provide `mediaLibrary`.
 
 Clicking a thumbnail opens a preview dialog first. Choose **Add** to insert a new Image block on the canvas or replace the currently selected Image block. You can also drag thumbnails directly from Search or Gallery onto the canvas, onto an existing Image block, or onto a Gallery block slot.
+
+## Email-safe timers
+
+Email clients cannot run a reliable JavaScript or CSS countdown inside an exported message. For a live timer, provide a remotely served GIF or dynamically generated image through `timerImageUrlBuilder`:
+
+```ts
+const timerImageUrlBuilder = (block: TimerBlock) =>
+  `https://your-domain.example/email-timer.gif?end=${encodeURIComponent(block.endDate)}`
+```
+
+```vue
+<EmailBuilder :timer-image-url-builder="timerImageUrlBuilder" />
+```
+
+The callback receives the complete `TimerBlock`, so the host can use `endDate` and any campaign context available to its image service. If neither `imageUrl` nor the callback returns a URL, the export uses the static timer fallback; the editor countdown remains live while editing.
 
 ## Extra methods (via ref)
 
