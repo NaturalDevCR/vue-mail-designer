@@ -1,12 +1,13 @@
 import type { Block, ButtonBlock, EmailDocument, GalleryBlock, Padding, Row, SocialNetworkKind, TableBlock, TimerBlock } from '../schema'
 import { DEFAULT_FONTS, usedFontUrls, type FontDef } from '../fonts'
-import type { CustomBlockDef } from '../options'
+import type { CustomBlockDef, TimerImageUrlBuilder } from '../options'
 
 export type RenderCtx = {
   fontFamily: string
   linkColor: string
   linkUnderline: boolean
   customBlocks?: CustomBlockDef[]
+  timerImageUrlBuilder?: TimerImageUrlBuilder
   /** Ancho en px del área de contenido de la columna actual (ya sin el padding de la columna).
    * Solo se conoce dentro de renderRow → renderColumnBlocks; sirve para calcular el ancho
    * exacto en px que necesita el VML de Outlook en botones con ancho fijo. */
@@ -316,10 +317,11 @@ function renderGallery(block: GalleryBlock): string {
 
 function renderTimer(block: TimerBlock, ctx: RenderCtx): string {
   const s = block.style
-  if (block.imageUrl) {
+  const timerImageUrl = block.imageUrl || ctx.timerImageUrlBuilder?.(block)
+  if (timerImageUrl) {
     return cellTable(
       `<tr><td align="center" style="padding:${paddingCss(s.padding)};">` +
-      `<img src="${escapeHtml(block.imageUrl)}" alt="${escapeHtml(block.alt)}" width="${block.widthPct}%" style="display:block;max-width:100%;height:auto;border:0;margin:0 auto;">` +
+      `<img src="${escapeHtml(timerImageUrl)}" alt="${escapeHtml(block.alt)}" width="${block.widthPct}%" style="display:block;max-width:100%;height:auto;border:0;margin:0 auto;">` +
       `</td></tr>`,
     )
   }
@@ -417,13 +419,18 @@ function renderRow(row: Row, contentWidth: number, contentAlignment: 'left' | 'c
   return wrapHidden(outerTable, row.hideDesktop, row.hideMobile)
 }
 
-export function renderHtml(doc: EmailDocument, fonts: FontDef[] = DEFAULT_FONTS, customBlocks?: CustomBlockDef[]): string {
+export function renderHtml(
+  doc: EmailDocument,
+  fonts: FontDef[] = DEFAULT_FONTS,
+  customBlocks?: CustomBlockDef[],
+  timerImageUrlBuilder?: TimerImageUrlBuilder,
+): string {
   const fontUrls = usedFontUrls(doc, fonts)
   const fontLinks = fontUrls.length
     ? fontUrls.map((url) => `<link href="${escapeHtml(url)}" rel="stylesheet">`).join('\n') + '\n'
     : ''
   const { settings } = doc
-  const ctx: RenderCtx = { fontFamily: settings.fontFamily, linkColor: settings.linkColor, linkUnderline: settings.linkUnderline, customBlocks }
+  const ctx: RenderCtx = { fontFamily: settings.fontFamily, linkColor: settings.linkColor, linkUnderline: settings.linkUnderline, customBlocks, timerImageUrlBuilder }
   const preheader = settings.preheader
     ? `<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">${escapeHtml(settings.preheader)}</div>`
     : ''

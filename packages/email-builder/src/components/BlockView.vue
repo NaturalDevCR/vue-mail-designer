@@ -178,7 +178,7 @@
 
     <!-- timer -->
     <div v-else-if="block.type === 'timer'" :style="{ padding: padCss(block.style.padding), textAlign: 'center' }">
-      <img v-if="block.imageUrl" :src="block.imageUrl" :alt="block.alt" :style="{ width: block.widthPct + '%', display: 'inline-block' }" />
+      <img v-if="timerImageUrl" :src="timerImageUrl" :alt="block.alt" :style="{ width: block.widthPct + '%', display: 'inline-block' }" />
       <div v-else class="vmd-b-timer" role="timer" :aria-label="timerAriaLabel">
         <div
           class="vmd-timer-card"
@@ -293,6 +293,12 @@ const showHiddenBadge = computed(() => {
 
 const timerNow = ref(Date.now())
 let timerClock: ReturnType<typeof setInterval> | undefined
+
+const timerImageUrl = computed(() => {
+  const b = props.block
+  if (b.type !== 'timer') return ''
+  return b.imageUrl || options.timerImageUrlBuilder?.(b) || ''
+})
 
 onMounted(() => {
   timerClock = setInterval(() => { timerNow.value = Date.now() }, 1000)

@@ -50,6 +50,9 @@
 
       <template v-else-if="block.type === 'image'">
         <div class="vmd-props-section-title">{{ t('palette.image') }}</div>
+        <button type="button" class="vmd-btn" data-action="choose-image-source" @click="ui.sidebarTab = 'images'; ui.panelMode = 'tab'">
+          {{ t('props.chooseImageSource') }}
+        </button>
         <div v-if="options.uploadImage" class="vmd-field">
           <span class="vmd-field-label">{{ t('props.uploadImage') }}</span>
           <div class="vmd-upload-row">
@@ -232,6 +235,7 @@
       <template v-else-if="block.type === 'timer'">
         <DateTimeField :label="t('props.deadline')" :model-value="block.endDate" @update:model-value="upd({ endDate: $event })" />
         <TextField :label="t('props.imageUrl')" :model-value="block.imageUrl" @update:model-value="upd({ imageUrl: $event })" />
+        <p v-if="!block.imageUrl && !options.timerImageUrlBuilder" class="vmd-props-note">{{ t('props.timerEmailHint') }}</p>
         <TextField :label="t('props.altText')" :model-value="block.alt" @update:model-value="upd({ alt: $event })" />
         <NumberField :label="t('props.widthPercent')" :model-value="block.widthPct" :min="10" :max="100" @update:model-value="upd({ widthPct: $event })" />
         <div class="vmd-props-section-title">{{ t('props.timerStyles') }}</div>
