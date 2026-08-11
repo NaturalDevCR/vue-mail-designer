@@ -60,11 +60,24 @@ describe('renderer fase B — bloques nuevos', () => {
     const t = createBlock('timer') as TimerBlock
     t.imageUrl = ''
     t.endDate = new Date(Date.now() + 3 * 864e5).toISOString()
+    t.style.backgroundColor = '#111827'
+    t.style.borderColor = '#f97316'
+    t.style.borderWidth = 2
+    t.style.borderRadius = 24
+    t.style.numberColor = '#f97316'
+    t.style.labelColor = '#fef3c7'
+    t.style.fontFamily = 'Georgia, serif'
+    t.labels = { days: 'D', hours: 'H', minutes: 'M', seconds: 'S' }
     const html = render(t)
     expect(html).toMatch(/vmd-timer-static/)
     expect(html).toContain('vmd-timer-unit')
-    expect(html).toContain('hours')
-    expect(html).toContain('minutes')
-    expect(html).toContain('seconds')
+    expect(html).toContain('>H</span>')
+    expect(html).toContain('>M</span>')
+    expect(html).toContain('>S</span>')
+    expect(html).toContain('background-color:#111827')
+    expect(html).toContain('border:2px solid #f97316')
+    expect(html).toContain('border-radius:24px')
+    expect(html).toContain('font-family:Georgia, serif')
+    expect(html).toContain('>D</span>')
   })
 })

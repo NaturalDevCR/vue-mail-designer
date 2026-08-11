@@ -46,6 +46,11 @@ describe('PropertiesPanel — Fase B', () => {
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Deadline date and time')
     expect(wrapper.text()).toContain('Image URL')
+    expect(wrapper.text()).toContain('Card background')
+    expect(wrapper.text()).toContain('Number color')
+    expect(wrapper.text()).toContain('Label color')
+    expect(wrapper.text()).toContain('Days label')
+    expect(wrapper.text()).toContain('Font')
   })
 
   it('toggle "Hide on mobile" setea hideMobile en el bloque', async () => {

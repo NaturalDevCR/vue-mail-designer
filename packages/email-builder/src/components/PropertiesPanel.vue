@@ -234,6 +234,19 @@
         <TextField :label="t('props.imageUrl')" :model-value="block.imageUrl" @update:model-value="upd({ imageUrl: $event })" />
         <TextField :label="t('props.altText')" :model-value="block.alt" @update:model-value="upd({ alt: $event })" />
         <NumberField :label="t('props.widthPercent')" :model-value="block.widthPct" :min="10" :max="100" @update:model-value="upd({ widthPct: $event })" />
+        <div class="vmd-props-section-title">{{ t('props.timerStyles') }}</div>
+        <ColorField :label="t('props.cardBackground')" :model-value="block.style.backgroundColor" @update:model-value="upd({ style: { backgroundColor: $event } })" />
+        <ColorField :label="t('props.borderColor')" :model-value="block.style.borderColor" @update:model-value="upd({ style: { borderColor: $event } })" />
+        <NumberField :label="t('props.borderThickness')" :model-value="block.style.borderWidth" :min="0" :max="12" @update:model-value="upd({ style: { borderWidth: $event } })" />
+        <NumberField :label="t('props.borderRadius')" :model-value="block.style.borderRadius" :min="0" :max="60" @update:model-value="upd({ style: { borderRadius: $event } })" />
+        <ColorField :label="t('props.numberColor')" :model-value="block.style.numberColor" @update:model-value="upd({ style: { numberColor: $event } })" />
+        <ColorField :label="t('props.labelColor')" :model-value="block.style.labelColor" @update:model-value="upd({ style: { labelColor: $event } })" />
+        <SelectField :label="t('props.font')" :model-value="block.style.fontFamily ?? ''" :options="FONT_OPTIONS" @update:model-value="updFont" />
+        <div class="vmd-props-section-title">{{ t('props.timerLabels') }}</div>
+        <TextField :label="t('props.daysLabel')" :model-value="timerLabel('days')" @update:model-value="setTimerLabel('days', $event)" />
+        <TextField :label="t('props.hoursLabel')" :model-value="timerLabel('hours')" @update:model-value="setTimerLabel('hours', $event)" />
+        <TextField :label="t('props.minutesLabel')" :model-value="timerLabel('minutes')" @update:model-value="setTimerLabel('minutes', $event)" />
+        <TextField :label="t('props.secondsLabel')" :model-value="timerLabel('seconds')" @update:model-value="setTimerLabel('seconds', $event)" />
         <PaddingField :label="t('props.padding')" :model-value="block.style.padding" @update:model-value="upd({ style: { padding: $event } })" />
       </template>
 
@@ -443,7 +456,11 @@ const FONT_OPTIONS = computed(() => {
   const opts = [{ label: t('props.inheritFont'), value: '' }, ...fonts.map((f) => ({ label: f.label, value: f.value }))]
   // conserva visible una fuente ya guardada que no esté en la lista (p. ej. 'Arial' de docs viejos)
   const b = block.value
-  const current = b?.type === 'heading' || b?.type === 'text' || b?.type === 'menu' ? b.fontFamily : undefined
+  const current = b?.type === 'heading' || b?.type === 'text' || b?.type === 'menu'
+    ? b.fontFamily
+    : b?.type === 'timer'
+      ? b.style.fontFamily
+      : undefined
   if (current && !opts.some((o) => o.value === current)) opts.push({ label: t('body.currentFont'), value: current })
   return opts
 })
@@ -555,7 +572,25 @@ function removeMenuItem(i: number) {
 }
 
 function updFont(value: string) {
-  upd({ fontFamily: value === '' ? undefined : value })
+  if (block.value?.type === 'timer') {
+    upd({ style: { fontFamily: value === '' ? undefined : value } })
+  } else {
+    upd({ fontFamily: value === '' ? undefined : value })
+  }
+}
+
+type TimerLabelKey = 'days' | 'hours' | 'minutes' | 'seconds'
+
+function timerLabel(key: TimerLabelKey): string {
+  const b = block.value
+  if (b?.type !== 'timer') return ''
+  return b.labels?.[key] ?? t(`canvas.${key}`)
+}
+
+function setTimerLabel(key: TimerLabelKey, value: string): void {
+  const b = block.value
+  if (b?.type !== 'timer') return
+  upd({ labels: { ...b.labels, [key]: value } })
 }
 
 function setTableCell(r: number, c: number, value: string) {

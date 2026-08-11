@@ -211,7 +211,7 @@ function renderBlockInner(block: Block, ctx: RenderCtx): string {
     case 'gallery':
       return renderGallery(block)
     case 'timer':
-      return renderTimer(block)
+      return renderTimer(block, ctx)
     case 'custom': {
       const def = ctx.customBlocks?.find((d) => d.type === block.customType)
       const content = def
@@ -314,7 +314,7 @@ function renderGallery(block: GalleryBlock): string {
   )
 }
 
-function renderTimer(block: TimerBlock): string {
+function renderTimer(block: TimerBlock, ctx: RenderCtx): string {
   const s = block.style
   if (block.imageUrl) {
     return cellTable(
@@ -328,18 +328,26 @@ function renderTimer(block: TimerBlock): string {
   const hours = Math.floor((totalSeconds % 86400) / 3600)
   const minutes = Math.floor((totalSeconds % 3600) / 60)
   const seconds = totalSeconds % 60
+  const fontFamily = block.style.fontFamily ?? ctx.fontFamily
+  const backgroundColor = block.style.backgroundColor ?? '#ffffff'
+  const borderColor = block.style.borderColor ?? '#e5e7eb'
+  const borderWidth = block.style.borderWidth ?? 1
+  const borderRadius = block.style.borderRadius ?? 12
+  const numberColor = block.style.numberColor ?? '#111827'
+  const labelColor = block.style.labelColor ?? '#718096'
+  const labels = block.labels ?? {}
   const units = [
-    ['days', days],
-    ['hours', hours],
-    ['minutes', minutes],
-    ['seconds', seconds],
+    [labels.days ?? 'days', days],
+    [labels.hours ?? 'hours', hours],
+    [labels.minutes ?? 'minutes', minutes],
+    [labels.seconds ?? 'seconds', seconds],
   ] as const
   const unitHtml = units
-    .map(([label, value], index) => `<td class="vmd-timer-unit" style="width:25%;padding:16px 8px;${index ? 'border-left:1px solid #e5e7eb;' : ''}text-align:center;vertical-align:middle;"><strong class="vmd-timer-value" style="display:block;font-family:Arial,sans-serif;font-size:28px;line-height:1;font-weight:bold;color:#111827;">${String(value).padStart(2, '0')}</strong><span class="vmd-timer-label" style="display:block;margin-top:4px;font-family:Arial,sans-serif;font-size:10px;line-height:1.2;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:#718096;">${label}</span></td>`)
+    .map(([label, value], index) => `<td class="vmd-timer-unit" style="width:25%;padding:16px 8px;${index ? `border-left:1px solid ${escapeHtml(borderColor)};` : ''}text-align:center;vertical-align:middle;"><strong class="vmd-timer-value" style="display:block;font-family:${escapeHtml(fontFamily)};font-size:28px;line-height:1;font-weight:bold;color:${escapeHtml(numberColor)};">${String(value).padStart(2, '0')}</strong><span class="vmd-timer-label" style="display:block;margin-top:4px;font-family:${escapeHtml(fontFamily)};font-size:10px;line-height:1.2;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:${escapeHtml(labelColor)};">${escapeHtml(label)}</span></td>`)
     .join('')
   return cellTable(
-    `<tr><td align="center" class="vmd-timer-static" style="padding:${paddingCss(s.padding)};font-family:Arial,sans-serif;color:#111827;">` +
-    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="vmd-timer-card" style="max-width:520px;border:1px solid #e5e7eb;border-radius:12px;background-color:#ffffff;"><tr>${unitHtml}</tr></table>` +
+    `<tr><td align="center" class="vmd-timer-static" style="padding:${paddingCss(s.padding)};font-family:${escapeHtml(fontFamily)};color:${escapeHtml(numberColor)};">` +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="vmd-timer-card" style="max-width:520px;border:${borderWidth}px solid ${escapeHtml(borderColor)};border-radius:${borderRadius}px;background-color:${escapeHtml(backgroundColor)};"><tr>${unitHtml}</tr></table>` +
     `</td></tr>`,
   )
 }

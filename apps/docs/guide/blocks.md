@@ -17,6 +17,8 @@ Countdown to a date. Two modes:
 - **Integrator-provided dynamic image**: you pass a function that generates the counter image (typically an external service like countdownmail).
 - **Static box**: without that function, it shows a styled days/hours/minutes/seconds snapshot — works in any client, with no JavaScript animation.
 
+The Timer inspector lets you customize the static box background, border color and thickness, corner radius, number color, label color, font family, and each unit label. These settings are stored in the design JSON and are applied to both the live canvas and exported HTML. Existing timers keep their previous appearance through schema defaults.
+
 ## Table and Gallery
 
 - **Table** — rows/columns of simple text cells, with configurable padding and font size.
