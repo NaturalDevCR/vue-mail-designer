@@ -1,6 +1,9 @@
+import { monitorForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
 import { type DOMWrapper, flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
+import { nextTick } from 'vue'
 import EmailBuilder from '../src/components/EmailBuilder.vue'
+import { readDrag } from '../src/dnd/dragData'
 import type { MediaItem } from '../src/mediaLibrary'
 import { createBlock, createDocument, createRow } from '../src/schema'
 
@@ -46,7 +49,40 @@ async function openMediaTab(wrapper: ReturnType<typeof mount>) {
   await flushPromises()
 }
 
-  function findButtonWithText(root: DOMWrapper<Element>, text: string) {
+function endDragSession() {
+  const end = new Event('dragend', { bubbles: true, cancelable: true })
+  Object.defineProperty(end, 'clientX', { value: 1 })
+  Object.defineProperty(end, 'clientY', { value: 1 })
+  window.dispatchEvent(end)
+}
+
+function fireDragStart(el: Element): Event {
+  const ev = new Event('dragstart', { bubbles: true, cancelable: true })
+  Object.defineProperty(ev, 'dataTransfer', {
+    value: { types: [], items: [], setData: () => {}, getData: () => '', setDragImage: () => {} },
+  })
+  Object.defineProperty(ev, 'clientX', { value: 1 })
+  Object.defineProperty(ev, 'clientY', { value: 1 })
+  el.dispatchEvent(ev)
+  return ev
+}
+
+async function captureDragData(el: Element) {
+  await nextTick()
+  endDragSession()
+  let captured: ReturnType<typeof readDrag> = null
+  const cleanup = monitorForElements({
+    onGenerateDragPreview: ({ source }) => {
+      captured = readDrag(source.data as Record<string | symbol, unknown>)
+    },
+  })
+  const ev = fireDragStart(el)
+  cleanup()
+  if (!ev.defaultPrevented) endDragSession()
+  return captured
+}
+
+function findButtonWithText(root: DOMWrapper<Element>, text: string) {
   const btn = root.findAll('button').find((b) => b.text().trim() === text)
   if (!btn) throw new Error(`No se encontró el botón "${text}"`)
   return btn
@@ -69,6 +105,20 @@ describe('MediaLibraryTab', () => {
     expect(wrapper.findAll('.vmd-media-item-thumb')[0]?.find('img').attributes('src')).toBe(
       'https://img.example/a-thumb.jpg',
     )
+  })
+
+  it('expone en el drag payload el src completo del ítem de Gallery', async () => {
+    const wrapper = mount(EmailBuilder, {
+      attachTo: document.body,
+      props: { mediaLibrary: makeMediaLibrary() },
+    })
+    await openMediaTab(wrapper)
+    const thumb = wrapper.findAll('.vmd-media-item-thumb')[0]
+    expect(thumb?.attributes('draggable')).toBe('true')
+
+    const drag = await captureDragData(thumb!.element)
+
+    expect(drag).toMatchObject({ kind: 'media-image', src: 'https://img.example/a.jpg', alt: 'Foto A' })
   })
 
   it('abre preview desde Gallery y solo inserta al presionar Add', async () => {
