@@ -10,9 +10,9 @@ Accessed by mounting the component with `ref`:
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { EmailBuilder as EmailBuilderInstance } from '@naturaldevcr/vue-mail-designer'
+import { EmailBuilder } from '@naturaldevcr/vue-mail-designer'
 
-const builder = ref<InstanceType<typeof EmailBuilderInstance>>()
+const builder = ref<InstanceType<typeof EmailBuilder>>()
 
 function handleExport() {
   const html = builder.value?.exportHtml()
