@@ -47,7 +47,7 @@ Rewrite, Summarize, and Translate require selected text. Actions whose browser A
 
 AI output is shown in an editable result field and does not change the email content immediately. Choose **Apply** to replace the selection, or insert generated text when there is no selection. Choose **Discard** or close the menu to leave the editor unchanged.
 
-Requests can show model-download progress. API failures are converted to localized messages, and created browser sessions are destroyed after success or failure.
+Requests can show model-download progress. Chrome manages the on-device model and normally downloads it only the first time it is needed; it may download again after an update or storage eviction. The library reuses Summarizer sessions for the same summary configuration during the page lifetime, while failed sessions are discarded so the next request can retry. Writer, Rewriter, and Translate sessions are released after each request.
 
 ## Browser availability
 

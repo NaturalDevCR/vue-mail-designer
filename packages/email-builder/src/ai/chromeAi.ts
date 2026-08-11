@@ -66,6 +66,11 @@ interface ChromeAiGlobals {
   LanguageDetector?: { create(): Promise<DetectorSession> }
 }
 
+type SummarizerProvider = NonNullable<ChromeAiGlobals['Summarizer']>
+
+const summarizerSessions = new Map<string, Promise<SummarizerSession>>()
+let cachedSummarizerProvider: SummarizerProvider | undefined
+
 function globals(): ChromeAiGlobals {
   return globalThis as unknown as ChromeAiGlobals
 }
@@ -88,6 +93,53 @@ function notSupported(capability: string): ChromeAiError {
 function requestFailed(error: unknown): ChromeAiError {
   if (error instanceof ChromeAiError) return error
   return new ChromeAiError('request-failed', 'AI request failed.', error)
+}
+
+function summarizerOptionsKey(options: SummarizeOptions): string {
+  return JSON.stringify([options.type ?? null, options.length ?? null, options.format ?? null])
+}
+
+function destroySummarizerSession(session: SummarizerSession): void {
+  try {
+    session.destroy()
+  } catch {
+    // Session cleanup must not mask the original AI result or error.
+  }
+}
+
+export function clearSummarizerSessionCache(): void {
+  for (const sessionPromise of summarizerSessions.values()) {
+    void sessionPromise.then(destroySummarizerSession).catch(() => {})
+  }
+  summarizerSessions.clear()
+  cachedSummarizerProvider = undefined
+}
+
+function getSummarizerSession(
+  Summarizer: SummarizerProvider,
+  options: SummarizeOptions,
+  onProgress?: (pct: number) => void,
+): { key: string; sessionPromise: Promise<SummarizerSession> } {
+  if (cachedSummarizerProvider && cachedSummarizerProvider !== Summarizer) {
+    clearSummarizerSessionCache()
+  }
+  cachedSummarizerProvider = Summarizer
+
+  const key = summarizerOptionsKey(options)
+  let sessionPromise = summarizerSessions.get(key)
+  if (!sessionPromise) {
+    sessionPromise = Summarizer.create({ ...options, ...withProgress(onProgress) })
+    summarizerSessions.set(key, sessionPromise)
+  }
+
+  return { key, sessionPromise }
+}
+
+function evictSummarizerSession(key: string, sessionPromise: Promise<SummarizerSession>): void {
+  if (summarizerSessions.get(key) !== sessionPromise) return
+
+  summarizerSessions.delete(key)
+  void sessionPromise.then(destroySummarizerSession).catch(() => {})
 }
 
 export function isWriterAvailable(): boolean {
@@ -144,14 +196,15 @@ export async function summarize(text: string, options: SummarizeOptions = {}, on
   const Summarizer = globals().Summarizer
   if (!Summarizer) throw notSupported('Summarizer')
 
-  let session: SummarizerSession | undefined
+  let key: string | undefined
+  let sessionPromise: Promise<SummarizerSession> | undefined
   try {
-    session = await Summarizer.create({ ...options, ...withProgress(onProgress) })
+    ;({ key, sessionPromise } = getSummarizerSession(Summarizer, options, onProgress))
+    const session = await sessionPromise
     return await session.summarize(text)
   } catch (error) {
+    if (key && sessionPromise) evictSummarizerSession(key, sessionPromise)
     throw requestFailed(error)
-  } finally {
-    session?.destroy()
   }
 }
 
