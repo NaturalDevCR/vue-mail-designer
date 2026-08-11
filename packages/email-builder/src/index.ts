@@ -4,7 +4,24 @@ export { BUILDER_PINIA_KEY, useBuilderPinia } from './store/keys'
 export { renderHtml, escapeHtml, SOCIAL_BRANDS } from './render/html'
 export { default as EmailBuilder } from './components/EmailBuilder.vue'
 export { useUiStore } from './store/ui'
-export { type BuilderOptions, type MergeTagDef, type MergeTagGroup, type MergeTagItem, type SpecialLink, type ToolConfig, type Appearance, type CustomBlockDef, type CustomField, DEFAULT_SPECIAL_LINKS, flattenMergeTags, isMergeTagGroup, BUILDER_OPTIONS_KEY, useBuilderOptions } from './options'
+export {
+  type AiLanguage,
+  type AiOptions,
+  type BuilderOptions,
+  type MergeTagDef,
+  type MergeTagGroup,
+  type MergeTagItem,
+  type SpecialLink,
+  type ToolConfig,
+  type Appearance,
+  type CustomBlockDef,
+  type CustomField,
+  DEFAULT_SPECIAL_LINKS,
+  flattenMergeTags,
+  isMergeTagGroup,
+  BUILDER_OPTIONS_KEY,
+  useBuilderOptions,
+} from './options'
 export type { LocaleDict } from './i18n/keys'
 export { BUILTIN_TEMPLATES, type EmailTemplate } from './templates'
 export { openverseSearch, type ImageResult } from './imageSearch'

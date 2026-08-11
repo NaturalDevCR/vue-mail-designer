@@ -64,6 +64,7 @@ function mountMenu(
 beforeEach(() => {
   vi.restoreAllMocks()
   setAvailability({ rewrite: true, write: true, summarize: true, translate: true })
+  vi.spyOn(chromeAi, 'translateAvailability').mockResolvedValue('readily')
 })
 
 afterEach(() => {
@@ -93,6 +94,23 @@ describe('AiMenu', () => {
     expect(translateButton.attributes('title')).toContain('No languages configured')
   })
 
+  it('prevents Generate for an unsupported translate language pair and shows a localized unavailable error', async () => {
+    vi.spyOn(chromeAi, 'detectLanguage').mockResolvedValue('en')
+    vi.spyOn(chromeAi, 'translateAvailability').mockResolvedValue('no')
+
+    const wrapper = mountMenu(makeEditor('<p>Hello world</p>'), {
+      ai: { enabled: true, languages: [{ code: 'es', label: 'Spanish' }] },
+      locale: 'en',
+    })
+
+    await wrapper.find('[data-action="ai-menu-toggle"]').trigger('click')
+    await wrapper.find('[data-action="ai-item-translate"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('.vmd-ai-error').text()).toContain('AI is not available in this browser.')
+    expect(wrapper.find('[data-action="ai-run"]').attributes('disabled')).toBeDefined()
+  })
+
   it('disables only the unavailable browser capability', async () => {
     setAvailability({ rewrite: false, write: true, summarize: true, translate: true })
     const wrapper = mountMenu(makeEditor())
@@ -108,7 +126,7 @@ describe('AiMenu', () => {
   it('keeps progress visible during a request and clears it when the request finishes', async () => {
     let resolveRewrite!: (value: string) => void
     vi.spyOn(chromeAi, 'rewrite').mockImplementation(
-      (_text: string, _options: chromeAi.RewriteOptions, onProgress?: (pct: number) => void) =>
+      (_text: string, _options?: chromeAi.RewriteOptions, onProgress?: (pct: number) => void) =>
         new Promise<string>((resolve) => {
           onProgress?.(42)
           resolveRewrite = resolve

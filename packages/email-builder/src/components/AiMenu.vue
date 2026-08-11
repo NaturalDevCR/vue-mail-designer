@@ -122,7 +122,7 @@
 
 <script setup lang="ts">
 import type { Editor } from '@tiptap/core'
-import { computed, onBeforeUnmount, onMounted, ref, toRaw } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue'
 import {
   detectLanguage,
   isRewriterAvailable,
@@ -132,7 +132,9 @@ import {
   rewrite,
   summarize,
   translate,
+  translateAvailability,
   write,
+  type AiAvailability,
   type AiFormat,
   type AiLength,
   type AiSummaryLength,
@@ -169,6 +171,7 @@ const summaryType = ref<AiSummaryType>('key-points')
 const summaryLength = ref<AiSummaryLength>('medium')
 const sourceLanguage = ref('')
 const targetLanguage = ref('')
+const translationAvailability = ref<AiAvailability | null>(null)
 
 const languages = computed(() => options.ai?.languages ?? [])
 const canRewrite = computed(() => isRewriterAvailable() && hasSelection.value)
@@ -178,7 +181,7 @@ const canTranslate = computed(() => isTranslatorAvailable() && hasSelection.valu
 const canRun = computed(() => {
   if (loading.value || !activeTool.value) return false
   if (activeTool.value === 'write') return writePrompt.value.trim().length > 0
-  if (activeTool.value === 'translate') return targetLanguage.value.length > 0
+  if (activeTool.value === 'translate') return targetLanguage.value.length > 0 && translationAvailability.value !== null && translationAvailability.value !== 'no'
   return true
 })
 
@@ -218,6 +221,7 @@ function resetToolState(): void {
   resultText.value = ''
   sourceLanguage.value = ''
   targetLanguage.value = ''
+  translationAvailability.value = null
   writePrompt.value = ''
 }
 
@@ -253,6 +257,7 @@ function selectTool(tool: Tool): void {
   errorMessage.value = ''
   resultText.value = ''
   progressPct.value = null
+  translationAvailability.value = null
 
   if (tool === 'translate') {
     void prepareTranslate()
@@ -279,9 +284,32 @@ function localizeError(error: unknown): string {
   }
 }
 
+async function refreshTranslateAvailability(): Promise<void> {
+  if (activeTool.value !== 'translate' || !targetLanguage.value || !sourceLanguage.value) {
+    translationAvailability.value = null
+    return
+  }
+
+  try {
+    const availability = await translateAvailability(sourceLanguage.value, targetLanguage.value)
+    if (activeTool.value !== 'translate') return
+
+    translationAvailability.value = availability
+    if (availability === 'no') {
+      errorMessage.value = t('ai.errorUnavailable')
+    } else if (errorMessage.value === t('ai.errorUnavailable')) {
+      errorMessage.value = ''
+    }
+  } catch (error) {
+    translationAvailability.value = 'no'
+    errorMessage.value = localizeError(error)
+  }
+}
+
 async function prepareTranslate(): Promise<void> {
   sourceLanguage.value = locale
   targetLanguage.value = languages.value[0]?.code ?? ''
+  translationAvailability.value = null
 
   if (!selectedText.value) return
 
@@ -291,6 +319,8 @@ async function prepareTranslate(): Promise<void> {
     errorMessage.value = localizeError(error)
     sourceLanguage.value = locale
   }
+
+  await refreshTranslateAvailability()
 }
 
 async function run(): Promise<void> {
@@ -353,5 +383,14 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', onDocumentClick)
+})
+
+watch([activeTool, sourceLanguage, targetLanguage], async ([tool, source, target]) => {
+  if (tool !== 'translate') return
+  if (!source || !target) {
+    translationAvailability.value = null
+    return
+  }
+  await refreshTranslateAvailability()
 })
 </script>

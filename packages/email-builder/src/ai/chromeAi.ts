@@ -114,13 +114,14 @@ export async function write(prompt: string, options: WriteOptions = {}, onProgre
   const Writer = globals().Writer
   if (!Writer) throw notSupported('Writer')
 
-  const session = await Writer.create({ ...options, ...withProgress(onProgress) })
+  let session: WriterSession | undefined
   try {
+    session = await Writer.create({ ...options, ...withProgress(onProgress) })
     return await session.write(prompt)
   } catch (error) {
     throw requestFailed(error)
   } finally {
-    session.destroy()
+    session?.destroy()
   }
 }
 
@@ -128,13 +129,14 @@ export async function rewrite(text: string, options: RewriteOptions = {}, onProg
   const Rewriter = globals().Rewriter
   if (!Rewriter) throw notSupported('Rewriter')
 
-  const session = await Rewriter.create({ ...options, ...withProgress(onProgress) })
+  let session: RewriterSession | undefined
   try {
+    session = await Rewriter.create({ ...options, ...withProgress(onProgress) })
     return await session.rewrite(text)
   } catch (error) {
     throw requestFailed(error)
   } finally {
-    session.destroy()
+    session?.destroy()
   }
 }
 
@@ -142,13 +144,14 @@ export async function summarize(text: string, options: SummarizeOptions = {}, on
   const Summarizer = globals().Summarizer
   if (!Summarizer) throw notSupported('Summarizer')
 
-  const session = await Summarizer.create({ ...options, ...withProgress(onProgress) })
+  let session: SummarizerSession | undefined
   try {
+    session = await Summarizer.create({ ...options, ...withProgress(onProgress) })
     return await session.summarize(text)
   } catch (error) {
     throw requestFailed(error)
   } finally {
-    session.destroy()
+    session?.destroy()
   }
 }
 
@@ -167,17 +170,18 @@ export async function translate(
   const Translator = globals().Translator
   if (!Translator) throw notSupported('Translator')
 
-  const session = await Translator.create({
-    sourceLanguage,
-    targetLanguage,
-    ...withProgress(onProgress),
-  })
+  let session: TranslatorSession | undefined
   try {
+    session = await Translator.create({
+      sourceLanguage,
+      targetLanguage,
+      ...withProgress(onProgress),
+    })
     return await session.translate(text)
   } catch (error) {
     throw requestFailed(error)
   } finally {
-    session.destroy()
+    session?.destroy()
   }
 }
 
@@ -185,13 +189,14 @@ export async function detectLanguage(text: string): Promise<string | undefined> 
   const LanguageDetector = globals().LanguageDetector
   if (!LanguageDetector) return undefined
 
-  const session = await LanguageDetector.create()
+  let session: DetectorSession | undefined
   try {
+    session = await LanguageDetector.create()
     const results = await session.detect(text)
     return results[0]?.detectedLanguage
   } catch (error) {
     throw new ChromeAiError('language-detection-failed', 'Language detection failed.', error)
   } finally {
-    session.destroy()
+    session?.destroy()
   }
 }

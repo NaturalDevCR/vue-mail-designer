@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
+  ChromeAiError,
   detectLanguage,
   isLanguageDetectorAvailable,
   isRewriterAvailable,
@@ -7,6 +8,8 @@ import {
   isTranslatorAvailable,
   isWriterAvailable,
   rewrite,
+  summarize,
+  translate,
   translateAvailability,
   write,
 } from '../src/ai/chromeAi'
@@ -81,5 +84,65 @@ describe('chromeAi wrappers', () => {
 
   it('returns undefined when language detection is unavailable', async () => {
     await expect(detectLanguage('Hola mundo')).resolves.toBeUndefined()
+  })
+
+  it.each([
+    {
+      label: 'Writer',
+      install() {
+        ;(globalThis as Glob).Writer = { create: vi.fn().mockRejectedValue(new Error('boom')) }
+      },
+      run: () => write('Hello'),
+      code: 'request-failed',
+      message: 'AI request failed.',
+    },
+    {
+      label: 'Rewriter',
+      install() {
+        ;(globalThis as Glob).Rewriter = { create: vi.fn().mockRejectedValue(new Error('boom')) }
+      },
+      run: () => rewrite('Hello'),
+      code: 'request-failed',
+      message: 'AI request failed.',
+    },
+    {
+      label: 'Summarizer',
+      install() {
+        ;(globalThis as Glob).Summarizer = { create: vi.fn().mockRejectedValue(new Error('boom')) }
+      },
+      run: () => summarize('Hello'),
+      code: 'request-failed',
+      message: 'AI request failed.',
+    },
+    {
+      label: 'Translator',
+      install() {
+        ;(globalThis as Glob).Translator = {
+          availability: vi.fn().mockResolvedValue('readily'),
+          create: vi.fn().mockRejectedValue(new Error('boom')),
+        }
+      },
+      run: () => translate('Hello', 'en', 'es'),
+      code: 'request-failed',
+      message: 'AI request failed.',
+    },
+    {
+      label: 'LanguageDetector',
+      install() {
+        ;(globalThis as Glob).LanguageDetector = { create: vi.fn().mockRejectedValue(new Error('boom')) }
+      },
+      run: () => detectLanguage('Hola mundo'),
+      code: 'language-detection-failed',
+      message: 'Language detection failed.',
+    },
+  ])('normalizes $label create() rejection without attempting session cleanup', async ({ install, run, code, message }) => {
+    const destroy = vi.fn()
+    install()
+
+    const result = await run().catch((error) => error)
+
+    expect(result).toBeInstanceOf(ChromeAiError)
+    expect(result).toMatchObject({ code, message })
+    expect(destroy).not.toHaveBeenCalled()
   })
 })

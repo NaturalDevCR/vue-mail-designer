@@ -1,7 +1,11 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import EmailBuilder from '../src/components/EmailBuilder.vue'
+import type { AiLanguage, AiOptions } from '../src/index'
 import { createDocument, createRow } from '../src/schema'
+
+const packageRootAiLanguage: AiLanguage = { code: 'es', label: 'Spanish' }
+const packageRootAiOptions: AiOptions = { enabled: true, languages: [packageRootAiLanguage] }
 
 describe('API pública de EmailBuilder', () => {
   it('carga la prop design al montar', () => {
@@ -48,5 +52,12 @@ describe('API pública de EmailBuilder', () => {
   it('aplica el theme de la prop', () => {
     const wrapper = mount(EmailBuilder, { props: { theme: 'dark' } })
     expect(wrapper.find('.vmd-root.vmd-dark').exists()).toBe(true)
+  })
+
+  it('re-exporta AiOptions y AiLanguage desde el package root', () => {
+    expect(packageRootAiOptions).toEqual({
+      enabled: true,
+      languages: [{ code: 'es', label: 'Spanish' }],
+    })
   })
 })
