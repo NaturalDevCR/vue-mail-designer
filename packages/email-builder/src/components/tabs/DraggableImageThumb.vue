@@ -1,6 +1,6 @@
 <template>
-  <button ref="el" type="button" :class="thumbClass" @click="$emit('click')">
-    <img :src="thumbnailUrl" :alt="alt" />
+  <button type="button" :class="thumbClass" @click="$emit('click')">
+    <img ref="imageEl" :src="thumbnailUrl" :alt="alt" />
   </button>
 </template>
 
@@ -18,10 +18,12 @@ const props = defineProps<{
 defineEmits<{ click: [] }>()
 
 const { t } = useI18n()
-const el = ref<HTMLElement | null>(null)
+const imageEl = ref<HTMLImageElement | null>(null)
 
 useDraggableItem({
-  el,
+  // Register the visible image itself. Native dragstart events originate on the
+  // <img>, and pragmatic-dnd resolves the source from the event target directly.
+  el: imageEl,
   getData: () => ({ kind: 'media-image', src: props.src, alt: props.alt }),
   previewLabel: () => props.alt || t('palette.image'),
 })

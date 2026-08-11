@@ -61,7 +61,7 @@ describe('ImagesTab', () => {
     await searchIn(wrapper)
     expect(imageSearch).toHaveBeenCalledWith('futbol')
     expect(wrapper.findAll('.vmd-image-result')).toHaveLength(2)
-    expect(wrapper.findAll('.vmd-image-result')[0]?.attributes('draggable')).toBe('true')
+    expect(wrapper.findAll('.vmd-image-result')[0]?.find('img').attributes('draggable')).toBe('true')
     expect(wrapper.findAll('.vmd-image-result')[0]?.find('img').attributes('src')).toBe('https://img.example/t1.jpg')
   })
 
@@ -72,9 +72,10 @@ describe('ImagesTab', () => {
     })
     await searchIn(wrapper)
     const thumb = wrapper.findAll('.vmd-image-result')[0]
-    expect(thumb?.attributes('draggable')).toBe('true')
+    expect(thumb?.find('img').attributes('draggable')).toBe('true')
 
-    const drag = await captureDragData(thumb!.element)
+    // A real pointer drag starts on the visible image, not on the wrapping button.
+    const drag = await captureDragData(thumb!.find('img').element)
 
     expect(drag).toMatchObject({ kind: 'media-image', src: 'https://img.example/full1.jpg', alt: 'Uno' })
   })
