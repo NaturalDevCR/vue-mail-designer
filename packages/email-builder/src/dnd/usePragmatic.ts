@@ -162,8 +162,8 @@ function isImageDrag(d: DragData | null): d is ImageDrag {
 /**
  * Zona de drop de "reemplazo" para imágenes (kinds `media-image` y `canvas-image`): a diferencia
  * de `useDropTarget`, no calcula borde de inserción — solo expone `isOver` para resaltar el
- * destino. No necesita el chequeo `isInnermost` de `useDropTarget`: el drop target de bloque
- * acepta solo `palette-block`/`canvas-block`, así que nunca hay dos targets compatibles anidados.
+ * destino. Solo el target de imagen más interno debe aplicar el drop: el canvas y el contenedor
+ * de filas también aceptan `media-image` como fallback para crear un bloque nuevo.
  */
 export function useMediaDropTarget(opts: {
   el: Ref<HTMLElement | null>
@@ -174,14 +174,15 @@ export function useMediaDropTarget(opts: {
     dropTargetForElements({
       element,
       canDrop: ({ source }) => isImageDrag(readDrag(source.data as Record<string, unknown>)),
-      onDragEnter: () => {
-        isOver.value = true
+      onDragEnter: ({ location }) => {
+        if (location.current.dropTargets[0]?.element === element) isOver.value = true
       },
       onDragLeave: () => {
         isOver.value = false
       },
-      onDrop: ({ source }) => {
+      onDrop: ({ source, location }) => {
         isOver.value = false
+        if (location.current.dropTargets[0]?.element !== element) return
         const d = readDrag(source.data as Record<string, unknown>)
         if (isImageDrag(d)) opts.onDrop(d)
       },
