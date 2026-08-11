@@ -99,6 +99,7 @@ export function createAutosaveController(callbacks: AutosaveControllerCallbacks)
   }
 
   function emitStatus(nextStatus: AutosaveStatus, error?: unknown) {
+    if (status === nextStatus) return
     status = nextStatus
     callbacks.onStatus(error === undefined ? { status: nextStatus } : { status: nextStatus, error })
   }

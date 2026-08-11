@@ -170,7 +170,7 @@ describe('autosave storage', () => {
 })
 
 describe('autosave controller', () => {
-  it('stays disabled when autosave is missing or disabled', async () => {
+  it('stays disabled without re-emitting unchanged status', async () => {
     const callbacks = createCallbacks()
     const controller = createTrackedController(callbacks)
 
@@ -186,9 +186,10 @@ describe('autosave controller', () => {
     )
 
     expect(controller.getStatus()).toBe('disabled')
-    expect(callbacks.onStatus).toHaveBeenCalledTimes(2)
-    expect(callbacks.onStatus).toHaveBeenNthCalledWith(1, { status: 'disabled' })
-    expect(callbacks.onStatus).toHaveBeenNthCalledWith(2, { status: 'disabled' })
+
+    controller.dispose()
+
+    expect(callbacks.onStatus).not.toHaveBeenCalled()
   })
 
   it('uses the default debounce delay before saving', async () => {

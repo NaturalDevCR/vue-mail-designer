@@ -10,13 +10,13 @@ export type AutosaveStatus =
   | 'saved'
   | 'error'
 
-export interface AutosaveLocalStorage {
+type AutosaveLocalStorage = {
   type: 'local'
   key: string
   storage?: Storage
 }
 
-export interface AutosaveCustomStorage {
+type AutosaveCustomStorage = {
   type: 'custom'
   load?: () => Promise<EmailDocument | undefined> | EmailDocument | undefined
   save: (document: EmailDocument) => Promise<void> | void
