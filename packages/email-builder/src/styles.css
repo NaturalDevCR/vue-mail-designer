@@ -411,28 +411,36 @@ img.vmd-media-drop-active { outline: 2px solid var(--vmd-accent); outline-offset
 }
 
 .vmd-header {
-  display: flex; align-items: center; gap: 12px; padding: 0 16px; height: 52px;
-  background: #0e1a2b; color: #e5e7eb; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  min-height: 56px; padding: 0 18px; background: var(--vmd-panel);
+  color: var(--vmd-fg); border-bottom: 1px solid var(--vmd-border); flex-shrink: 0;
 }
-.vmd-header-brand { font-weight: 700; font-size: 15px; letter-spacing: .2px; }
-.vmd-header-btn {
-  padding: 6px 10px; border: 1px solid transparent; border-radius: 6px;
-  background: transparent; color: #cbd5e1; cursor: pointer; font-size: 13px;
-}
-.vmd-header-btn:hover { background: rgba(255,255,255,.08); color: #fff; }
-.vmd-header-btn--icon { display: inline-flex; align-items: center; justify-content: center; padding: 7px; }
+.vmd-header-leading, .vmd-header-actions { display: flex; align-items: center; min-width: 0; }
+.vmd-header-leading { gap: 24px; }
+.vmd-header-actions { gap: 8px; }
+.vmd-header-brand { display: inline-flex; align-items: center; gap: 9px; min-width: 0; font-weight: 700; font-size: 14px; letter-spacing: -0.01em; }
+.vmd-header-brand-mark { display: inline-flex; align-items: center; justify-content: center; width: 27px; height: 27px; flex: none; border-radius: 8px; background: var(--vmd-accent); color: #fff; font-size: 13px; font-weight: 800; }
+.vmd-header-brand-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vmd-header-nav { display: flex; align-items: center; height: 100%; }
+.vmd-header-tab, .vmd-header-btn { border: 0; cursor: pointer; color: var(--vmd-muted); background: transparent; }
+.vmd-header-tab { display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 0 10px; border-radius: var(--vmd-radius-sm); font-size: 12px; font-weight: 650; }
+.vmd-header-tab:hover { background: var(--vmd-accent-soft); color: var(--vmd-accent); }
+.vmd-header-tab .vmd-ico svg { width: 15px; height: 15px; }
+.vmd-header-btn { padding: 7px; border-radius: var(--vmd-radius-sm); }
+.vmd-header-btn:hover { background: var(--vmd-accent-soft); color: var(--vmd-accent); }
+.vmd-header-btn--icon { display: inline-flex; align-items: center; justify-content: center; }
 .vmd-header-btn--icon .vmd-ico svg { width: 17px; height: 17px; }
-.vmd-btn-export { display: inline-flex; align-items: center; gap: 4px; }
-.vmd-btn-export .vmd-ico svg { width: 15px; height: 15px; }
-.vmd-header-spacer { flex: 1; }
-.vmd-header-status { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: #7dd3a8; }
+.vmd-header-status { display: inline-flex; align-items: center; gap: 6px; padding: 6px 9px; border-radius: 999px; background: color-mix(in srgb, #22c55e 9%, var(--vmd-panel)); color: color-mix(in srgb, #16a34a 78%, var(--vmd-fg)); font-size: 11px; font-weight: 650; white-space: nowrap; }
 .vmd-status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .vmd-export { position: relative; }
 .vmd-btn-export {
-  padding: 8px 18px; border: 0; border-radius: 6px; background: #2f9bf4; color: #fff;
-  font-weight: 700; font-size: 13px; letter-spacing: .4px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 11px;
+  border: 1px solid color-mix(in srgb, var(--vmd-accent) 35%, var(--vmd-border));
+  border-radius: var(--vmd-radius-sm); background: var(--vmd-accent); color: #fff;
+  cursor: pointer; font-size: 12px; font-weight: 750;
 }
-.vmd-btn-export:hover { background: #2589dc; }
+.vmd-btn-export:hover { background: color-mix(in srgb, var(--vmd-accent) 88%, #000); }
+.vmd-btn-export .vmd-ico svg { width: 14px; height: 14px; }
 .vmd-export-menu {
   position: absolute; right: 0; top: calc(100% + 6px); z-index: 50; min-width: 180px;
   background: var(--vmd-panel); border: 1px solid var(--vmd-border); border-radius: 8px;
@@ -754,17 +762,22 @@ img.vmd-media-drop-active { outline: 2px solid var(--vmd-accent); outline-offset
 .vmd-images-subtab.vmd-active { background: var(--vmd-accent-soft); }
 
 .vmd-header {
-  height: 58px;
+  min-height: 56px;
   padding: 0 20px;
-  background: #111a2c;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
+  background: var(--vmd-panel);
 }
-.vmd-header-brand { font-size: 16px; letter-spacing: -0.02em; }
-.vmd-header-btn { padding: 8px 11px; border-radius: 9px; }
-.vmd-header-btn:hover { background: rgba(255, 255, 255, 0.1); }
-.vmd-btn-export { padding: 9px 15px; border-radius: 10px; box-shadow: 0 5px 14px rgba(37, 99, 235, 0.25); }
+.vmd-header-brand { font-size: 14px; }
+.vmd-header-btn { padding: 7px; }
+.vmd-btn-export { box-shadow: 0 5px 14px color-mix(in srgb, var(--vmd-accent) 20%, transparent); }
 
 @media (max-width: 760px) {
+  .vmd-header { padding: 0 12px; gap: 8px; }
+  .vmd-header-leading { gap: 8px; }
+  .vmd-header-brand-name, .vmd-header-tab-label, .vmd-header-status-label { display: none; }
+  .vmd-header-status { padding: 6px; }
+  .vmd-header-tab { padding: 7px; }
+  .vmd-btn-export-label { display: none; }
+  .vmd-btn-export { padding: 0 9px; }
   .vmd-canvas { padding: 16px; }
   .vmd-sidepanel-content { width: min(320px, calc(100vw - 78px)); padding: 16px 12px; }
   .vmd-rte-toolbar { padding: 9px; }
