@@ -14,6 +14,7 @@ export {
   type SpecialLink,
   type ToolConfig,
   type Appearance,
+  type ThemeAppearance,
   type CustomBlockDef,
   type CustomField,
   DEFAULT_SPECIAL_LINKS,

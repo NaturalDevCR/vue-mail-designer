@@ -1,6 +1,6 @@
 <template>
   <div class="vmd-root" :class="{ 'vmd-dark': ui.theme === 'dark', 'vmd-is-dragging': ui.isDragging }" :style="appearanceStyle">
-    <BuilderHeader />
+    <BuilderHeader v-if="props.showHeader !== false" />
     <PreviewDialog v-if="ui.previewOpen" />
     <div class="vmd-main">
       <section class="vmd-canvas-area">
@@ -25,7 +25,7 @@ import type { LocaleDict } from '../i18n/keys'
 import { provideI18n, type ResolvedLocale } from '../i18n/useI18n'
 import type { UnlayerFetch } from '../import/unlayerUrl'
 import type { MediaLibraryOptions } from '../mediaLibrary'
-import { BUILDER_OPTIONS_KEY, type AiOptions, type Appearance, type CustomBlockDef, type MergeTagItem, type SpecialLink, type ToolConfig } from '../options'
+import { BUILDER_OPTIONS_KEY, isThemeAppearance, type AiOptions, type Appearance, type CustomBlockDef, type MergeTagItem, type SpecialLink, type ThemeAppearance, type ToolConfig } from '../options'
 import type { BlockType } from '../schema'
 import { renderHtml } from '../render/html'
 import { exportDocumentImage } from '../export/image'
@@ -43,7 +43,7 @@ import SidePanel from './SidePanel.vue'
 import TemplateGallery from './TemplateGallery.vue'
 import '../styles.css'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   design?: EmailDocument
   mergeTags?: MergeTagItem[]
   templates?: EmailTemplate[]
@@ -53,13 +53,16 @@ const props = defineProps<{
   unlayerFetch?: UnlayerFetch
   theme?: 'light' | 'dark'
   locale?: 'es' | 'en' | LocaleDict
-  appearance?: Appearance
+  showHeader?: boolean
+  appearance?: Appearance | ThemeAppearance
   tools?: Partial<Record<BlockType, ToolConfig>>
   fonts?: FontDef[]
   customBlocks?: CustomBlockDef[]
   mediaLibrary?: MediaLibraryOptions
   ai?: AiOptions
-}>()
+}>(), {
+  showHeader: true,
+})
 
 const APPEARANCE_VARS: Record<keyof Appearance, string> = {
   accent: '--vmd-accent',
@@ -70,13 +73,16 @@ const APPEARANCE_VARS: Record<keyof Appearance, string> = {
   muted: '--vmd-muted',
 }
 const appearanceStyle = computed<Record<string, string>>(() => {
+  const configured = props.appearance
+  if (!configured) return {}
+
+  const colors = isThemeAppearance(configured) ? configured[ui.theme] : configured
+  if (!colors) return {}
+
   const out: Record<string, string> = {}
-  const a = props.appearance
-  if (a) {
-    for (const key of Object.keys(APPEARANCE_VARS) as (keyof Appearance)[]) {
-      const value = a[key]
-      if (value) out[APPEARANCE_VARS[key]] = value
-    }
+  for (const key of Object.keys(APPEARANCE_VARS) as (keyof Appearance)[]) {
+    const value = colors[key]
+    if (value) out[APPEARANCE_VARS[key]] = value
   }
   return out
 })

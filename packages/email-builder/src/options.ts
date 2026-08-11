@@ -56,6 +56,15 @@ export type Appearance = {
   muted?: string
 }
 
+export type ThemeAppearance = {
+  light?: Appearance
+  dark?: Appearance
+}
+
+export function isThemeAppearance(value: Appearance | ThemeAppearance): value is ThemeAppearance {
+  return 'light' in value || 'dark' in value
+}
+
 export type BuilderOptions = {
   mergeTags: MergeTagItem[]
   ai?: AiOptions
