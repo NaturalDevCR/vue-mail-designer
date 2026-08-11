@@ -213,3 +213,71 @@ Result:
 Implementation note:
 
 - `AiMenu` now invalidates in-flight translate availability lookups with a request id and applies results only when the response still matches the latest active translate source/target pair.
+
+## Final cleanup round
+
+Status: complete in scope for the final Task 6 cleanup follow-up.
+
+Date: Tuesday, August 11, 2026
+
+Final cleanup commit:
+
+- `ca4d30c` — `fix(ai): clean up translate status`
+
+Cleanup items verified against the current hardening state before changes:
+
+- A later successful translate availability result only cleared the specific unavailable message; other stale translate-side errors could remain visible.
+- A late `detectLanguage()` failure could still set `errorMessage` after the translate flow was no longer active, depending on timing.
+
+Final cleanup regression coverage added first:
+
+- `packages/email-builder/tests/ai-menu.test.ts`
+  - later successful translate availability clears stale translate-side request errors
+  - late `detectLanguage()` failures are ignored after the menu closes
+
+Final cleanup RED command:
+
+```bash
+pnpm --filter @naturaldevcr/vue-mail-designer exec vitest run tests/public-api.test.ts tests/chrome-ai.test.ts tests/ai-menu.test.ts tests/rich-text-editor.test.ts
+```
+
+Final cleanup RED output:
+
+```text
+Test Files  1 failed | 3 passed (4)
+Tests  1 failed | 34 passed (35)
+```
+
+Key RED symptom:
+
+- `AiMenu` kept a stale translate-side request error visible even after a newer translate availability lookup succeeded for the newly selected target language.
+
+Final cleanup GREEN command:
+
+```bash
+pnpm --filter @naturaldevcr/vue-mail-designer exec vitest run tests/public-api.test.ts tests/chrome-ai.test.ts tests/ai-menu.test.ts tests/rich-text-editor.test.ts
+```
+
+Final cleanup GREEN output:
+
+```text
+Test Files  4 passed (4)
+Tests  35 passed (35)
+Duration  871ms
+```
+
+Final cleanup diff check:
+
+```bash
+git diff --check
+```
+
+Result:
+
+```text
+(no output)
+```
+
+Cleanup note:
+
+- `AiMenu` now clears any stale translate-side error after a later successful availability result, and the translate flow uses a flow token so late `detectLanguage()` failures cannot write back once that flow is no longer active.
