@@ -1,6 +1,6 @@
 # Releasing `@naturaldevcr/vue-mail-designer`
 
-This repository publishes `packages/email-builder` to npm through GitHub Actions Trusted Publishing with OpenID Connect (OIDC). The release workflow is intentionally tag-only, uses the protected `release` environment, and does not require `NPM_TOKEN` or `NODE_AUTH_TOKEN`.
+This repository publishes `packages/email-builder` to npm through GitHub Actions Trusted Publishing with OpenID Connect (OIDC). The release workflow is intentionally tag-only, uses the protected `release` environment, requires the tagged commit to already be merged into `origin/main`, and does not require `NPM_TOKEN` or `NODE_AUTH_TOKEN`.
 
 ## One-time npm Trusted Publisher setup
 
@@ -15,12 +15,24 @@ In npm package settings for `@naturaldevcr/vue-mail-designer`, add a Trusted Pub
 
 After this is configured, npm accepts publishes from `.github/workflows/publish.yml` when the workflow runs on a GitHub-hosted runner with OIDC enabled.
 
+## One-time GitHub release protections
+
+Before any publish can be approved, GitHub should be configured so the workflow only runs through the intended release path:
+
+- a protected `release` environment with required reviewers
+- deployment branches/tags restricted to `v*.*.*`
+- a repository ruleset or tag protection for `v*` tags so release tags cannot be pushed outside the approved flow
+
+These protections are separate from npm Trusted Publishing. npm verifies the OIDC identity, while GitHub environment and tag protections control who can approve and push releases.
+
 ## What the workflow enforces
 
 The publish workflow only runs for pushed tags matching `v*.*.*` and it will:
 
 - use a GitHub-hosted Ubuntu runner
+- fetch `origin/main` and fail unless the tag commit is already merged into `origin/main`
 - use Node 24 and verify npm is at least 11.5.1
+- pin `actions/checkout`, `pnpm/action-setup`, and `actions/setup-node` to immutable full-length SHAs for the maintained release tags
 - install dependencies with `pnpm install --frozen-lockfile`
 - run package gates for `@naturaldevcr/vue-mail-designer`: typecheck, test, and build
 - verify the pushed tag exactly matches `packages/email-builder/package.json` as `v<version>`
@@ -40,8 +52,9 @@ When you are ready to publish a new version:
    - `pnpm --filter @naturaldevcr/vue-mail-designer test`
    - `pnpm --filter @naturaldevcr/vue-mail-designer build`
 3. Commit the version bump.
-4. Create a matching annotated or lightweight Git tag in the form `vX.Y.Z`.
-5. Push the commit and the tag to GitHub.
-6. Review the `Publish package` workflow run in the `release` environment.
+4. Merge that commit into `main` and make sure the merged commit is already present on `origin/main`.
+5. Create a matching annotated or lightweight Git tag in the form `vX.Y.Z` from that merged main commit.
+6. Push the tag to GitHub.
+7. Review the `Publish package` workflow run in the protected `release` environment and complete the required reviewer approval.
 
 This task intentionally does not bump the package version, create a release tag, push a tag, or run `npm publish`.
