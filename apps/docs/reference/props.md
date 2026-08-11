@@ -94,6 +94,7 @@ type AutosaveOptions = {
 }
 ```
 
+- `restore` defaults to `false` (off), so a saved draft does not replace the initial design unless restoration is enabled
 - `mode` defaults to `'debounce'`
 - `delay` defaults to `1000` for `'debounce'`, `5000` for `'interval'`, and `0` for `'change'`
 - `restorePrecedence` defaults to `'initial-design'`

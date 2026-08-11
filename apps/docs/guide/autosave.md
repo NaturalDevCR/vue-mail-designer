@@ -117,12 +117,14 @@ type AutosaveStorage =
 
 ## Restore and precedence
 
-Set `restore: true` to attempt a read when autosave is configured:
+`restore` defaults to `false` (off). Set `restore: true` to enable restoration when autosave is configured:
 
 - Local storage always tries to read from the configured key.
 - Custom storage reads only when you provide `load`.
 
-`restorePrecedence` decides whether a found draft replaces the current design:
+When `restore` is off, no saved draft replaces the initial design.
+
+`restorePrecedence` decides whether a found draft replaces the current design after restoration is enabled:
 
 | Value | Result |
 |---|---|

@@ -133,6 +133,8 @@ type AutosaveOptions = {
 }
 ```
 
+`restore` defaults to `false` (off), so a saved draft does not replace the initial design unless restoration is enabled.
+
 The two supported storage shapes are:
 
 ```ts
