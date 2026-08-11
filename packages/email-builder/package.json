@@ -7,7 +7,7 @@
   "homepage": "https://naturaldevcr.github.io/vue-mail-designer/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/NaturalDevCR/vue-mail-designer.git",
+    "url": "https://github.com/NaturalDevCR/vue-mail-designer",
     "directory": "packages/email-builder"
   },
   "bugs": "https://github.com/NaturalDevCR/vue-mail-designer/issues",

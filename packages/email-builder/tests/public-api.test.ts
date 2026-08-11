@@ -1,11 +1,53 @@
-import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
-import EmailBuilder from '../src/components/EmailBuilder.vue'
-import type { AiLanguage, AiOptions } from '../src/index'
+import { flushPromises, mount } from '@vue/test-utils'
+import { describe, expect, it, vi } from 'vitest'
+import {
+  EmailBuilder,
+  type AiLanguage,
+  type AiOptions,
+  type AutosaveErrorPayload,
+  type AutosaveMode,
+  type AutosaveOptions,
+  type AutosaveRestoredPayload,
+  type AutosaveSavedPayload,
+  type AutosaveStatus,
+  type AutosaveStatusPayload,
+  type AutosaveStorage,
+} from '../src'
 import { createDocument, createRow } from '../src/schema'
 
 const packageRootAiLanguage: AiLanguage = { code: 'es', label: 'Spanish' }
 const packageRootAiOptions: AiOptions = { enabled: true, languages: [packageRootAiLanguage] }
+const packageRootAutosaveStorage: AutosaveStorage = { type: 'custom', save: async () => {} }
+const packageRootAutosaveMode: AutosaveMode = 'change'
+const packageRootAutosaveOptions: AutosaveOptions = {
+  enabled: true,
+  storage: packageRootAutosaveStorage,
+  mode: packageRootAutosaveMode,
+}
+const packageRootAutosaveStatusPayload: AutosaveStatusPayload = { status: 'idle' }
+const packageRootAutosaveSavedPayload: AutosaveSavedPayload = {
+  design: designWithMarker('saved'),
+  savedAt: 1,
+}
+const packageRootAutosaveRestoredPayload: AutosaveRestoredPayload = {
+  design: designWithMarker('restored'),
+  restoredAt: 2,
+}
+const packageRootAutosaveErrorPayload: AutosaveErrorPayload = {
+  operation: 'save',
+  error: new Error('save failed'),
+}
+
+function designWithMarker(marker: string) {
+  const design = createDocument()
+  return {
+    ...design,
+    settings: {
+      ...design.settings,
+      preheader: marker,
+    },
+  }
+}
 
 describe('API pública de EmailBuilder', () => {
   it('carga la prop design al montar', () => {
@@ -37,16 +79,36 @@ describe('API pública de EmailBuilder', () => {
       exportHtml: () => string
       exportJson: () => string
       getDesign: () => unknown
+      getAutosaveStatus: () => AutosaveStatus
       loadDesign: (d: unknown) => void
     }
     expect(typeof vm.exportHtml).toBe('function')
     expect(vm.exportHtml()).toContain('<!doctype html>')
     expect(vm.exportJson()).toContain('"version"')
+    expect(typeof vm.getAutosaveStatus).toBe('function')
     const d = createDocument()
     d.rows.push(createRow([50, 50]))
     vm.loadDesign(d)
     await wrapper.vm.$nextTick()
     expect(wrapper.find('.vmd-row').exists()).toBe(true)
+  })
+
+  it('acepta autosave y expone el estado inicial del autosave', async () => {
+    const save = vi.fn()
+    const wrapper = mount(EmailBuilder, {
+      props: {
+        autosave: {
+          enabled: true,
+          storage: { type: 'custom', save },
+          mode: 'change',
+        },
+      },
+    })
+
+    await flushPromises()
+
+    const vm = wrapper.vm as unknown as { getAutosaveStatus: () => AutosaveStatus }
+    expect(vm.getAutosaveStatus()).toBe('idle')
   })
 
   it('aplica el theme de la prop', () => {
@@ -59,5 +121,13 @@ describe('API pública de EmailBuilder', () => {
       enabled: true,
       languages: [{ code: 'es', label: 'Spanish' }],
     })
+  })
+
+  it('re-exporta la superficie pública de autosave desde el package root', () => {
+    expect(packageRootAutosaveOptions.mode).toBe('change')
+    expect(packageRootAutosaveStatusPayload.status).toBe('idle')
+    expect(packageRootAutosaveSavedPayload.design.settings.preheader).toBe('saved')
+    expect(packageRootAutosaveRestoredPayload.design.settings.preheader).toBe('restored')
+    expect(packageRootAutosaveErrorPayload.operation).toBe('save')
   })
 })

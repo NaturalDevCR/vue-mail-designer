@@ -9,11 +9,12 @@ import path from 'node:path'
 const root = path.dirname(fileURLToPath(import.meta.url)) + '/..'
 const SITE = 'https://naturaldevcr.github.io/vue-mail-designer'
 
-/** Orden de lectura: mismo orden que el sidebar en .vitepress/config.ts. */
+/** Reading order: keep this aligned with the sidebar in .vitepress/config.ts. */
 const GUIDE = [
   ['introduction', 'Introduction', 'What the library is, who it is for, and what it generates.'],
   ['installation', 'Installation', 'Package install, peer dependencies, and the stylesheet import.'],
   ['quickstart', 'Quickstart', 'Minimal working component, plus the optional media library setup.'],
+  ['autosave', 'Autosave', 'Configuring local or custom draft persistence, restore behavior, lifecycle events, and status.'],
   ['blocks', 'Blocks', 'The block palette, shared inspector properties, and per-block notes.'],
   ['backgrounds', 'Backgrounds', 'Body, row, and column backgrounds — color, image, size, position.'],
   ['rich-text', 'Rich text editor', 'Formatting, merge tags, link color inheritance, special links.'],
@@ -26,24 +27,23 @@ const GUIDE = [
 
 const REFERENCE = [
   ['props', 'Props', 'Every EmailBuilder prop, its type, and what it does.'],
-  ['events', 'Events', 'update:design, change, export-html.'],
-  ['methods', 'Methods (ref)', 'exportHtml, exportJson, getDesign, loadDesign, exportImage.'],
+  ['events', 'Events', 'update:design, change, export-html, and the autosave lifecycle events.'],
+  ['methods', 'Methods (ref)', 'exportHtml, exportJson, getDesign, loadDesign, getAutosaveStatus, exportImage.'],
 ]
 
-/** Saca contenedores/sintaxis propios de VitePress, dejando markdown plano. */
+/** Removes VitePress-only containers and syntax so the output stays plain Markdown. */
 function stripVitepressSyntax(md) {
   return md
     .replace(/^::: ?(tip|warning|danger|info)[^\n]*\n/gm, '')
     .replace(/^::: code-group\s*$/gm, '')
     .replace(/^:::\s*$/gm, '')
-    // ```bash [pnpm] → ```bash — el sufijo [nombre] es la etiqueta de tab de code-group
+    // ```bash [pnpm] -> ```bash. The [name] suffix is only the code-group tab label.
     .replace(/^```(\w+) \[[^\]]+\]/gm, '```$1')
 }
 
 function readPage(dir, slug) {
   const raw = readFileSync(path.join(root, dir, `${slug}.md`), 'utf8')
-  // el título ya lo agrega buildLlmsFullTxt() como "# {title}" — sacar el H1 propio de la
-  // página para no duplicarlo.
+  // buildLlmsFullTxt() adds "# {title}" already, so drop each page's own H1.
   const withoutOwnH1 = raw.replace(/^# .+\n+/, '')
   return stripVitepressSyntax(withoutOwnH1).trim()
 }

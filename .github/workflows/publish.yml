@@ -1,0 +1,144 @@
+name: Publish package
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      # actions/checkout v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag commit ancestry
+        run: |
+          git fetch --no-tags origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "Publish aborted: tag commit $GITHUB_SHA is not reachable from origin/main. Merge the release commit into main before pushing the release tag." >&2
+            exit 1
+          fi
+
+      # pnpm/action-setup v4.4.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320
+        with:
+          version: 11.11.0
+          run_install: false
+
+      # actions/setup-node v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24
+          package-manager-cache: false
+          registry-url: https://registry.npmjs.org
+
+      - name: Verify release workflow invariants
+        run: |
+          node --input-type=module <<'EOF'
+          import { readFileSync } from 'node:fs';
+
+          const workflow = readFileSync('.github/workflows/publish.yml', 'utf8');
+          const releasing = readFileSync('RELEASING.md', 'utf8');
+
+          const requiredPins = [
+            ['actions/checkout', '11d5960a326750d5838078e36cf38b85af677262'],
+            ['pnpm/action-setup', 'fc06bc1257f339d1d5d8b3a19a8cae5388b55320'],
+            ['actions/setup-node', '49933ea5288caeca8642d1e84afbd3f7d6820020'],
+          ];
+
+          for (const [action, sha] of requiredPins) {
+            const expectedUse = `uses: ${action}@${sha}`;
+            if (!workflow.includes(expectedUse)) {
+              console.error(`Expected ${expectedUse} in .github/workflows/publish.yml.`);
+              process.exit(1);
+            }
+          }
+
+          if (!workflow.includes('git merge-base --is-ancestor "$GITHUB_SHA" origin/main')) {
+            console.error('Publish workflow must verify that the tag commit is already reachable from origin/main.');
+            process.exit(1);
+          }
+
+          if (!workflow.includes('fetch-depth: 0')) {
+            console.error('Publish workflow must use fetch-depth: 0 so ancestry checks work for older tags.');
+            process.exit(1);
+          }
+
+          const requiredReleaseDocs = [
+            'already merged into `origin/main`',
+            'protected `release` environment with required reviewers',
+            'deployment branches/tags restricted to `v*.*.*`',
+            'repository ruleset or tag protection for `v*` tags',
+          ];
+
+          for (const snippet of requiredReleaseDocs) {
+            if (!releasing.includes(snippet)) {
+              console.error(`RELEASING.md must document: ${snippet}`);
+              process.exit(1);
+            }
+          }
+          EOF
+
+      - name: Verify Trusted Publishing runtime
+        run: |
+          node --version
+          npm --version
+          node --input-type=module <<'EOF'
+          import { execSync } from 'node:child_process';
+
+          const version = execSync('npm --version', { encoding: 'utf8' }).trim();
+
+          const [major, minor, patch] = version.split('.').map(Number);
+          const minimum = [11, 5, 1];
+          const current = [major, minor, patch];
+
+          for (let index = 0; index < minimum.length; index += 1) {
+            if (current[index] > minimum[index]) process.exit(0);
+            if (current[index] < minimum[index]) {
+              console.error(`npm ${version} does not satisfy the Trusted Publishing minimum of 11.5.1.`);
+              process.exit(1);
+            }
+          }
+          EOF
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter @naturaldevcr/vue-mail-designer typecheck
+
+      - run: pnpm --filter @naturaldevcr/vue-mail-designer test
+
+      - run: pnpm --filter @naturaldevcr/vue-mail-designer build
+
+      - name: Verify release metadata
+        env:
+          EXPECTED_REPOSITORY_URL: https://github.com/NaturalDevCR/vue-mail-designer
+        run: |
+          node --input-type=module <<'EOF'
+          import { readFileSync } from 'node:fs';
+
+          const packageJson = JSON.parse(readFileSync('packages/email-builder/package.json', 'utf8'));
+          const gitTag = process.env.GITHUB_REF_NAME;
+          const expectedTag = `v${packageJson.version}`;
+
+          if (gitTag !== expectedTag) {
+            console.error(`Tag ${gitTag} does not match packages/email-builder/package.json version ${packageJson.version}.`);
+            process.exit(1);
+          }
+
+          if (packageJson.repository?.url !== process.env.EXPECTED_REPOSITORY_URL) {
+            console.error(
+              `packages/email-builder/package.json repository.url must be ${process.env.EXPECTED_REPOSITORY_URL}, got ${packageJson.repository?.url ?? 'undefined'}.`,
+            );
+            process.exit(1);
+          }
+          EOF
+
+      - run: npm publish ./packages/email-builder --access public

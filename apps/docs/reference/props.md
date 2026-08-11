@@ -16,6 +16,7 @@ All optional.
 | `locale` | `'en' \| 'es' \| LocaleDict` | Public UI language option. English (`'en'`) is the default, Spanish (`'es'`) is the built-in alternative, and a `LocaleDict` is merged on top of English so you can override only the keys you want. |
 | `appearance` | `Appearance \| ThemeAppearance` | Builder colors. A flat object (`{ accent, panel, border, background, foreground, muted }`) applies to both modes. The union Appearance or ThemeAppearance also accepts `{ light?: Appearance, dark?: Appearance }` for mode-specific values; omitted fields keep that mode's defaults. |
 | `ai` | `AiOptions` | Optional Chrome built-in AI tools for the rich text editor: `{ enabled: boolean, languages?: AiLanguage[] }`. The menu is rendered only when enabled; `languages` configures Translate targets. Browser API availability is checked at runtime. |
+| `autosave` | `AutosaveOptions` | Optional autosave config: `{ enabled, storage, mode?, delay?, restore?, restorePrecedence? }`. Supports local browser storage or your own custom adapter. See [Autosave](/guide/autosave). |
 | `tools` | `Partial<Record<BlockType, ToolConfig>>` | Per-block palette config: `{ enabled?, position?, usageLimit? }` to hide, reorder, or limit instances of a block type. |
 | `fonts` | `FontDef[]` | List of available fonts (`{ label, value, url? }`); the ones with `url` (Google Fonts) are loaded both in the canvas and in the exported HTML. Defaults to a curated list. |
 | `specialLinks` | `SpecialLink[]` | Predefined links insertable from the text editor (`{ name, href }`) — for example, an unsubscribe link resolved by your sending platform. |
@@ -61,6 +62,45 @@ See also [Events](/reference/events) and [Methods](/reference/methods).
 ## Chrome AI
 
 See [Chrome AI tools](/guide/chrome-ai) for the complete configuration, action behavior, browser-availability notes, and Apply/Discard flow.
+
+## Autosave
+
+`autosave` is fully optional. When enabled, the builder persists the current `EmailDocument` through one of these public storage shapes:
+
+```ts
+type AutosaveStorage =
+  | {
+      type: 'local'
+      key: string
+      storage?: Storage
+    }
+  | {
+      type: 'custom'
+      load?: () => Promise<EmailDocument | undefined> | EmailDocument | undefined
+      save: (document: EmailDocument) => Promise<void> | void
+    }
+```
+
+`AutosaveOptions` is:
+
+```ts
+type AutosaveOptions = {
+  enabled: boolean
+  storage: AutosaveStorage
+  mode?: 'change' | 'debounce' | 'interval'
+  delay?: number
+  restore?: boolean
+  restorePrecedence?: 'initial-design' | 'saved-design'
+}
+```
+
+- `restore` defaults to `false` (off), so a saved draft does not replace the initial design unless restoration is enabled
+- `mode` defaults to `'debounce'`
+- `delay` defaults to `1000` for `'debounce'`, `5000` for `'interval'`, and `0` for `'change'`
+- `restorePrecedence` defaults to `'initial-design'`
+- save-only custom adapters are supported because `load` is optional
+
+See [Autosave](/guide/autosave) for local-storage usage, restore rules, events, cleanup, and host-owned remote data behavior.
 
 For example, use the per-mode form to configure a dark builder with distinct light and dark palettes:
 

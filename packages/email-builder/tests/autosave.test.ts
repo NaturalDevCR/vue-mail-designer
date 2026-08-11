@@ -1,0 +1,1077 @@
+import { flushPromises, mount } from '@vue/test-utils'
+import { afterEach, describe, expect, it, vi, type Mock } from 'vitest'
+import { defineComponent, h, ref } from 'vue'
+import EmailBuilder from '../src/components/EmailBuilder.vue'
+import type { AutosaveStorage } from '../src'
+import { createDocument, createRow, type EmailDocument } from '../src/schema'
+import { readAutosave, writeAutosave } from '../src/autosave/storage'
+import type {
+  AutosaveController,
+  AutosaveControllerCallbacks,
+  AutosaveErrorPayload,
+  AutosaveRestoredPayload,
+  AutosaveSavedPayload,
+  AutosaveStatus,
+  AutosaveStatusPayload,
+} from '../src/autosave/types'
+import {
+  createAutosaveController,
+} from '../src/autosave/controller'
+
+class MemoryStorage implements Storage {
+  private readonly data = new Map<string, string>()
+
+  get length() {
+    return this.data.size
+  }
+
+  clear() {
+    this.data.clear()
+  }
+
+  getItem(key: string) {
+    return this.data.has(key) ? this.data.get(key)! : null
+  }
+
+  key(index: number) {
+    return Array.from(this.data.keys())[index] ?? null
+  }
+
+  removeItem(key: string) {
+    this.data.delete(key)
+  }
+
+  setItem(key: string, value: string) {
+    this.data.set(key, value)
+  }
+}
+
+function designWithMarker(marker: string) {
+  const design = createDocument()
+  return {
+    ...design,
+    settings: {
+      ...design.settings,
+      preheader: marker,
+    },
+  }
+}
+
+function deferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void
+  let reject!: (reason?: unknown) => void
+  const promise = new Promise<T>((nextResolve, nextReject) => {
+    resolve = nextResolve
+    reject = nextReject
+  })
+  return { promise, resolve, reject }
+}
+
+type MockedCallbacks = AutosaveControllerCallbacks & {
+  applyRestoredDesign: Mock<AutosaveControllerCallbacks['applyRestoredDesign']>
+  onStatus: Mock<(payload: AutosaveStatusPayload) => void>
+  onSaved: Mock<(payload: AutosaveSavedPayload) => void>
+  onRestored: Mock<(payload: AutosaveRestoredPayload) => void>
+  onError: Mock<(payload: AutosaveErrorPayload) => void>
+}
+
+function createCallbacks(): MockedCallbacks {
+  return {
+    applyRestoredDesign: vi.fn<AutosaveControllerCallbacks['applyRestoredDesign']>(),
+    onStatus: vi.fn<(payload: AutosaveStatusPayload) => void>(),
+    onSaved: vi.fn<(payload: AutosaveSavedPayload) => void>(),
+    onRestored: vi.fn<(payload: AutosaveRestoredPayload) => void>(),
+    onError: vi.fn<(payload: AutosaveErrorPayload) => void>(),
+  }
+}
+
+const controllers: AutosaveController[] = []
+
+function createTrackedController(callbacks: AutosaveControllerCallbacks) {
+  const controller = createAutosaveController(callbacks)
+  controllers.push(controller)
+  return controller
+}
+
+async function flushMicrotasks(rounds = 2) {
+  for (let index = 0; index < rounds; index += 1) {
+    await Promise.resolve()
+  }
+}
+
+async function addFirstRow(wrapper: ReturnType<typeof mount<typeof EmailBuilder>>) {
+  await wrapper.find('.vmd-canvas-empty button').trigger('click')
+  await flushPromises()
+  await flushMicrotasks()
+}
+
+function mountInlineAutosaveParent(options: {
+  design?: EmailDocument
+  storage: AutosaveStorage
+  mode?: 'change' | 'debounce' | 'interval'
+  delay?: number
+  restore?: boolean
+  restorePrecedence?: 'initial-design' | 'saved-design'
+}) {
+  const design = ref<EmailDocument | undefined>(options.design)
+  const status = ref<AutosaveStatus | 'none'>('none')
+  const statuses: AutosaveStatus[] = []
+
+  const wrapper = mount(defineComponent({
+    name: 'InlineAutosaveParent',
+    setup() {
+      return () => h('section', [
+        h('output', { 'data-test-status': '' }, status.value),
+        h(EmailBuilder, {
+          design: design.value,
+          'onUpdate:design': (next: EmailDocument) => {
+            design.value = next
+          },
+          autosave: {
+            enabled: true,
+            storage: options.storage,
+            mode: options.mode,
+            delay: options.delay,
+            restore: options.restore,
+            restorePrecedence: options.restorePrecedence,
+          },
+          'onAutosave-status': (payload: AutosaveStatusPayload) => {
+            status.value = payload.status
+            statuses.push(payload.status)
+          },
+        }),
+      ])
+    },
+  }))
+
+  return {
+    wrapper,
+    design,
+    status,
+    statuses,
+    getBuilder: () => wrapper.findComponent(EmailBuilder),
+  }
+}
+
+afterEach(() => {
+  for (const controller of controllers.splice(0)) {
+    controller.dispose()
+  }
+  vi.useRealTimers()
+  vi.restoreAllMocks()
+})
+
+describe('autosave storage', () => {
+  it('round-trips a local design as JSON', async () => {
+    const storage = new MemoryStorage()
+    const design = createDocument()
+    await writeAutosave({ type: 'local', key: 'draft', storage }, design)
+    await expect(readAutosave({ type: 'local', key: 'draft', storage })).resolves.toEqual(design)
+  })
+
+  it('returns undefined for a missing local autosave key', async () => {
+    const storage = new MemoryStorage()
+    await expect(readAutosave({ type: 'local', key: 'draft', storage })).resolves.toBeUndefined()
+  })
+
+  it('throws when local autosave JSON is malformed', async () => {
+    const storage = new MemoryStorage()
+    storage.setItem('draft', '{not valid json')
+    await expect(readAutosave({ type: 'local', key: 'draft', storage })).rejects.toThrow()
+  })
+
+  it.each([
+    ['empty object', '{}'],
+    ['null value', 'null'],
+    ['partial document', '{"version":"1.0"}'],
+  ])('rejects %s local autosave payloads that are not valid documents', async (_label, raw) => {
+    const storage = new MemoryStorage()
+    storage.setItem('draft', raw)
+
+    await expect(readAutosave({ type: 'local', key: 'draft', storage })).rejects.toThrow(/autosave/i)
+  })
+
+  it('passes through a custom adapter load and save', async () => {
+    const design = createDocument()
+    const loads: AutosaveStorage[] = []
+    let saved: unknown
+    const autosave: AutosaveStorage = {
+      type: 'custom',
+      load: async () => {
+        loads.push(autosave)
+        return design
+      },
+      save: async next => {
+        saved = next
+      },
+    }
+
+    await expect(readAutosave(autosave)).resolves.toEqual(design)
+    await writeAutosave(autosave, design)
+    expect(loads).toHaveLength(1)
+    expect(saved).toEqual(design)
+  })
+
+  it('accepts a save-only custom adapter', async () => {
+    const design = createDocument()
+    const save = vi.fn()
+    const autosave: AutosaveStorage = {
+      type: 'custom',
+      save,
+    }
+
+    await writeAutosave(autosave, design)
+
+    expect(save).toHaveBeenCalledWith(design)
+    expect('load' in autosave).toBe(false)
+  })
+
+  it('throws an explicit error when browser storage is unavailable', async () => {
+    const originalWindow = globalThis.window
+    vi.stubGlobal('window', undefined)
+
+    try {
+      await expect(readAutosave({ type: 'local', key: 'draft' })).rejects.toThrow(/local storage/i)
+    } finally {
+      vi.stubGlobal('window', originalWindow)
+    }
+  })
+})
+
+describe('autosave controller', () => {
+  it('stays disabled without re-emitting unchanged status', async () => {
+    const callbacks = createCallbacks()
+    const controller = createTrackedController(callbacks)
+
+    await controller.configure(undefined, createDocument())
+    expect(controller.getStatus()).toBe('disabled')
+
+    await controller.configure(
+      {
+        enabled: false,
+        storage: { type: 'custom', save: vi.fn() },
+      },
+      createDocument(),
+    )
+
+    expect(controller.getStatus()).toBe('disabled')
+
+    controller.dispose()
+
+    expect(callbacks.onStatus).not.toHaveBeenCalled()
+  })
+
+  it('uses the default debounce delay before saving', async () => {
+    vi.useFakeTimers()
+    const save = vi.fn()
+    const callbacks = createCallbacks()
+    const controller = createTrackedController(callbacks)
+
+    await controller.configure(
+      {
+        enabled: true,
+        storage: { type: 'custom', save },
+      },
+      createDocument(),
+    )
+
+    controller.handleDesignChange(designWithMarker('later'))
+    await vi.advanceTimersByTimeAsync(999)
+
+    expect(save).not.toHaveBeenCalled()
+
+    await vi.advanceTimersByTimeAsync(1)
+
+    expect(save).toHaveBeenCalledTimes(1)
+    expect(save).toHaveBeenCalledWith(designWithMarker('later'))
+  })
+
+  it('serializes change-mode saves and preserves each change snapshot', async () => {
+    const firstSave = deferred<void>()
+    const save = vi.fn((_design: ReturnType<typeof designWithMarker>): Promise<void> => Promise.resolve())
+      .mockImplementationOnce(() => firstSave.promise)
+      .mockImplementationOnce(() => Promise.resolve())
+    const callbacks = createCallbacks()
+    const controller = createTrackedController(callbacks)
+
+    await controller.configure(
+      {
+        enabled: true,
+        storage: { type: 'custom', save },
+        mode: 'change',
+      },
+      createDocument(),
+    )
+
+    const first = designWithMarker('first')
+    const second = designWithMarker('second')
+
+    controller.handleDesignChange(first)
+    first.settings.preheader = 'mutated after enqueue'
+    controller.handleDesignChange(second)
+    await flushMicrotasks()
+
+    expect(save).toHaveBeenCalledTimes(1)
+    expect(save).toHaveBeenNthCalledWith(1, designWithMarker('first'))
+
+    firstSave.resolve()
+    await flushMicrotasks(8)
+
+    expect(save).toHaveBeenCalledTimes(2)
+    expect(save).toHaveBeenNthCalledWith(2, designWithMarker('second'))
+  })
+
+  it('debounces and saves only the latest design', async () => {
+    vi.useFakeTimers()
+    const save = vi.fn()
+    const callbacks = createCallbacks()
+    const controller = createTrackedController(callbacks)
+
+    await controller.configure(
+      {
+        enabled: true,
+        storage: { type: 'custom', save },
+        mode: 'debounce',
+        delay: 100,
+      },
+      createDocument(),
+    )
+
+    controller.handleDesignChange(designWithMarker('one'))
+    controller.handleDesignChange(designWithMarker('two'))
+
+    await vi.advanceTimersByTimeAsync(99)
+    expect(save).not.toHaveBeenCalled()
+
+    await vi.advanceTimersByTimeAsync(1)
+
+    expect(save).toHaveBeenCalledTimes(1)
+    expect(save).toHaveBeenCalledWith(designWithMarker('two'))
+  })
+
+  it('saves only dirty interval work and coalesces to the latest snapshot', async () => {
+    vi.useFakeTimers()
+    const save = vi.fn().mockResolvedValue(undefined)
+    const callbacks = createCallbacks()
+    const controller = createTrackedController(callbacks)
+
+    await controller.configure(
+      {
+        enabled: true,
+        storage: { type: 'custom', save },
+        mode: 'interval',
+        delay: 100,
+      },
+      createDocument(),
+    )
+
+    await vi.advanceTimersByTimeAsync(100)
+    expect(save).not.toHaveBeenCalled()
+
+    controller.handleDesignChange(designWithMarker('one'))
+    controller.handleDesignChange(designWithMarker('two'))
+    await vi.advanceTimersByTimeAsync(100)
+
+    expect(save).toHaveBeenCalledTimes(1)
+    expect(save).toHaveBeenCalledWith(designWithMarker('two'))
+
+    await vi.advanceTimersByTimeAsync(100)
+    expect(save).toHaveBeenCalledTimes(1)
+  })
+
+  it('never overlaps custom saves while debounce work is pending', async () => {
+    vi.useFakeTimers()
+    const firstSave = deferred<void>()
+    const save = vi.fn((_design: ReturnType<typeof designWithMarker>): Promise<void> => Promise.resolve())
+      .mockImplementationOnce(() => firstSave.promise)
+      .mockImplementationOnce(() => Promise.resolve())
+    const callbacks = createCallbacks()
+    const controller = createTrackedController(callbacks)
+
+    await controller.configure(
+      {
+        enabled: true,
+        storage: { type: 'custom', save },
+        mode: 'debounce',
+        delay: 10,
+      },
+      createDocument(),
+    )
+
+    controller.handleDesignChange(designWithMarker('one'))
+    await vi.advanceTimersByTimeAsync(10)
+    expect(save).toHaveBeenCalledTimes(1)
+
+    controller.handleDesignChange(designWithMarker('two'))
+    await vi.advanceTimersByTimeAsync(10)
+    expect(save).toHaveBeenCalledTimes(1)
+
+    firstSave.resolve()
+    await flushMicrotasks()
+
+    expect(save).toHaveBeenCalledTimes(2)
+    expect(save).toHaveBeenNthCalledWith(2, designWithMarker('two'))
+  })
+
+  it('keeps the initial design by default when restore finds a saved draft', async () => {
+    const load = vi.fn().mockResolvedValue(designWithMarker('saved'))
+    const callbacks = createCallbacks()
+    const controller = createTrackedController(callbacks)
+    const initial = designWithMarker('initial')
+
+    await controller.configure(
+      {
+        enabled: true,
+        storage: { type: 'custom', load, save: vi.fn() },
+        restore: true,
+      },
+      initial,
+    )
+
+    expect(load).toHaveBeenCalledTimes(1)
+    expect(callbacks.applyRestoredDesign).not.toHaveBeenCalled()
+    expect(callbacks.onRestored).not.toHaveBeenCalled()
+    expect(controller.getStatus()).toBe('idle')
+  })
+
+  it('restores the saved design by default when there is no explicit initial design', async () => {
+    const saved = designWithMarker('saved')
+    const callbacks = createCallbacks()
+    const controller = createTrackedController(callbacks)
+
+    await controller.configure(
+      {
+        enabled: true,
+        storage: { type: 'custom', load: vi.fn().mockResolvedValue(saved), save: vi.fn() },
+        restore: true,
+      },
+      undefined,
+    )
+
+    expect(callbacks.applyRestoredDesign).toHaveBeenCalledTimes(1)
+    expect(callbacks.applyRestoredDesign).toHaveBeenCalledWith(saved)
+    expect(callbacks.onRestored).toHaveBeenCalledTimes(1)
+    expect(controller.getStatus()).toBe('saved')
+  })
+
+  it('restores the saved design when saved-design precedence is requested', async () => {
+    const saved = designWithMarker('saved')
+    const callbacks = createCallbacks()
+    const controller = createTrackedController(callbacks)
+
+    await controller.configure(
+      {
+        enabled: true,
+        storage: { type: 'custom', load: vi.fn().mockResolvedValue(saved), save: vi.fn() },
+        restore: true,
+        restorePrecedence: 'saved-design',
+      },
+      designWithMarker('initial'),
+    )
+
+    expect(callbacks.applyRestoredDesign).toHaveBeenCalledTimes(1)
+    expect(callbacks.applyRestoredDesign).toHaveBeenCalledWith(saved)
+    expect(callbacks.onRestored).toHaveBeenCalledTimes(1)
+    expect(callbacks.onRestored.mock.calls[0]?.[0].design).toEqual(saved)
+    expect(controller.getStatus()).toBe('saved')
+  })
+
+  it('drops a late saved-design restore after a live edit and still saves that edit', async () => {
+    const saved = designWithMarker('saved')
+    const live = designWithMarker('live')
+    const load = deferred<ReturnType<typeof designWithMarker> | undefined>()
+    const save = vi.fn().mockResolvedValue(undefined)
+    const callbacks = createCallbacks()
+    const controller = createTrackedController(callbacks)
+
+    const configurePromise = controller.configure(
+      {
+        enabled: true,
+        storage: {
+          type: 'custom',
+          load: vi.fn().mockImplementation(() => load.promise),
+          save,
+        },
+        restore: true,
+        restorePrecedence: 'saved-design',
+        mode: 'change',
+      },
+      designWithMarker('initial'),
+    )
+
+    controller.handleDesignChange(live)
+    await flushMicrotasks()
+
+    load.resolve(saved)
+    await configurePromise
+    await flushMicrotasks()
+
+    expect(callbacks.applyRestoredDesign).not.toHaveBeenCalled()
+    expect(callbacks.onRestored).not.toHaveBeenCalled()
+    expect(save).toHaveBeenCalledTimes(1)
+    expect(save).toHaveBeenCalledWith(live)
+    expect(callbacks.onSaved).toHaveBeenCalledTimes(1)
+    expect(callbacks.onSaved.mock.calls[0]?.[0].design).toEqual(live)
+    expect(controller.getStatus()).toBe('saved')
+  })
+
+  it('treats a missing saved draft as no restoration', async () => {
+    const callbacks = createCallbacks()
+    const controller = createTrackedController(callbacks)
+
+    await controller.configure(
+      {
+        enabled: true,
+        storage: { type: 'custom', load: vi.fn().mockResolvedValue(undefined), save: vi.fn() },
+        restore: true,
+      },
+      createDocument(),
+    )
+
+    expect(callbacks.applyRestoredDesign).not.toHaveBeenCalled()
+    expect(callbacks.onRestored).not.toHaveBeenCalled()
+    expect(controller.getStatus()).toBe('idle')
+  })
+
+  it('emits observable status transitions for restore and save success', async () => {
+    vi.useFakeTimers()
+    const callbacks = createCallbacks()
+    const controller = createTrackedController(callbacks)
+
+    await controller.configure(
+      {
+        enabled: true,
+        storage: { type: 'custom', load: vi.fn().mockResolvedValue(undefined), save: vi.fn().mockResolvedValue(undefined) },
+        restore: true,
+        mode: 'debounce',
+        delay: 25,
+      },
+      createDocument(),
+    )
+
+    controller.handleDesignChange(designWithMarker('saved later'))
+    await vi.advanceTimersByTimeAsync(25)
+
+    expect(callbacks.onStatus.mock.calls.map(([payload]: [AutosaveStatusPayload]) => payload.status)).toEqual([
+      'restoring',
+      'idle',
+      'saving',
+      'saved',
+    ])
+    expect(callbacks.onSaved).toHaveBeenCalledTimes(1)
+    expect(callbacks.onSaved.mock.calls[0]?.[0].design).toEqual(designWithMarker('saved later'))
+  })
+
+  it('reports load failures and leaves the initial design untouched', async () => {
+    const error = new Error('broken load')
+    const callbacks = createCallbacks()
+    const controller = createTrackedController(callbacks)
+
+    await controller.configure(
+      {
+        enabled: true,
+        storage: { type: 'custom', load: vi.fn().mockRejectedValue(error), save: vi.fn() },
+        restore: true,
+      },
+      createDocument(),
+    )
+
+    expect(callbacks.applyRestoredDesign).not.toHaveBeenCalled()
+    expect(callbacks.onError).toHaveBeenCalledWith({ operation: 'load', error })
+    expect(callbacks.onStatus).toHaveBeenLastCalledWith({ status: 'error', error })
+    expect(controller.getStatus()).toBe('error')
+  })
+
+  it('rejects structurally invalid custom restored documents through the load error path', async () => {
+    const callbacks = createCallbacks()
+    const controller = createTrackedController(callbacks)
+
+    await controller.configure(
+      {
+        enabled: true,
+        storage: {
+          type: 'custom',
+          load: vi.fn().mockResolvedValue({}),
+          save: vi.fn(),
+        },
+        restore: true,
+        restorePrecedence: 'saved-design',
+      },
+      createDocument(),
+    )
+
+    expect(callbacks.applyRestoredDesign).not.toHaveBeenCalled()
+    expect(callbacks.onRestored).not.toHaveBeenCalled()
+    expect(callbacks.onError).toHaveBeenCalledTimes(1)
+    expect(callbacks.onError.mock.calls[0]?.[0].operation).toBe('load')
+    expect(controller.getStatus()).toBe('error')
+  })
+
+  it('reports save failures and can recover on a later successful save', async () => {
+    vi.useFakeTimers()
+    const error = new Error('broken save')
+    const save = vi.fn()
+      .mockRejectedValueOnce(error)
+      .mockResolvedValueOnce(undefined)
+    const callbacks = createCallbacks()
+    const controller = createTrackedController(callbacks)
+
+    await controller.configure(
+      {
+        enabled: true,
+        storage: { type: 'custom', save },
+        mode: 'debounce',
+        delay: 10,
+      },
+      createDocument(),
+    )
+
+    controller.handleDesignChange(designWithMarker('first'))
+    await vi.advanceTimersByTimeAsync(10)
+
+    expect(callbacks.onError).toHaveBeenCalledWith({ operation: 'save', error })
+    expect(controller.getStatus()).toBe('error')
+
+    controller.handleDesignChange(designWithMarker('second'))
+    await vi.advanceTimersByTimeAsync(10)
+
+    expect(controller.getStatus()).toBe('saved')
+    expect(callbacks.onSaved).toHaveBeenCalledTimes(1)
+  })
+
+  it('disposal invalidates pending timers and late async completions', async () => {
+    vi.useFakeTimers()
+    const load = deferred<ReturnType<typeof designWithMarker> | undefined>()
+    const save = deferred<void>()
+    const callbacks = createCallbacks()
+    const controller = createTrackedController(callbacks)
+
+    const configurePromise = controller.configure(
+      {
+        enabled: true,
+        storage: {
+          type: 'custom',
+          load: vi.fn().mockImplementation(() => load.promise),
+          save: vi.fn().mockImplementation(() => save.promise),
+        },
+        restore: true,
+        mode: 'debounce',
+        delay: 10,
+      },
+      createDocument(),
+    )
+
+    controller.dispose()
+    load.resolve(designWithMarker('late load'))
+    await configurePromise
+
+    controller.handleDesignChange(designWithMarker('late save'))
+    vi.advanceTimersByTime(10)
+    await flushMicrotasks()
+
+    expect(callbacks.applyRestoredDesign).not.toHaveBeenCalled()
+    expect(callbacks.onRestored).not.toHaveBeenCalled()
+    expect(callbacks.onSaved).not.toHaveBeenCalled()
+    expect(callbacks.onError).not.toHaveBeenCalled()
+    expect(callbacks.onStatus).toHaveBeenLastCalledWith({ status: 'disabled' })
+
+    save.resolve()
+    await flushMicrotasks()
+
+    expect(callbacks.onSaved).not.toHaveBeenCalled()
+  })
+
+  it('serializes saves across reconfiguration and ignores stale completions', async () => {
+    vi.useFakeTimers()
+    const staleSave = deferred<void>()
+    const activeSave = deferred<void>()
+    const save = vi.fn((_design: ReturnType<typeof designWithMarker>): Promise<void> => Promise.resolve())
+      .mockImplementationOnce(() => staleSave.promise)
+      .mockImplementationOnce(() => activeSave.promise)
+      .mockImplementationOnce(() => Promise.resolve())
+    const callbacks = createCallbacks()
+    const controller = createTrackedController(callbacks)
+
+    await controller.configure(
+      {
+        enabled: true,
+        storage: { type: 'custom', save },
+        mode: 'debounce',
+        delay: 10,
+      },
+      createDocument(),
+    )
+
+    controller.handleDesignChange(designWithMarker('stale generation'))
+    await vi.advanceTimersByTimeAsync(10)
+    expect(save).toHaveBeenCalledTimes(1)
+
+    await controller.configure(
+      {
+        enabled: true,
+        storage: { type: 'custom', save },
+        mode: 'debounce',
+        delay: 10,
+      },
+      createDocument(),
+    )
+
+    controller.handleDesignChange(designWithMarker('active first'))
+    await vi.advanceTimersByTimeAsync(10)
+    expect(save).toHaveBeenCalledTimes(1)
+
+    controller.handleDesignChange(designWithMarker('active second'))
+    await vi.advanceTimersByTimeAsync(10)
+    expect(save).toHaveBeenCalledTimes(1)
+
+    staleSave.resolve()
+    await flushMicrotasks()
+    expect(save).toHaveBeenCalledTimes(2)
+    expect(save).toHaveBeenNthCalledWith(2, designWithMarker('active second'))
+
+    controller.handleDesignChange(designWithMarker('active third'))
+    await vi.advanceTimersByTimeAsync(10)
+    expect(save).toHaveBeenCalledTimes(2)
+
+    activeSave.resolve()
+    await flushMicrotasks()
+
+    expect(save).toHaveBeenCalledTimes(3)
+    expect(save).toHaveBeenNthCalledWith(3, designWithMarker('active third'))
+  })
+})
+
+describe('EmailBuilder autosave integration', () => {
+  it('preserves a pending debounce save across inline autosave config rerenders from v-model updates', async () => {
+    vi.useFakeTimers()
+    const save = vi.fn().mockResolvedValue(undefined)
+    const parent = mountInlineAutosaveParent({
+      storage: { type: 'custom', save },
+      mode: 'debounce',
+      delay: 100,
+    })
+
+    await flushPromises()
+    await addFirstRow(parent.getBuilder() as ReturnType<typeof mount<typeof EmailBuilder>>)
+
+    await vi.advanceTimersByTimeAsync(99)
+    expect(save).not.toHaveBeenCalled()
+
+    await vi.advanceTimersByTimeAsync(1)
+
+    expect(save).toHaveBeenCalledTimes(1)
+    expect(parent.statuses).toContain('saved')
+  })
+
+  it('restores a saved draft once with inline autosave config under saved-design precedence', async () => {
+    const restored = designWithMarker('restored')
+    restored.rows.push(createRow([100]))
+    const load = vi.fn().mockResolvedValue(restored)
+    const save = vi.fn()
+    const parent = mountInlineAutosaveParent({
+      design: designWithMarker('initial'),
+      storage: { type: 'custom', load, save },
+      restore: true,
+      restorePrecedence: 'saved-design',
+    })
+
+    await flushPromises()
+    await flushMicrotasks()
+
+    const builder = parent.getBuilder()
+    const vm = builder.vm as unknown as { getDesign: () => EmailDocument }
+    expect(load).toHaveBeenCalledTimes(1)
+    expect(builder.emitted('autosave-restored')).toHaveLength(1)
+    expect(vm.getDesign()).toEqual(restored)
+    expect(save).not.toHaveBeenCalled()
+  })
+
+  it('does not repeat an async restore when autosave-status rerenders the parent with an equivalent inline config', async () => {
+    const load = deferred<EmailDocument | undefined>()
+    const loadSpy = vi.fn().mockImplementation(() => load.promise)
+    const parent = mountInlineAutosaveParent({
+      storage: { type: 'custom', load: loadSpy, save: vi.fn() },
+      restore: true,
+      restorePrecedence: 'saved-design',
+    })
+
+    await flushMicrotasks(4)
+    expect(loadSpy).toHaveBeenCalledTimes(1)
+    expect(parent.status.value).toBe('restoring')
+
+    load.resolve(designWithMarker('restored'))
+    await flushPromises()
+    await flushMicrotasks()
+
+    expect(loadSpy).toHaveBeenCalledTimes(1)
+    expect(parent.statuses.filter(status => status === 'restoring')).toHaveLength(1)
+  })
+
+  it('exposes autosave status and saves changed designs through the adapter', async () => {
+    const save = vi.fn().mockResolvedValue(undefined)
+    const wrapper = mount(EmailBuilder, {
+      props: {
+        autosave: {
+          enabled: true,
+          storage: { type: 'custom', save },
+          mode: 'change',
+        },
+      },
+    })
+
+    await flushPromises()
+    await addFirstRow(wrapper)
+    await flushPromises()
+
+    const vm = wrapper.vm as unknown as {
+      getAutosaveStatus: () => AutosaveStatus
+      getDesign: () => ReturnType<typeof createDocument>
+    }
+
+    expect(save).toHaveBeenCalledTimes(1)
+
+    const savedDesign = save.mock.calls[0]?.[0] as ReturnType<typeof createDocument>
+    const changePayload = wrapper.emitted('change')?.at(-1)?.[0] as ReturnType<typeof createDocument>
+
+    expect(savedDesign).toEqual(changePayload)
+    expect(savedDesign).not.toBe(changePayload)
+
+    savedDesign.settings.preheader = 'adapter mutation'
+    expect(vm.getDesign().settings.preheader).not.toBe('adapter mutation')
+
+    expect(wrapper.emitted('autosave-saved')).toHaveLength(1)
+    expect(wrapper.emitted('autosave-status')?.map(([payload]) => (payload as AutosaveStatusPayload).status)).toEqual([
+      'idle',
+      'saving',
+      'saved',
+    ])
+    expect(vm.getAutosaveStatus()).toBe('saved')
+  })
+
+  it('keeps the initial design authoritative by default when restore finds a saved draft', async () => {
+    const save = vi.fn()
+    const initial = designWithMarker('initial')
+    const restored = designWithMarker('restored')
+    const wrapper = mount(EmailBuilder, {
+      props: {
+        design: initial,
+        autosave: {
+          enabled: true,
+          storage: {
+            type: 'custom',
+            load: vi.fn().mockResolvedValue(restored),
+            save,
+          },
+          restore: true,
+        },
+      },
+    })
+
+    await flushPromises()
+
+    const vm = wrapper.vm as unknown as { getDesign: () => ReturnType<typeof createDocument> }
+    expect(vm.getDesign()).toEqual(initial)
+    expect(wrapper.emitted('autosave-restored')).toBeFalsy()
+    expect(save).not.toHaveBeenCalled()
+  })
+
+  it('restores the saved design when saved-design precedence is requested without creating a restore-save loop', async () => {
+    const save = vi.fn()
+    const initial = designWithMarker('initial')
+    const restored = designWithMarker('restored')
+    restored.rows.push(createRow([100]))
+
+    const wrapper = mount(EmailBuilder, {
+      props: {
+        design: initial,
+        autosave: {
+          enabled: true,
+          storage: {
+            type: 'custom',
+            load: vi.fn().mockResolvedValue(restored),
+            save,
+          },
+          restore: true,
+          restorePrecedence: 'saved-design',
+        },
+      },
+    })
+
+    await flushPromises()
+    await flushMicrotasks()
+
+    const vm = wrapper.vm as unknown as { getDesign: () => ReturnType<typeof createDocument> }
+    expect(vm.getDesign()).toEqual(restored)
+    expect(wrapper.emitted('autosave-restored')).toHaveLength(1)
+    expect(save).not.toHaveBeenCalled()
+  })
+
+  it('restores a saved draft by default when autosave is enabled without an explicit design prop', async () => {
+    const save = vi.fn()
+    const restored = designWithMarker('restored')
+    restored.rows.push(createRow([100]))
+
+    const wrapper = mount(EmailBuilder, {
+      props: {
+        autosave: {
+          enabled: true,
+          storage: {
+            type: 'custom',
+            load: vi.fn().mockResolvedValue(restored),
+            save,
+          },
+          restore: true,
+        },
+      },
+    })
+
+    await flushPromises()
+    await flushMicrotasks()
+
+    const vm = wrapper.vm as unknown as { getDesign: () => EmailDocument }
+    expect(vm.getDesign()).toEqual(restored)
+    expect(wrapper.emitted('autosave-restored')).toHaveLength(1)
+    expect(save).not.toHaveBeenCalled()
+  })
+
+  it('ignores an invalid local saved draft and leaves the current canvas untouched', async () => {
+    const storage = new MemoryStorage()
+    storage.setItem('draft', '{}')
+    const initial = designWithMarker('initial')
+    initial.rows.push(createRow([100]))
+
+    const wrapper = mount(EmailBuilder, {
+      props: {
+        design: initial,
+        autosave: {
+          enabled: true,
+          storage: { type: 'local', key: 'draft', storage },
+          restore: true,
+          restorePrecedence: 'saved-design',
+        },
+      },
+    })
+
+    await flushPromises()
+
+    const vm = wrapper.vm as unknown as { getDesign: () => EmailDocument }
+    expect(vm.getDesign()).toEqual(initial)
+    expect(wrapper.emitted('autosave-restored')).toBeFalsy()
+    expect(wrapper.emitted('autosave-error')).toHaveLength(1)
+  })
+
+  it('ignores an invalid custom saved draft and leaves the current canvas untouched', async () => {
+    const initial = designWithMarker('initial')
+    initial.rows.push(createRow([100]))
+
+    const wrapper = mount(EmailBuilder, {
+      props: {
+        design: initial,
+        autosave: {
+          enabled: true,
+          storage: {
+            type: 'custom',
+            load: vi.fn().mockResolvedValue({ version: '1.0' }),
+            save: vi.fn(),
+          },
+          restore: true,
+          restorePrecedence: 'saved-design',
+        },
+      },
+    })
+
+    await flushPromises()
+
+    const vm = wrapper.vm as unknown as { getDesign: () => EmailDocument }
+    expect(vm.getDesign()).toEqual(initial)
+    expect(wrapper.emitted('autosave-restored')).toBeFalsy()
+    expect(wrapper.emitted('autosave-error')).toHaveLength(1)
+  })
+
+  it('does not save while autosave is disabled', async () => {
+    const save = vi.fn()
+    const wrapper = mount(EmailBuilder, {
+      props: {
+        autosave: {
+          enabled: false,
+          storage: { type: 'custom', save },
+          mode: 'change',
+        },
+      },
+    })
+
+    await addFirstRow(wrapper)
+
+    const vm = wrapper.vm as unknown as { getAutosaveStatus: () => AutosaveStatus }
+    expect(save).not.toHaveBeenCalled()
+    expect(vm.getAutosaveStatus()).toBe('disabled')
+  })
+
+  it('emits autosave errors without breaking the mounted canvas', async () => {
+    const error = new Error('adapter failed')
+    const save = vi.fn().mockRejectedValue(error)
+    const wrapper = mount(EmailBuilder, {
+      props: {
+        autosave: {
+          enabled: true,
+          storage: { type: 'custom', save },
+          mode: 'change',
+        },
+      },
+    })
+
+    await addFirstRow(wrapper)
+    await flushPromises()
+
+    const vm = wrapper.vm as unknown as { getAutosaveStatus: () => AutosaveStatus }
+    expect(wrapper.emitted('autosave-error')).toEqual([[{ operation: 'save', error }]])
+    expect(vm.getAutosaveStatus()).toBe('error')
+    expect(wrapper.find('.vmd-root').exists()).toBe(true)
+    expect(wrapper.find('.vmd-row').exists()).toBe(true)
+  })
+
+  it('cancels pending debounce saves when autosave is reconfigured', async () => {
+    vi.useFakeTimers()
+    const save = vi.fn().mockResolvedValue(undefined)
+    const wrapper = mount(EmailBuilder, {
+      props: {
+        autosave: {
+          enabled: true,
+          storage: { type: 'custom', save },
+          mode: 'debounce',
+          delay: 100,
+        },
+      },
+    })
+
+    await flushPromises()
+    await addFirstRow(wrapper)
+
+    await wrapper.setProps({
+      autosave: {
+        enabled: true,
+        storage: { type: 'custom', save },
+        mode: 'debounce',
+        delay: 200,
+      },
+    })
+
+    await vi.advanceTimersByTimeAsync(100)
+    expect(save).not.toHaveBeenCalled()
+
+    const vm = wrapper.vm as unknown as {
+      getDesign: () => ReturnType<typeof createDocument>
+      loadDesign: (design: ReturnType<typeof createDocument>) => void
+    }
+    const nextDesign = vm.getDesign()
+    nextDesign.settings.preheader = 'reconfigured'
+    vm.loadDesign(nextDesign)
+    await flushPromises()
+
+    await vi.advanceTimersByTimeAsync(199)
+    expect(save).not.toHaveBeenCalled()
+
+    await vi.advanceTimersByTimeAsync(1)
+    expect(save).toHaveBeenCalledTimes(1)
+  })
+})
