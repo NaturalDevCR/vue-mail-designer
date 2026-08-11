@@ -1,12 +1,53 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
-import EmailBuilder from '../src/components/EmailBuilder.vue'
-import type { AutosaveStatus } from '../src/autosave/types'
-import type { AiLanguage, AiOptions } from '../src/index'
+import {
+  EmailBuilder,
+  type AiLanguage,
+  type AiOptions,
+  type AutosaveErrorPayload,
+  type AutosaveMode,
+  type AutosaveOptions,
+  type AutosaveRestoredPayload,
+  type AutosaveSavedPayload,
+  type AutosaveStatus,
+  type AutosaveStatusPayload,
+  type AutosaveStorage,
+} from '../src'
 import { createDocument, createRow } from '../src/schema'
 
 const packageRootAiLanguage: AiLanguage = { code: 'es', label: 'Spanish' }
 const packageRootAiOptions: AiOptions = { enabled: true, languages: [packageRootAiLanguage] }
+const packageRootAutosaveStorage: AutosaveStorage = { type: 'custom', save: async () => {} }
+const packageRootAutosaveMode: AutosaveMode = 'change'
+const packageRootAutosaveOptions: AutosaveOptions = {
+  enabled: true,
+  storage: packageRootAutosaveStorage,
+  mode: packageRootAutosaveMode,
+}
+const packageRootAutosaveStatusPayload: AutosaveStatusPayload = { status: 'idle' }
+const packageRootAutosaveSavedPayload: AutosaveSavedPayload = {
+  design: designWithMarker('saved'),
+  savedAt: 1,
+}
+const packageRootAutosaveRestoredPayload: AutosaveRestoredPayload = {
+  design: designWithMarker('restored'),
+  restoredAt: 2,
+}
+const packageRootAutosaveErrorPayload: AutosaveErrorPayload = {
+  operation: 'save',
+  error: new Error('save failed'),
+}
+
+function designWithMarker(marker: string) {
+  const design = createDocument()
+  return {
+    ...design,
+    settings: {
+      ...design.settings,
+      preheader: marker,
+    },
+  }
+}
 
 describe('API pública de EmailBuilder', () => {
   it('carga la prop design al montar', () => {
@@ -80,5 +121,13 @@ describe('API pública de EmailBuilder', () => {
       enabled: true,
       languages: [{ code: 'es', label: 'Spanish' }],
     })
+  })
+
+  it('re-exporta la superficie pública de autosave desde el package root', () => {
+    expect(packageRootAutosaveOptions.mode).toBe('change')
+    expect(packageRootAutosaveStatusPayload.status).toBe('idle')
+    expect(packageRootAutosaveSavedPayload.design.settings.preheader).toBe('saved')
+    expect(packageRootAutosaveRestoredPayload.design.settings.preheader).toBe('restored')
+    expect(packageRootAutosaveErrorPayload.operation).toBe('save')
   })
 })

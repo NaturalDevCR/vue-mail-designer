@@ -396,6 +396,45 @@ describe('autosave controller', () => {
     expect(controller.getStatus()).toBe('saved')
   })
 
+  it('drops a late saved-design restore after a live edit and still saves that edit', async () => {
+    const saved = designWithMarker('saved')
+    const live = designWithMarker('live')
+    const load = deferred<ReturnType<typeof designWithMarker> | undefined>()
+    const save = vi.fn().mockResolvedValue(undefined)
+    const callbacks = createCallbacks()
+    const controller = createTrackedController(callbacks)
+
+    const configurePromise = controller.configure(
+      {
+        enabled: true,
+        storage: {
+          type: 'custom',
+          load: vi.fn().mockImplementation(() => load.promise),
+          save,
+        },
+        restore: true,
+        restorePrecedence: 'saved-design',
+        mode: 'change',
+      },
+      designWithMarker('initial'),
+    )
+
+    controller.handleDesignChange(live)
+    await flushMicrotasks()
+
+    load.resolve(saved)
+    await configurePromise
+    await flushMicrotasks()
+
+    expect(callbacks.applyRestoredDesign).not.toHaveBeenCalled()
+    expect(callbacks.onRestored).not.toHaveBeenCalled()
+    expect(save).toHaveBeenCalledTimes(1)
+    expect(save).toHaveBeenCalledWith(live)
+    expect(callbacks.onSaved).toHaveBeenCalledTimes(1)
+    expect(callbacks.onSaved.mock.calls[0]?.[0].design).toEqual(live)
+    expect(controller.getStatus()).toBe('saved')
+  })
+
   it('treats a missing saved draft as no restoration', async () => {
     const callbacks = createCallbacks()
     const controller = createTrackedController(callbacks)

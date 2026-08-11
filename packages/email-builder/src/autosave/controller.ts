@@ -50,6 +50,8 @@ export function createAutosaveController(callbacks: AutosaveControllerCallbacks)
   let saveToken = 0
   let saveSettled = Promise.resolve()
   let resolveSaveSettled: (() => void) | undefined
+  let restoringGeneration: number | undefined
+  let dirtyDuringRestore = false
 
   function isActive(expectedGeneration: number) {
     return !disposed && generation === expectedGeneration
@@ -96,6 +98,8 @@ export function createAutosaveController(callbacks: AutosaveControllerCallbacks)
     intervalDirty = false
     debounceReady = false
     changeQueue = Promise.resolve()
+    restoringGeneration = undefined
+    dirtyDuringRestore = false
   }
 
   function emitStatus(nextStatus: AutosaveStatus, error?: unknown) {
@@ -200,6 +204,8 @@ export function createAutosaveController(callbacks: AutosaveControllerCallbacks)
       }
 
       if (options.restore && (options.storage.type !== 'custom' || options.storage.load)) {
+        restoringGeneration = expectedGeneration
+        dirtyDuringRestore = false
         emitStatus('restoring')
 
         try {
@@ -207,18 +213,30 @@ export function createAutosaveController(callbacks: AutosaveControllerCallbacks)
 
           if (!isActive(expectedGeneration) || !runtime) return
 
-          if (restored !== undefined && runtime.restorePrecedence === 'saved-design') {
+          const shouldApplyRestore =
+            restoringGeneration === expectedGeneration &&
+            !dirtyDuringRestore &&
+            restored !== undefined &&
+            runtime.restorePrecedence === 'saved-design'
+
+          restoringGeneration = undefined
+          const preserveCurrentStatus = dirtyDuringRestore && status !== 'restoring'
+          dirtyDuringRestore = false
+
+          if (shouldApplyRestore) {
             const restoredDesign = cloneDocument(restored)
             callbacks.applyRestoredDesign(restoredDesign)
             callbacks.onRestored({ design: cloneDocument(restoredDesign), restoredAt: Date.now() })
             emitStatus('saved')
-          } else {
+          } else if (!preserveCurrentStatus) {
             void initialDesign
             emitStatus('idle')
           }
         } catch (error) {
           if (!isActive(expectedGeneration)) return
 
+          restoringGeneration = undefined
+          dirtyDuringRestore = false
           callbacks.onError({ operation: 'load', error })
           emitStatus('error', error)
         }
@@ -235,6 +253,9 @@ export function createAutosaveController(callbacks: AutosaveControllerCallbacks)
       if (disposed || !runtime) return
 
       const expectedGeneration = generation
+      if (restoringGeneration === expectedGeneration) {
+        dirtyDuringRestore = true
+      }
       const snapshot = cloneDocument(design)
 
       switch (runtime.mode) {

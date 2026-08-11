@@ -30,4 +30,13 @@ export { unlayerToDocument, parseShorthandPadding } from './import/unlayer'
 export { unlayerSlugFromUrl, defaultUnlayerFetch, type UnlayerFetch } from './import/unlayerUrl'
 export { DEFAULT_FONTS, type FontDef } from './fonts'
 export type { MediaItem, MediaListPage, MediaLibraryOptions } from './mediaLibrary'
-export type { AutosaveStorage } from './autosave/types'
+export type {
+  AutosaveErrorPayload,
+  AutosaveMode,
+  AutosaveOptions,
+  AutosaveRestoredPayload,
+  AutosaveSavedPayload,
+  AutosaveStatus,
+  AutosaveStatusPayload,
+  AutosaveStorage,
+} from './autosave/types'
