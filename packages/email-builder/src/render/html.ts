@@ -143,7 +143,7 @@ function renderBlockInner(block: Block, ctx: RenderCtx): string {
     }
     case 'spacer':
       return cellTable(
-        `<tr><td style="height:${block.height}px;font-size:0;line-height:0;">&nbsp;</td></tr>`,
+        `<tr><td style="height:${block.height}px;padding:${paddingCss(block.style.padding)};font-size:0;line-height:0;">&nbsp;</td></tr>`,
       )
     case 'social': {
       const s = block.style
@@ -214,8 +214,10 @@ function renderBlockInner(block: Block, ctx: RenderCtx): string {
       return renderTimer(block)
     case 'custom': {
       const def = ctx.customBlocks?.find((d) => d.type === block.customType)
-      if (!def) return `<!-- bloque personalizado "${escapeHtml(block.customType)}" sin registrar -->`
-      return cellTable(`<tr><td>${def.render(block.data)}</td></tr>`)
+      const content = def
+        ? def.render(block.data)
+        : `<!-- bloque personalizado "${escapeHtml(block.customType)}" sin registrar -->`
+      return cellTable(`<tr><td style="padding:${paddingCss(block.style.padding)};">${content}</td></tr>`)
     }
   }
 }
@@ -321,10 +323,23 @@ function renderTimer(block: TimerBlock): string {
       `</td></tr>`,
     )
   }
-  const days = Math.max(0, Math.ceil((new Date(block.endDate).getTime() - Date.now()) / 864e5))
+  const totalSeconds = Math.max(0, Math.floor((new Date(block.endDate).getTime() - Date.now()) / 1000))
+  const days = Math.floor(totalSeconds / 86400)
+  const hours = Math.floor((totalSeconds % 86400) / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+  const units = [
+    ['days', days],
+    ['hours', hours],
+    ['minutes', minutes],
+    ['seconds', seconds],
+  ] as const
+  const unitHtml = units
+    .map(([label, value], index) => `<td class="vmd-timer-unit" style="width:25%;padding:16px 8px;${index ? 'border-left:1px solid #e5e7eb;' : ''}text-align:center;vertical-align:middle;"><strong class="vmd-timer-value" style="display:block;font-family:Arial,sans-serif;font-size:28px;line-height:1;font-weight:bold;color:#111827;">${String(value).padStart(2, '0')}</strong><span class="vmd-timer-label" style="display:block;margin-top:4px;font-family:Arial,sans-serif;font-size:10px;line-height:1.2;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:#718096;">${label}</span></td>`)
+    .join('')
   return cellTable(
-    `<tr><td align="center" class="vmd-timer-static" style="padding:${paddingCss(s.padding)};font-family:Arial,sans-serif;font-size:28px;font-weight:bold;color:#111827;">` +
-    `${days} ${days === 1 ? 'día' : 'días'}` +
+    `<tr><td align="center" class="vmd-timer-static" style="padding:${paddingCss(s.padding)};font-family:Arial,sans-serif;color:#111827;">` +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="vmd-timer-card" style="max-width:520px;border:1px solid #e5e7eb;border-radius:12px;background-color:#ffffff;"><tr>${unitHtml}</tr></table>` +
     `</td></tr>`,
   )
 }

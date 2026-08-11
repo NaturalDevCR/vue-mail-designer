@@ -182,7 +182,7 @@ See the full [Autosave guide](https://naturaldevcr.github.io/vue-mail-designer/g
 | `tools` | `Partial<Record<BlockType, ToolConfig>>` | Per-block palette config: `{ enabled?, position?, usageLimit? }` to hide, reorder, or limit instances. |
 | `fonts` | `FontDef[]` | List of fonts (`{ label, value, url? }`); Google Fonts (`url`) are loaded both in the canvas and in the exported HTML. Defaults to a curated list. |
 | `specialLinks` | `SpecialLink[]` | Special links insertable from the editor (`{ name, href }`, e.g. an unsubscribe link). |
-| `customBlocks` | `CustomBlockDef[]` | Integrator-defined custom blocks (`{ type, label, icon?, defaultData, fields, render }`); appear in the palette with a generic inspector and their own render in the export. |
+| `customBlocks` | `CustomBlockDef[]` | Integrator-defined custom blocks (`{ type, label, icon?, defaultData, fields, render }`); appear in the palette with a generic inspector, shared outer Top/Right/Bottom/Left padding, and their own render in the export. |
 
 `mergeTags` also accepts groups: `{ name, tags: MergeTagDef[] }` (shown as optgroups in the editor).
 

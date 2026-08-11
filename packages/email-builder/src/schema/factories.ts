@@ -90,7 +90,7 @@ export function createBlock(type: BlockType): Block {
         style: { color: '#e5e7eb', lineStyle: 'solid', thickness: 1, widthPct: 100, align: 'center', padding: pad(12, 24, 12, 24) },
       }
     case 'spacer':
-      return { id, type, height: 24 }
+      return { id, type, height: 24, style: { padding: pad(0, 0, 0, 0) } }
     case 'social':
       return {
         id, type,
@@ -153,5 +153,6 @@ export function createCustomBlock(customType: string, defaultData: Record<string
     type: 'custom',
     customType,
     data: JSON.parse(JSON.stringify(defaultData)) as Record<string, unknown>,
+    style: { padding: pad(0, 0, 0, 0) },
   }
 }

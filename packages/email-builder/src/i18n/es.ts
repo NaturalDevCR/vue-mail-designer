@@ -56,6 +56,9 @@ export const es: LocaleDict = {
   'canvas.customBlock': 'Bloque personalizado',
   'canvas.day': 'día',
   'canvas.days': 'días',
+  'canvas.hours': 'horas',
+  'canvas.minutes': 'minutos',
+  'canvas.seconds': 'segundos',
 
   'rte.bold': 'Negrita',
   'rte.italic': 'Cursiva',
@@ -161,6 +164,7 @@ export const es: LocaleDict = {
 
   'field.linkSides': 'Vincular lados',
   'field.unlinkSides': 'Lados independientes',
+  'field.allSides': 'Todos los lados',
   'field.top': 'Arriba',
   'field.right': 'Derecha',
   'field.bottom': 'Abajo',
