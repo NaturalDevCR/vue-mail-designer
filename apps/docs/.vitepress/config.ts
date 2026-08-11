@@ -25,6 +25,7 @@ export default defineConfig({
           { text: 'Introduction', link: '/guide/introduction' },
           { text: 'Installation', link: '/guide/installation' },
           { text: 'Quickstart', link: '/guide/quickstart' },
+          { text: 'Autosave', link: '/guide/autosave' },
           { text: 'Blocks', link: '/guide/blocks' },
           { text: 'Backgrounds', link: '/guide/backgrounds' },
           { text: 'Rich text editor', link: '/guide/rich-text' },

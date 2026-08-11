@@ -19,17 +19,30 @@ pnpm add @naturaldevcr/vue-mail-designer vue pinia
     :merge-tags="mergeTags"
     :upload-image="uploadImage"
     :media-library="mediaLibrary"
+    :autosave="autosave"
     @export-html="onHtml"
+    @autosave-error="onAutosaveError"
   />
 </template>
 
 <script setup lang="ts">
-import { EmailBuilder, type EmailDocument, type MergeTagDef } from '@naturaldevcr/vue-mail-designer'
+import {
+  EmailBuilder,
+  type AutosaveErrorPayload,
+  type AutosaveOptions,
+  type EmailDocument,
+  type MergeTagDef,
+} from '@naturaldevcr/vue-mail-designer'
 import '@naturaldevcr/vue-mail-designer/style.css'
 import { ref } from 'vue'
 
 const design = ref<EmailDocument>()
 const mergeTags: MergeTagDef[] = [{ name: 'First name', value: 'first_name' }]
+const autosave: AutosaveOptions = {
+  enabled: true,
+  storage: { type: 'local', key: 'campaign:spring-launch:draft' },
+  restore: true,
+}
 
 async function uploadImage(file: File): Promise<string> {
   // upload the file to your CDN and return the URL
@@ -56,6 +69,10 @@ const mediaLibrary = {
 
 function onHtml(html: string) {
   // save or send the HTML
+}
+
+function onAutosaveError(payload: AutosaveErrorPayload) {
+  // report autosave failures
 }
 </script>
 ```
@@ -101,6 +118,48 @@ To hide the builder header while using distinct colors for each mode:
 
 The flat `Appearance` form remains supported. When the header is hidden, built-in export and theme-toggle controls are also removed, so the host app should use the component's methods and events for those actions.
 
+## Autosave
+
+Autosave is optional and uses the public `autosave` prop:
+
+```ts
+type AutosaveOptions = {
+  enabled: boolean
+  storage: AutosaveStorage
+  mode?: 'change' | 'debounce' | 'interval'
+  delay?: number
+  restore?: boolean
+  restorePrecedence?: 'initial-design' | 'saved-design'
+}
+```
+
+The two supported storage shapes are:
+
+```ts
+type AutosaveStorage =
+  | {
+      type: 'local'
+      key: string
+      storage?: Storage
+    }
+  | {
+      type: 'custom'
+      load?: () => Promise<EmailDocument | undefined> | EmailDocument | undefined
+      save: (document: EmailDocument) => Promise<void> | void
+    }
+```
+
+- `mode` defaults to `'debounce'`
+- `delay` defaults to `1000` for `'debounce'`, `5000` for `'interval'`, and `0` for `'change'`
+- `restorePrecedence` defaults to `'initial-design'`
+- save-only custom adapters are supported because `load` is optional
+
+Use a stable local-storage key for the same host record, such as `campaign:${campaignId}:draft`. For custom storage, the library only calls your `load` and `save` functions; retention, deletion, conflict resolution, and any remote cleanup remain the host application's responsibility.
+
+Listen for the autosave lifecycle through `autosave-status`, `autosave-saved`, `autosave-restored`, and `autosave-error`, and read the current lifecycle state through `getAutosaveStatus()`.
+
+See the full [Autosave guide](https://naturaldevcr.github.io/vue-mail-designer/guide/autosave).
+
 ## Props
 
 | Prop | Type | Description |
@@ -117,6 +176,7 @@ The flat `Appearance` form remains supported. When the header is hidden, built-i
 | `locale` | `'en' \| 'es' \| LocaleDict` | Public UI language option. English (`'en'`) is the default, Spanish (`'es'`) is the built-in alternative, and a `LocaleDict` is merged on top of English so you can override only the keys you want. |
 | `appearance` | `Appearance \| ThemeAppearance` | Builder colors. A flat object (`{ accent, panel, border, background, foreground, muted }`) applies to both modes. The union Appearance or ThemeAppearance also accepts `{ light?: Appearance, dark?: Appearance }` for mode-specific values; omitted fields keep that mode's defaults. |
 | `ai` | `AiOptions` | Optional Chrome built-in AI tools for the rich text editor: `{ enabled: boolean, languages?: AiLanguage[] }`. The menu is rendered only when enabled; `languages` configures Translate targets. Browser API availability is checked at runtime. |
+| `autosave` | `AutosaveOptions` | Optional draft persistence with local or custom storage, configurable save timing, optional restore, and precedence control. |
 | `tools` | `Partial<Record<BlockType, ToolConfig>>` | Per-block palette config: `{ enabled?, position?, usageLimit? }` to hide, reorder, or limit instances. |
 | `fonts` | `FontDef[]` | List of fonts (`{ label, value, url? }`); Google Fonts (`url`) are loaded both in the canvas and in the exported HTML. Defaults to a curated list. |
 | `specialLinks` | `SpecialLink[]` | Special links insertable from the editor (`{ name, href }`, e.g. an unsubscribe link). |
@@ -167,6 +227,10 @@ From the **Export → Import from Unlayer…** menu you can paste an Unlayer des
 - `update:design` — on every design change.
 - `change` — same as above, for when you'd rather not use `v-model`.
 - `export-html` — when calling `exportHtml()`; delivers the HTML.
+- `autosave-status` — emits `{ status, error? }` when autosave changes lifecycle state.
+- `autosave-saved` — emits `{ design, savedAt }` after a successful save.
+- `autosave-restored` — emits `{ design, restoredAt }` after a saved draft is applied.
+- `autosave-error` — emits `{ operation: 'load' | 'save', error }` after a load or save failure.
 
 ## Methods (via ref)
 
@@ -174,6 +238,7 @@ From the **Export → Import from Unlayer…** menu you can paste an Unlayer des
 - `exportJson(): string`
 - `getDesign(): EmailDocument`
 - `loadDesign(doc: EmailDocument): void`
+- `getAutosaveStatus(): AutosaveStatus`
 
 ## Blocks
 
