@@ -207,3 +207,90 @@ Follow-up conclusion:
 - The requested typecheck issue in `tests/i18n.test.ts` is fixed without adding a runtime dependency.
 - The i18n audit assertions still pass.
 - `pnpm check` now fails later, in the branch’s broader still-Spanish test expectations, which were previously masked by the earlier typecheck error.
+
+## Verification cleanup after English-default migration
+
+Status: complete in scope for the reported stale expectation cleanup.
+
+Date: Tuesday, August 11, 2026
+
+Cleanup scope:
+
+- Updated only test expectations in:
+  - `tests/block-view-fase-b.test.ts`
+  - `tests/inspector-fase-b.test.ts`
+  - `tests/padding-field.test.ts`
+  - `tests/tools-config.test.ts`
+- Kept production behavior unchanged.
+- Aligned the assertions with the intentional English-default UI while preserving the existing broader Spanish-locale coverage elsewhere in the suite (notably `tests/i18n.test.ts` and localized sidepanel/image tests).
+
+Fresh `pnpm check` baseline before the cleanup:
+
+```text
+9 failing assertions, all in the four targeted test files
+```
+
+Observed stale expectations:
+
+- `tests/block-view-fase-b.test.ts`
+  - expected `/día/` while the timer placeholder now renders English `days`
+- `tests/inspector-fase-b.test.ts`
+  - expected Spanish-first labels such as `Fila de encabezado`, `Columnas`, `Espaciado`, `Fecha y hora límite`, `URL de imagen`, `Ocultar en escritorio`, `Ocultar en móvil`, and `Fuente`
+- `tests/padding-field.test.ts`
+  - expected Spanish tooltip text `Vincular lados` / `Lados independientes`
+- `tests/tools-config.test.ts`
+  - expected palette label `Imagen` instead of `Image`
+
+Verification reruns:
+
+```bash
+pnpm check
+pnpm build
+pnpm docs:build
+git diff --check
+```
+
+`pnpm check` result:
+
+```text
+Test Files  44 passed (44)
+Tests  325 passed (325)
+Duration  4.26s
+```
+
+`pnpm check` notes:
+
+- Typecheck passes.
+- Full Vitest suite now passes end-to-end.
+- Known jsdom auto-scroll warnings still appear but do not fail the run.
+
+`pnpm build` result:
+
+```text
+exit 0
+```
+
+`pnpm build` notes:
+
+- Library build passed and generated declarations successfully.
+- Demo build passed.
+- Existing demo warning remains:
+  - Vite large-chunk warning for `dist/assets/index-zdWsEl3c.js` over 500 kB after minification.
+
+`pnpm docs:build` result:
+
+```text
+exit 0
+vitepress build complete in 1.51s
+```
+
+`git diff --check` result:
+
+```text
+(no output)
+```
+
+Cleanup conclusion:
+
+- The stale Spanish-first expectations in the reported groups are now aligned with the intentional English-default behavior.
+- Full `pnpm check`, `pnpm build`, `pnpm docs:build`, and `git diff --check` all complete successfully.
