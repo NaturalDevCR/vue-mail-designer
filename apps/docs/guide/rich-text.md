@@ -43,3 +43,9 @@ By default, links inside a text block inherit `linkColor`/`linkUnderline` from t
 ```ts
 const specialLinks = [{ name: 'Unsubscribe', href: '{{unsubscribe_url}}' }]
 ```
+
+## Chrome AI tools
+
+The editor can optionally show Chrome built-in AI actions for rewriting, writing, summarizing, and translating text. Enable them with the public `ai` prop; browser availability is detected at runtime and generated content is applied only after the user chooses **Apply**.
+
+See [Chrome AI tools](/guide/chrome-ai) for configuration and browser requirements.
