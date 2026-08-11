@@ -21,6 +21,18 @@ function mountHeader() {
 }
 
 describe('BuilderHeader', () => {
+  it('uses a compact toolbar with separated brand, navigation, and actions', () => {
+    const { wrapper } = mountHeader()
+
+    expect(wrapper.find('.vmd-header-leading').exists()).toBe(true)
+    expect(wrapper.find('.vmd-header-brand-mark').text()).toBe('V')
+    expect(wrapper.find('.vmd-header-nav').exists()).toBe(true)
+    expect(wrapper.find('.vmd-header-tab').text()).toContain('Plantillas')
+    expect(wrapper.find('.vmd-header-actions').exists()).toBe(true)
+    expect(wrapper.find('.vmd-header-status').exists()).toBe(true)
+    expect(wrapper.find('.vmd-header-status-label').text()).toBe('Guardado')
+  })
+
   it('renderiza marca, plantillas, estado y exportar', () => {
     const { wrapper } = mountHeader()
     expect(wrapper.find('.vmd-header').exists()).toBe(true)
