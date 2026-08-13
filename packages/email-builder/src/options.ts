@@ -12,6 +12,37 @@ export type MergeTagGroup = { name: string; tags: MergeTagDef[] }
 export type MergeTagItem = MergeTagDef | MergeTagGroup
 export type AiLanguage = { code: string; label: string }
 export type AiOptions = { enabled: boolean; languages?: AiLanguage[] }
+
+export type AiTemplateMode = 'create' | 'edit'
+export type AiTemplateContext =
+  | Record<string, unknown>
+  | (() => Record<string, unknown> | Promise<Record<string, unknown>>)
+export type AiTemplateCustomBlock = Pick<CustomBlockDef, 'type' | 'label' | 'defaultData' | 'fields'>
+export type AiTemplateRequest = {
+  mode: AiTemplateMode
+  prompt: string
+  count: 1 | 2 | 3
+  currentDesign?: import('./schema').EmailDocument
+  context: Record<string, unknown>
+  designer: {
+    schemaVersion: 1
+    supportedBlocks: import('./schema').BlockType[]
+    customBlocks: AiTemplateCustomBlock[]
+    mergeTags: MergeTagItem[]
+  }
+}
+export type AiTemplateProposal = {
+  title: string
+  description?: string
+  design: import('./schema').EmailDocument
+}
+export type AiTemplateErrorOperation = 'context' | 'generate' | 'validate'
+export type AiTemplateErrorPayload = { operation: AiTemplateErrorOperation; error: unknown }
+export type AiTemplateOptions = {
+  enabled: boolean
+  context?: AiTemplateContext
+  generate: (request: AiTemplateRequest) => Promise<AiTemplateProposal[]>
+}
 export type TimerImageUrlBuilder = (block: TimerBlock) => string | undefined
 export type SocialIconUrlBuilder = (kind: SocialNetworkKind) => string | undefined
 

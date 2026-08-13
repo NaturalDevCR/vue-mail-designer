@@ -7,6 +7,14 @@ export { useUiStore } from './store/ui'
 export {
   type AiLanguage,
   type AiOptions,
+  type AiTemplateContext,
+  type AiTemplateCustomBlock,
+  type AiTemplateErrorOperation,
+  type AiTemplateErrorPayload,
+  type AiTemplateMode,
+  type AiTemplateOptions,
+  type AiTemplateProposal,
+  type AiTemplateRequest,
   type BuilderOptions,
   type SocialIconUrlBuilder,
   type MergeTagDef,
@@ -25,6 +33,12 @@ export {
   BUILDER_OPTIONS_KEY,
   useBuilderOptions,
 } from './options'
+export {
+  buildAiTemplateRequest,
+  resolveAiTemplateContext,
+  validateAiTemplateProposals,
+  type BuildAiTemplateRequestInput,
+} from './ai/templateGeneration'
 export type { LocaleDict } from './i18n/keys'
 export { BUILTIN_TEMPLATES, type EmailTemplate } from './templates'
 export { openverseSearch, type ImageResult } from './imageSearch'
