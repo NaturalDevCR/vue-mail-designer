@@ -18,6 +18,7 @@ All optional.
 | `locale` | `'en' \| 'es' \| LocaleDict` | Public UI language option. English (`'en'`) is the default, Spanish (`'es'`) is the built-in alternative, and a `LocaleDict` is merged on top of English so you can override only the keys you want. |
 | `appearance` | `Appearance \| ThemeAppearance` | Builder colors. A flat object (`{ accent, panel, border, background, foreground, muted }`) applies to both modes. The union Appearance or ThemeAppearance also accepts `{ light?: Appearance, dark?: Appearance }` for mode-specific values; omitted fields keep that mode's defaults. |
 | `ai` | `AiOptions` | Optional Chrome built-in AI tools for the rich text editor: `{ enabled: boolean, languages?: AiLanguage[] }`. The menu is rendered only when enabled; `languages` configures Translate targets. Browser API availability is checked at runtime. |
+| `aiTemplates` | `AiTemplateOptions` | Optional provider-agnostic AI template generation: `{ enabled, context?, generate }`. The user explicitly chooses create/edit mode and 1–3 proposals; the callback is owned by your application. See [AI template generation](/guide/ai-template-generation). |
 | `autosave` | `AutosaveOptions` | Optional autosave config: `{ enabled, storage, mode?, delay?, restore?, restorePrecedence? }`. Supports local browser storage or your own custom adapter. See [Autosave](/guide/autosave). |
 | `tools` | `Partial<Record<BlockType, ToolConfig>>` | Per-block palette config: `{ enabled?, position?, usageLimit? }` to hide, reorder, or limit instances of a block type. |
 | `fonts` | `FontDef[]` | List of available fonts (`{ label, value, url? }`); the ones with `url` (Google Fonts) are loaded both in the canvas and in the exported HTML. Defaults to a curated list. |
@@ -68,6 +69,10 @@ The right rail's **Export** tab contains the native HTML, JSON, JSON import, Unl
 ## Chrome AI
 
 See [Chrome AI tools](/guide/chrome-ai) for the complete configuration, action behavior, browser-availability notes, and Apply/Discard flow.
+
+## AI template generation
+
+See [AI template generation](/guide/ai-template-generation) for the provider callback, dynamic context, proposal validation, preview/apply flow, errors, and API-key guidance.
 
 ## Autosave
 

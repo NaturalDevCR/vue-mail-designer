@@ -8,6 +8,7 @@
     :media-library="mediaLibrary"
     :unlayer-fetch="unlayerFetch"
     :ai="{ enabled: true, languages: aiLanguages }"
+    :ai-templates="{ enabled: true, context: demoAiTemplateContext, generate: generateDemoTemplateProposals }"
     style="height: 100vh"
     @export-html="onExportHtml"
   />
@@ -18,6 +19,7 @@ import { EmailBuilder, escapeHtml, type AiLanguage, type CustomBlockDef, type Em
 import { ref, watch } from 'vue'
 import { installDemoAiFallback } from './demoAi'
 import { createDemoMediaLibrary } from './mediaLibrary'
+import { generateDemoTemplateProposals } from './demoTemplateAi'
 
 installDemoAiFallback()
 
@@ -49,6 +51,13 @@ const aiLanguages: AiLanguage[] = [
   { code: 'en', label: 'English' },
   { code: 'es', label: 'Spanish' },
 ]
+
+const demoAiTemplateContext = () => ({
+  brandName: 'Hotel Poco a Poco',
+  language: 'es',
+  brandColors: ['#0f766e', '#fef3c7'],
+  instructions: 'Usa un tono cálido y elegante.',
+})
 
 // bloque personalizado de ejemplo: una tarjeta con título + texto + color
 const customBlocks: CustomBlockDef[] = [

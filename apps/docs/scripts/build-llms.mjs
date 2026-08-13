@@ -19,6 +19,7 @@ const GUIDE = [
   ['backgrounds', 'Backgrounds', 'Body, row, and column backgrounds — color, image, size, position.'],
   ['rich-text', 'Rich text editor', 'Formatting, merge tags, link color inheritance, special links.'],
   ['chrome-ai', 'Chrome AI tools', 'Optional Chrome built-in AI tools for rewrite, write, summarize, and translate in the rich text editor.'],
+  ['ai-template-generation', 'AI template generation', 'Provider-agnostic AI creation and editing of validated email design JSON with dynamic context and proposal review.'],
   ['custom-blocks', 'Custom blocks', 'Registering integrator-defined blocks: fields, defaultData, render().'],
   ['unlayer-import', 'Importing from Unlayer', 'Converting an Unlayer design JSON/URL to this library’s format, and known field-mapping details.'],
   ['email-compatibility', 'Email compatibility', 'The HTML techniques used (ghost tables, VML, media queries) and known limitations.'],
