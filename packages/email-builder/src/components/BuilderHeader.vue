@@ -14,6 +14,7 @@
     </div>
     <div class="vmd-header-actions">
       <span class="vmd-header-status"><span class="vmd-status-dot" aria-hidden="true" /><span class="vmd-header-status-label">{{ t('header.saved') }}</span></span>
+      <AiTemplateMenu @error="forwardAiTemplateError" />
       <button
         type="button"
         class="vmd-header-btn vmd-header-btn--icon"
@@ -29,6 +30,8 @@
 </template>
 
 <script setup lang="ts">
+import AiTemplateMenu from './AiTemplateMenu.vue'
+import type { AiTemplateErrorPayload } from '../options'
 import { useI18n } from '../i18n/useI18n'
 import { ICONS } from './icons'
 import { useBuilderPinia } from '../store/keys'
@@ -36,4 +39,10 @@ import { useUiStore } from '../store/ui'
 
 const ui = useUiStore(useBuilderPinia())
 const { t } = useI18n()
+
+const emit = defineEmits<{ 'ai-templates-error': [payload: AiTemplateErrorPayload] }>()
+
+function forwardAiTemplateError(payload: AiTemplateErrorPayload): void {
+  emit('ai-templates-error', payload)
+}
 </script>

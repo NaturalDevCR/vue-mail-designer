@@ -1,6 +1,6 @@
 <template>
   <div class="vmd-root" :class="{ 'vmd-dark': ui.theme === 'dark', 'vmd-is-dragging': ui.isDragging }" :style="appearanceStyle">
-    <BuilderHeader v-if="props.showHeader !== false" />
+    <BuilderHeader v-if="props.showHeader !== false" @ai-templates-error="forwardAiTemplateError" />
     <ModalPortal v-if="ui.previewOpen">
       <PreviewDialog />
     </ModalPortal>
@@ -112,6 +112,7 @@ const emit = defineEmits<{
   'update:design': [design: EmailDocument]
   change: [design: EmailDocument]
   'export-html': [html: string]
+  'ai-templates-error': [payload: import('../options').AiTemplateErrorPayload]
   'autosave-status': [payload: AutosaveStatusPayload]
   'autosave-saved': [payload: AutosaveSavedPayload]
   'autosave-restored': [payload: AutosaveRestoredPayload]
@@ -287,6 +288,10 @@ function exportHtml(): string {
   const html = renderHtml(store.doc, props.fonts ?? DEFAULT_FONTS, props.customBlocks, props.timerImageUrlBuilder, props.socialIconUrlBuilder)
   emit('export-html', html)
   return html
+}
+
+function forwardAiTemplateError(payload: import('../options').AiTemplateErrorPayload): void {
+  emit('ai-templates-error', payload)
 }
 function exportJson(): string {
   return store.exportJson()

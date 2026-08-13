@@ -248,6 +248,40 @@ img.vmd-media-drop-active { outline: 2px solid var(--vmd-accent); outline-offset
 .vmd-ai-progress { margin: 0; font-size: 12px; color: var(--vmd-muted); }
 .vmd-ai-error { margin: 0; font-size: 12px; color: var(--vmd-danger); }
 .vmd-ai-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.vmd-ai-template { display: inline-flex; align-items: center; }
+.vmd-ai-template-toggle { display: inline-flex; align-items: center; gap: 6px; }
+.vmd-ai-template-mark { font-size: 10px; font-weight: 800; letter-spacing: .04em; color: var(--vmd-accent); }
+.vmd-ai-template-toggle-label { font-size: 12px; font-weight: 600; }
+.vmd-ai-template-modal { padding: 20px; }
+.vmd-ai-template-box { width: min(1080px, 96vw); max-height: 92vh; display: flex; flex-direction: column; }
+.vmd-ai-template-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 18px 20px; border-bottom: 1px solid var(--vmd-border); }
+.vmd-ai-template-header h2 { margin: 0; font-size: 18px; }
+.vmd-ai-template-header p { margin: 5px 0 0; color: var(--vmd-muted); font-size: 13px; }
+.vmd-ai-template-form, .vmd-ai-template-results { overflow: auto; padding: 20px; }
+.vmd-ai-template-form { max-width: 720px; width: 100%; box-sizing: border-box; margin: 0 auto; }
+.vmd-ai-template-fieldset { margin: 0 0 18px; padding: 0; border: 0; }
+.vmd-ai-template-fieldset legend, .vmd-ai-template-label { display: block; margin-bottom: 7px; color: var(--vmd-muted); font-size: 12px; font-weight: 600; }
+.vmd-ai-template-mode-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.vmd-ai-template-mode { display: flex; flex-direction: column; gap: 5px; padding: 14px; text-align: left; border: 1px solid var(--vmd-border); border-radius: 8px; background: var(--vmd-bg); color: var(--vmd-fg); cursor: pointer; }
+.vmd-ai-template-mode:hover, .vmd-ai-template-mode--selected { border-color: var(--vmd-accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--vmd-accent) 18%, transparent); }
+.vmd-ai-template-mode span { color: var(--vmd-muted); font-size: 12px; line-height: 1.4; }
+.vmd-ai-template-prompt { width: 100%; min-height: 110px; box-sizing: border-box; margin-bottom: 16px; padding: 10px; resize: vertical; border: 1px solid var(--vmd-border); border-radius: 7px; background: var(--vmd-bg); color: var(--vmd-fg); font: inherit; }
+.vmd-ai-template-count { width: 100%; box-sizing: border-box; margin-bottom: 16px; padding: 8px; border: 1px solid var(--vmd-border); border-radius: 7px; background: var(--vmd-bg); color: var(--vmd-fg); }
+.vmd-ai-template-error { margin: 0 0 12px; color: var(--vmd-danger); font-size: 13px; }
+.vmd-ai-template-loading { margin: 0 0 12px; color: var(--vmd-muted); font-size: 13px; }
+.vmd-ai-template-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+.vmd-ai-template-proposals { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
+.vmd-ai-template-proposal { display: flex; min-width: 0; flex-direction: column; gap: 10px; padding: 12px; border: 1px solid var(--vmd-border); border-radius: 9px; background: var(--vmd-bg); }
+.vmd-ai-template-proposal-copy h3 { margin: 0; font-size: 14px; }
+.vmd-ai-template-proposal-copy p { margin: 4px 0 0; color: var(--vmd-muted); font-size: 12px; line-height: 1.4; }
+.vmd-ai-template-preview { width: 100%; height: 420px; border: 1px solid var(--vmd-border); border-radius: 5px; background: #fff; }
+@media (max-width: 640px) {
+  .vmd-ai-template-toggle-label { display: none; }
+  .vmd-ai-template-mode-grid { grid-template-columns: 1fr; }
+  .vmd-ai-template-modal { padding: 8px; }
+  .vmd-ai-template-box { width: 100%; max-height: 96vh; }
+  .vmd-ai-template-preview { height: 320px; }
+}
 .vmd-rte-size { flex: none; font-size: 12px; border: 1px solid var(--vmd-border); border-radius: 4px; background: var(--vmd-panel); color: var(--vmd-fg); height: 28px; }
 .vmd-rte-font { flex: 1; min-width: 0; font-size: 12px; border: 1px solid var(--vmd-border); border-radius: 4px; background: var(--vmd-panel); color: var(--vmd-fg); height: 28px; }
 .vmd-active { border-color: var(--vmd-accent); color: var(--vmd-accent); }
