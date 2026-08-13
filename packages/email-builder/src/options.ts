@@ -101,6 +101,7 @@ export function isThemeAppearance(value: Appearance | ThemeAppearance): value is
 export type BuilderOptions = {
   mergeTags: MergeTagItem[]
   ai?: AiOptions
+  aiTemplates?: AiTemplateOptions
   uploadImage?: (file: File) => Promise<string>
   templates?: EmailTemplate[]
   imageSearch?: (query: string) => Promise<ImageResult[]>

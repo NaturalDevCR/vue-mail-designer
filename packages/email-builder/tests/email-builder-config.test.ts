@@ -1,7 +1,19 @@
+import { defineComponent, h, inject } from 'vue'
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import BuilderHeader from '../src/components/BuilderHeader.vue'
 import EmailBuilder from '../src/components/EmailBuilder.vue'
+import { BUILDER_OPTIONS_KEY, type AiTemplateOptions } from '../src/options'
+
+const OptionsProbe = defineComponent({
+  name: 'OptionsProbe',
+  setup() {
+    return { options: inject(BUILDER_OPTIONS_KEY)! }
+  },
+  render() {
+    return h('div')
+  },
+})
 
 describe('configuración del builder', () => {
   it('muestra el header por defecto y permite ocultarlo', () => {
@@ -66,5 +78,29 @@ describe('configuración del builder', () => {
 
     expect(root.style.getPropertyValue('--vmd-accent')).toBe('#222222')
     expect(root.style.getPropertyValue('--vmd-panel')).toBe('#dddddd')
+  })
+
+  it('inyecta aiTemplates de forma reactiva y lo deja indefinido por defecto', async () => {
+    const generate = async () => []
+    const aiTemplates: AiTemplateOptions = { enabled: true, generate }
+    const wrapper = mount(EmailBuilder, {
+      props: { aiTemplates },
+      global: { stubs: { BuilderHeader: OptionsProbe } },
+    })
+
+    const probe = wrapper.findComponent(OptionsProbe)
+    expect(probe.vm.options.aiTemplates?.enabled).toBe(true)
+    expect(probe.vm.options.aiTemplates?.generate).toBe(generate)
+
+    await wrapper.setProps({ aiTemplates: undefined })
+    expect(probe.vm.options.aiTemplates).toBeUndefined()
+  })
+
+  it('mantiene aiTemplates ausente cuando no se configura', () => {
+    const wrapper = mount(EmailBuilder, {
+      global: { stubs: { BuilderHeader: OptionsProbe } },
+    })
+
+    expect(wrapper.findComponent(OptionsProbe).vm.options.aiTemplates).toBeUndefined()
   })
 })

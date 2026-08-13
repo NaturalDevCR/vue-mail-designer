@@ -40,7 +40,7 @@ import type { LocaleDict } from '../i18n/keys'
 import { provideI18n, type ResolvedLocale } from '../i18n/useI18n'
 import type { UnlayerFetch } from '../import/unlayerUrl'
 import type { MediaLibraryOptions } from '../mediaLibrary'
-import { BUILDER_OPTIONS_KEY, isThemeAppearance, type AiOptions, type Appearance, type CustomBlockDef, type MergeTagItem, type SocialIconUrlBuilder, type SpecialLink, type ThemeAppearance, type TimerImageUrlBuilder, type ToolConfig } from '../options'
+import { BUILDER_OPTIONS_KEY, isThemeAppearance, type AiOptions, type AiTemplateOptions, type Appearance, type CustomBlockDef, type MergeTagItem, type SocialIconUrlBuilder, type SpecialLink, type ThemeAppearance, type TimerImageUrlBuilder, type ToolConfig } from '../options'
 import type { BlockType } from '../schema'
 import { renderHtml } from '../render/html'
 import { exportDocumentImage } from '../export/image'
@@ -79,6 +79,7 @@ const props = withDefaults(defineProps<{
   customBlocks?: CustomBlockDef[]
   mediaLibrary?: MediaLibraryOptions
   ai?: AiOptions
+  aiTemplates?: AiTemplateOptions
   autosave?: AutosaveOptions
 }>(), {
   showHeader: true,
@@ -175,6 +176,9 @@ provide(
     },
     get ai() {
       return props.ai
+    },
+    get aiTemplates() {
+      return props.aiTemplates
     },
     get uploadImage() {
       return props.uploadImage
