@@ -254,6 +254,7 @@ img.vmd-media-drop-active { outline: 2px solid var(--vmd-accent); outline-offset
 .vmd-ai-template-toggle-label { font-size: 12px; font-weight: 600; }
 .vmd-ai-template-modal { padding: 20px; }
 .vmd-ai-template-box { width: min(1080px, 96vw); max-height: 92vh; display: flex; flex-direction: column; }
+.vmd-ai-template-panel { width: 100%; min-height: 100%; box-sizing: border-box; border: 0; border-radius: 0; box-shadow: none; }
 .vmd-ai-template-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 18px 20px; border-bottom: 1px solid var(--vmd-border); }
 .vmd-ai-template-header h2 { margin: 0; font-size: 18px; }
 .vmd-ai-template-header p { margin: 5px 0 0; color: var(--vmd-muted); font-size: 13px; }

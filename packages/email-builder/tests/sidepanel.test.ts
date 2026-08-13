@@ -1,4 +1,5 @@
 import { flushPromises, mount } from '@vue/test-utils'
+import { nextTick } from 'vue'
 import { describe, expect, it } from 'vitest'
 import EmailBuilder from '../src/components/EmailBuilder.vue'
 
@@ -6,6 +7,32 @@ describe('SidePanel', () => {
   it('rail has five tabs; Content is active by default and shows the 13 blocks', () => {
     const wrapper = mount(EmailBuilder)
     expect(wrapper.findAll('.vmd-rail [data-tab]')).toHaveLength(5)
+    expect(wrapper.findAll('.vmd-content-item')).toHaveLength(13)
+  })
+
+  it('muestra la pestaña AI solo cuando la integración está habilitada explícitamente', async () => {
+    const generate = async () => []
+    const wrapper = mount(EmailBuilder, { props: { aiTemplates: { enabled: true, generate } } })
+
+    expect(wrapper.find('[data-tab="ai-templates"]').exists()).toBe(true)
+    await wrapper.find('[data-tab="ai-templates"]').trigger('click')
+    expect(wrapper.find('[data-panel="ai-templates"]').exists()).toBe(true)
+    expect(wrapper.find('[data-action="ai-template-run"]').exists()).toBe(true)
+  })
+
+  it('reacciona si AI se habilita o deshabilita en caliente', async () => {
+    const generate = async () => []
+    const wrapper = mount(EmailBuilder, { props: { aiTemplates: { enabled: false, generate } } })
+
+    expect(wrapper.find('[data-tab="ai-templates"]').exists()).toBe(false)
+    await wrapper.setProps({ aiTemplates: { enabled: true, generate } })
+    await nextTick()
+    expect(wrapper.find('[data-tab="ai-templates"]').exists()).toBe(true)
+
+    await wrapper.find('[data-tab="ai-templates"]').trigger('click')
+    await wrapper.setProps({ aiTemplates: { enabled: false, generate } })
+    await nextTick()
+    expect(wrapper.find('[data-tab="ai-templates"]').exists()).toBe(false)
     expect(wrapper.findAll('.vmd-content-item')).toHaveLength(13)
   })
 

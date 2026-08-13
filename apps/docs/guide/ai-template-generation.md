@@ -49,7 +49,7 @@ async function generate(request: AiTemplateRequest): Promise<AiTemplateProposal[
 </template>
 ```
 
-The AI action appears in the builder header only when `enabled` is `true`.
+The AI action appears in the builder header and as an `AI` tab in the side panel only when `enabled` is `true`. Both entry points use the same workflow and provider callback.
 
 ## Explicit create and edit modes
 

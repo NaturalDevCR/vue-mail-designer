@@ -9,7 +9,7 @@ export const useUiStore = defineStore('vmd-ui', () => {
   const versionsOpen = ref(false)
   const unlayerImportOpen = ref(false)
   const canvasDevice = ref<'desktop' | 'mobile'>('desktop')
-  const sidebarTab = ref<'content' | 'blocks' | 'body' | 'images' | 'export'>('content')
+  const sidebarTab = ref<'content' | 'blocks' | 'body' | 'images' | 'export' | 'ai-templates'>('content')
   const isDragging = ref(false)
   const panelMode = ref<'tab' | 'props'>('tab')
   const imageEditorBlockId = ref<string | null>(null)

@@ -24,6 +24,7 @@ export const en: LocaleDict = {
   'rail.body': 'Body',
   'rail.images': 'Images',
   'rail.export': 'Export',
+  'rail.aiTemplates': 'AI',
   'rail.media': 'Gallery',
 
   'palette.heading': 'Heading',
