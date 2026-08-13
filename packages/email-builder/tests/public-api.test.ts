@@ -4,6 +4,7 @@ import {
   EmailBuilder,
   type AiLanguage,
   type AiOptions,
+  type AiTemplateOptions,
   type AutosaveErrorPayload,
   type AutosaveMode,
   type AutosaveOptions,
@@ -15,9 +16,14 @@ import {
 } from '../src'
 import { createBlock, createDocument, createRow } from '../src/schema'
 import type { TimerBlock } from '../src/schema'
+import { findInBody } from './modal-test-utils'
 
 const packageRootAiLanguage: AiLanguage = { code: 'es', label: 'Spanish' }
 const packageRootAiOptions: AiOptions = { enabled: true, languages: [packageRootAiLanguage] }
+const packageRootAiTemplateOptions: AiTemplateOptions = {
+  enabled: true,
+  generate: async () => [{ title: 'Generated', design: createDocument() }],
+}
 const packageRootAutosaveStorage: AutosaveStorage = { type: 'custom', save: async () => {} }
 const packageRootAutosaveMode: AutosaveMode = 'change'
 const packageRootAutosaveOptions: AutosaveOptions = {
@@ -141,6 +147,21 @@ describe('API pública de EmailBuilder', () => {
       enabled: true,
       languages: [{ code: 'es', label: 'Spanish' }],
     })
+  })
+
+  it('re-exporta y emite errores del generador de plantillas', async () => {
+    expect(packageRootAiTemplateOptions.enabled).toBe(true)
+    const generate = vi.fn().mockRejectedValue(new Error('backend unavailable'))
+    const wrapper = mount(EmailBuilder, { props: { aiTemplates: { enabled: true, generate } } })
+
+    await wrapper.find('[data-action="ai-template-toggle"]').trigger('click')
+    await findInBody('[data-action="ai-template-mode-create"]').trigger('click')
+    await findInBody('[data-field="ai-template-prompt"]').setValue('Create a design')
+    await findInBody('[data-action="ai-template-run"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.emitted('ai-templates-error')?.[0]?.[0]).toEqual({ operation: 'generate', error: expect.any(Error) })
+    expect(generate).toHaveBeenCalledOnce()
   })
 
   it('re-exporta la superficie pública de autosave desde el package root', () => {

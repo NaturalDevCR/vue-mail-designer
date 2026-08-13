@@ -181,11 +181,13 @@ async function run(): Promise<void> {
   const activeRequestId = ++requestId
   loading.value = true
   errorMessage.value = ''
+  let operation: AiTemplateErrorPayload['operation'] = 'context'
 
   try {
     const context = await resolveAiTemplateContext(configured.context)
     if (!mounted || activeRequestId !== requestId) return
 
+    operation = 'generate'
     const design = clone(store.doc)
     const request = buildAiTemplateRequest({
       mode: mode.value,
@@ -206,7 +208,6 @@ async function run(): Promise<void> {
     }
   } catch (error) {
     if (!mounted || activeRequestId !== requestId) return
-    const operation = error instanceof Error && error.message.includes('context') ? 'context' : 'generate'
     report(operation, error, operation === 'context' ? t('aiTemplates.contextError') : t('aiTemplates.generateError'))
   } finally {
     if (mounted && activeRequestId === requestId) loading.value = false

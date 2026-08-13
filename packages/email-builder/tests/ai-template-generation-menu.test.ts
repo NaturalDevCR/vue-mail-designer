@@ -150,4 +150,21 @@ describe('AiTemplateMenu', () => {
     expect(wrapper.emitted('error')?.[0]?.[0]).toEqual({ operation: 'generate', error: expect.any(Error) })
     wrapper.unmount()
   })
+
+  it('reports context resolution failures separately', async () => {
+    const generate = vi.fn().mockResolvedValue([proposal()])
+    const context = vi.fn().mockRejectedValue(new Error('context unavailable'))
+    const { wrapper } = mountMenu({ enabled: true, context, generate })
+
+    await wrapper.find('[data-action="ai-template-toggle"]').trigger('click')
+    await findInBody('[data-action="ai-template-mode-create"]').trigger('click')
+    await findInBody('[data-field="ai-template-prompt"]').setValue('Create a design')
+    await findInBody('[data-action="ai-template-run"]').trigger('click')
+    await flushPromises()
+
+    expect(findInBody('[role="alert"]').text()).toBe('Could not resolve the current AI context.')
+    expect(wrapper.emitted('error')?.[0]?.[0]).toEqual({ operation: 'context', error: expect.any(Error) })
+    expect(generate).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
 })
