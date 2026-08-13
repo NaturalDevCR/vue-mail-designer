@@ -9,6 +9,7 @@ export {
   type AiOptions,
   type AiTemplateContext,
   type AiTemplateCustomBlock,
+  type AiTemplateJsonSchema,
   type AiTemplateErrorOperation,
   type AiTemplateErrorPayload,
   type AiTemplateMode,
@@ -35,10 +36,12 @@ export {
 } from './options'
 export {
   buildAiTemplateRequest,
+  normalizeAiTemplateDesign,
   resolveAiTemplateContext,
   validateAiTemplateProposals,
   type BuildAiTemplateRequestInput,
 } from './ai/templateGeneration'
+export { AI_EMAIL_DOCUMENT_SCHEMA, AI_TEMPLATE_OUTPUT_SCHEMA } from './ai/templateSchema'
 export type { LocaleDict } from './i18n/keys'
 export { BUILTIN_TEMPLATES, type EmailTemplate } from './templates'
 export { openverseSearch, type ImageResult } from './imageSearch'

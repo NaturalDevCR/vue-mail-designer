@@ -18,6 +18,7 @@ export type AiTemplateContext =
   | Record<string, unknown>
   | (() => Record<string, unknown> | Promise<Record<string, unknown>>)
 export type AiTemplateCustomBlock = Pick<CustomBlockDef, 'type' | 'label' | 'defaultData' | 'fields'>
+export type AiTemplateJsonSchema = Record<string, unknown>
 export type AiTemplateRequest = {
   mode: AiTemplateMode
   prompt: string
@@ -29,6 +30,7 @@ export type AiTemplateRequest = {
     supportedBlocks: import('./schema').BlockType[]
     customBlocks: AiTemplateCustomBlock[]
     mergeTags: MergeTagItem[]
+    outputSchema: AiTemplateJsonSchema
   }
 }
 export type AiTemplateProposal = {
