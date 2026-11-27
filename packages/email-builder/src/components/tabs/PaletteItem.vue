@@ -1,9 +1,13 @@
 <template>
-  <div
+  <button
     ref="el"
+    type="button"
     class="vmd-content-item"
     :class="{ 'vmd-content-item--disabled': disabled }"
     :title="title"
+    :aria-label="previewLabel"
+    :disabled="disabled"
+    @click="emit('insert')"
     v-html="html"
   />
 </template>
@@ -20,6 +24,7 @@ const props = defineProps<{
   previewLabel: string
   create: () => Block
 }>()
+const emit = defineEmits<{ insert: [] }>()
 
 const el = ref<HTMLElement | null>(null)
 

@@ -27,6 +27,28 @@ describe('NumberField', () => {
     expect(wrapper.emitted('update:modelValue')).toEqual([[30]])
   })
 
+  it.each(['9', '101', ''])('no aplica el borrador inválido %j y restaura el valor al salir del campo', async (draft) => {
+    const wrapper = mount(NumberField, { props: { label: 'Ancho %', modelValue: 50, min: 10, max: 100 } })
+    const number = wrapper.get('input[type="number"]')
+
+    await number.setValue(draft)
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+    expect((number.element as HTMLInputElement).value).toBe(draft)
+
+    await number.trigger('blur')
+    expect((number.element as HTMLInputElement).value).toBe('50')
+  })
+
+  it('permite reemplazar el número vacío con un valor válido cuando el campo no tiene límites', async () => {
+    const wrapper = mount(NumberField, { props: { label: 'Cantidad', modelValue: 3 } })
+    const number = wrapper.get('input[type="number"]')
+
+    await number.setValue('')
+    await number.setValue('4')
+
+    expect(wrapper.emitted('update:modelValue')).toEqual([[4]])
+  })
+
   it('sin min/max, no renderiza ningún range — solo el number de ancho completo', () => {
     const wrapper = mount(NumberField, { props: { label: 'Cantidad', modelValue: 3 } })
     expect(wrapper.find('input[type="range"]').exists()).toBe(false)

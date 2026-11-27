@@ -20,6 +20,7 @@ All optional.
 | `ai` | `AiOptions` | Optional Chrome built-in AI tools for the rich text editor: `{ enabled: boolean, languages?: AiLanguage[] }`. The menu is rendered only when enabled; `languages` configures Translate targets. Browser API availability is checked at runtime. |
 | `aiTemplates` | `AiTemplateOptions` | Optional provider-agnostic AI template generation: `{ enabled, context?, generate }`. The user explicitly chooses create/edit mode and 1–3 proposals; the callback is owned by your application. See [AI template generation](/guide/ai-template-generation). |
 | `autosave` | `AutosaveOptions` | Optional autosave config: `{ enabled, storage, mode?, delay?, restore?, restorePrecedence? }`. Supports local browser storage or your own custom adapter. See [Autosave](/guide/autosave). |
+| `versionHistory` | `VersionHistoryOptions` | Keeps named snapshots between mounts using `{ key, storage? }`. Defaults to `localStorage` when a key is provided. See [Versions](/reference/methods#versions). |
 | `tools` | `Partial<Record<BlockType, ToolConfig>>` | Per-block palette config: `{ enabled?, position?, usageLimit? }` to hide, reorder, or limit instances of a block type. |
 | `fonts` | `FontDef[]` | List of available fonts (`{ label, value, url? }`); the ones with `url` (Google Fonts) are loaded both in the canvas and in the exported HTML. Defaults to a curated list. |
 | `specialLinks` | `SpecialLink[]` | Predefined links insertable from the text editor (`{ name, href }`) — for example, an unsubscribe link resolved by your sending platform. |

@@ -16,6 +16,7 @@
           <input
             type="number"
             class="vmd-preview-width vmd-field-input"
+            :aria-label="t('dialog.previewWidth')"
             min="320"
             max="1400"
             v-model.number="ui.previewWidth"
@@ -31,7 +32,11 @@
       <div class="vmd-preview-stage">
         <iframe
           class="vmd-preview-frame"
-          :srcdoc="html"
+          :title="t('canvasbar.preview')"
+          tabindex="-1"
+          sandbox=""
+          referrerpolicy="no-referrer"
+          :srcdoc="previewHtml"
           :style="{ width: ui.previewWidth + 'px' }"
         />
       </div>
@@ -43,6 +48,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from '../i18n/useI18n'
 import { renderHtml } from '../render/html'
+import { isolatePreviewHtml } from '../editor/previewHtml'
 import { ICONS } from './icons'
 import { useBuilderOptions } from '../options'
 import { useDocumentStore } from '../store/document'
@@ -55,6 +61,7 @@ const ui = useUiStore(pinia)
 const options = useBuilderOptions()
 const { t } = useI18n()
 const html = computed(() => renderHtml(store.doc, options.fonts, options.customBlocks, options.timerImageUrlBuilder, options.socialIconUrlBuilder))
+const previewHtml = computed(() => isolatePreviewHtml(html.value))
 const copied = ref(false)
 const presets = computed(() => [
   { name: 'desktop', title: t('dialog.previewDesktop'), icon: 'desktop', width: 1000 },

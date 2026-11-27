@@ -1,16 +1,13 @@
 <template>
-  <section ref="scrollEl" class="vmd-canvas" @click.self="store.select(null)">
-    <!-- superficie ancha: aquí viven las filas (hover/selección puede extenderse a los
-         márgenes sin pisar el contenido). El "body" (ancho de contenido, color de fondo del
-         documento) es una franja angosta centrada, independiente del ancho de la superficie. -->
-    <div class="vmd-canvas-surface">
-      <div class="vmd-canvas-body-bg" :style="[bodyBgStyle, { width: pageWidth + 'px' }]" />
+  <section ref="scrollEl" class="vmd-canvas" tabindex="-1" @click.self="store.select(null)">
+    <div class="vmd-canvas-surface" :data-device="ui.canvasDevice">
+      <div class="vmd-canvas-body-bg" aria-hidden="true" :style="bodyBgStyle" />
       <div ref="rowsEl" class="vmd-canvas-rows" :class="{ 'vmd-drop-active': containerEdge !== null }">
         <div v-if="store.doc.rows.length === 0" class="vmd-canvas-empty">
           <p>{{ t('canvas.emptyHint') }}</p>
           <button type="button" class="vmd-btn vmd-btn--primary" @click="store.addRow([100])">{{ t('canvas.addRow') }}</button>
         </div>
-        <RowView v-for="row in store.doc.rows" :key="row.id" :row="row" :content-width="pageWidth" />
+        <RowView v-for="row in store.doc.rows" :key="row.id" :row="row" :content-width="store.doc.settings.contentWidth" />
       </div>
     </div>
   </section>
@@ -34,15 +31,11 @@ const { t } = useI18n()
 const scrollEl = ref<HTMLElement | null>(null)
 const rowsEl = ref<HTMLElement | null>(null)
 
-const pageWidth = computed(() => (ui.canvasDevice === 'mobile' ? 375 : store.doc.settings.contentWidth))
-
-// fondo del "body": una franja de ancho de contenido, no del canvas — cambiar el color del
-// body ya no tiñe toda la superficie ancha del canvas.
 const bodyBgStyle = computed(() => {
   const s = store.doc.settings
   const style: Record<string, string> = { backgroundColor: s.backgroundColor }
   if (s.backgroundImage) {
-    style.backgroundImage = `url(${s.backgroundImage.url})`
+    style.backgroundImage = `url(${JSON.stringify(s.backgroundImage.url)})`
     style.backgroundSize = s.backgroundImage.size
     style.backgroundPosition = s.backgroundImage.position
     style.backgroundRepeat = s.backgroundImage.repeat

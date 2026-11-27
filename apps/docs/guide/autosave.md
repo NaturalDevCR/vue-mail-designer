@@ -49,14 +49,16 @@ const autosave: AutosaveOptions = {
     async load() {
       const response = await fetch('/api/campaigns/spring-launch/autosave')
       if (response.status === 404) return undefined
+      if (!response.ok) throw new Error(`Could not load draft (${response.status})`)
       return await response.json() as EmailDocument
     },
     async save(document) {
-      await fetch('/api/campaigns/spring-launch/autosave', {
+      const response = await fetch('/api/campaigns/spring-launch/autosave', {
         method: 'PUT',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(document),
       })
+      if (!response.ok) throw new Error(`Could not save draft (${response.status})`)
     },
   },
   restore: true,
@@ -77,11 +79,12 @@ const autosave: AutosaveOptions = {
   storage: {
     type: 'custom',
     async save(document) {
-      await fetch('/api/campaigns/spring-launch/autosave', {
+      const response = await fetch('/api/campaigns/spring-launch/autosave', {
         method: 'PUT',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(document),
       })
+      if (!response.ok) throw new Error(`Could not save draft (${response.status})`)
     },
   },
 }

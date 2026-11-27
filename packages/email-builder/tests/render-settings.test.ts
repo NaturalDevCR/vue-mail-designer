@@ -39,4 +39,22 @@ describe('settings nuevos', () => {
     const html = renderHtml(doc)
     expect(html).toContain('<a style="color:#ff0000;text-decoration:none;" href="https://example.com">')
   })
+
+  it('conserva otros estilos inline y los atributos de un enlace importado', () => {
+    const doc = createDocument()
+    const row = createRow([100])
+    const text = createBlock('text') as TextBlock
+    text.html = `<p><a title='A > B' href="https://example.com" style='font-weight:bold;color:blue;text-decoration:underline'>Oferta</a></p>`
+    row.columns[0].blocks.push(text)
+    doc.rows.push(row)
+    doc.settings.linkColor = '#ff0000'
+    doc.settings.linkUnderline = false
+
+    const html = new DOMParser().parseFromString(renderHtml(doc), 'text/html')
+    const link = html.querySelector('a')!
+    expect(link.style.fontWeight).toBe('bold')
+    expect(link.style.color).toBe('rgb(255, 0, 0)')
+    expect(link.style.textDecoration).toBe('none')
+    expect(link.title).toBe('A > B')
+  })
 })

@@ -11,6 +11,16 @@ afterEach(() => {
 })
 
 describe('modal portals', () => {
+  it('names the preview dialog and closes it on a keyboard cancel', async () => {
+    const wrapper = mount(EmailBuilder)
+    await wrapper.get('[data-action="preview"]').trigger('click')
+
+    const dialog = findInBody('dialog[aria-label="Preview"]')
+    await dialog.trigger('cancel')
+
+    expect(document.body.querySelector('dialog[aria-label="Preview"]')).toBeNull()
+  })
+
   function assertBodyPortal(selector: string): void {
     const element = document.body.querySelector(selector)
     expect(element).not.toBeNull()

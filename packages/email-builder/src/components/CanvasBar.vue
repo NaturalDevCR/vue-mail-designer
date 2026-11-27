@@ -30,13 +30,10 @@ const barEl = ref<HTMLElement | null>(null)
 let root: HTMLElement | null = null
 
 function onKeydown(e: KeyboardEvent) {
+  if (e.defaultPrevented) return
   const t = e.target as HTMLElement | null
   // no interceptar edición de texto (inputs del host o del builder, y el editor Tiptap)
   if (t && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName))) return
-  // solo actuar si el foco está dentro de este builder o en el body
-  // nota: con múltiples instancias del builder en la misma página y foco en body,
-  // todas las instancias manejarán el atajo (edge case aceptable)
-  if (t && t !== document.body && root && !root.contains(t)) return
 
   const meta = e.metaKey || e.ctrlKey
   if (meta && e.key.toLowerCase() === 'z') {
@@ -47,7 +44,7 @@ function onKeydown(e: KeyboardEvent) {
 }
 onMounted(() => {
   root = barEl.value?.closest('.vmd-root') ?? null
-  window.addEventListener('keydown', onKeydown)
+  root?.addEventListener('keydown', onKeydown)
 })
-onUnmounted(() => window.removeEventListener('keydown', onKeydown))
+onUnmounted(() => root?.removeEventListener('keydown', onKeydown))
 </script>

@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, ref, toRaw } from 'vue'
 import type { Block, BlockType, Column, EmailDocument, EmailSettings, Row } from '../schema'
 import { createBlock, createColumn, createId, createDocument, createRow, zEmailDocument } from '../schema'
+import { readVersionHistory, writeVersionHistory, type VersionHistoryOptions, type VersionSnapshot } from '../versionHistory'
 
 export type Selection = { kind: 'row' | 'block'; id: string }
 
@@ -248,17 +249,66 @@ export const useDocumentStore = defineStore('vmd-document', () => {
     selection.value = null
   }
 
-  // versiones nombradas (en memoria)
-  const versions = ref<{ id: string; name: string; at: number; doc: EmailDocument }[]>([])
+  const versions = ref<VersionSnapshot[]>([])
+  const versionHistoryPersistent = ref(false)
+  const versionHistoryError = ref<'load' | 'save' | 'delete' | null>(null)
+  let versionDestination: VersionHistoryOptions | undefined
+
+  function configureVersionHistory(options?: VersionHistoryOptions): boolean {
+    const next = options?.key.trim() ? { key: options.key, storage: toRaw(options.storage) } : undefined
+    if (next?.key === versionDestination?.key && next?.storage === versionDestination?.storage) return false
+
+    versionDestination = next
+    versionHistoryPersistent.value = next !== undefined
+    versionHistoryError.value = null
+    versions.value = []
+    refreshVersions()
+    return true
+  }
+
+  function refreshVersions(): boolean {
+    if (!versionDestination) return true
+
+    try {
+      versions.value = readVersionHistory(versionDestination)
+      versionHistoryError.value = null
+      return true
+    } catch {
+      versionHistoryError.value = 'load'
+      return false
+    }
+  }
+
+  function updateVersions(operation: 'save' | 'delete', update: (current: VersionSnapshot[]) => VersionSnapshot[]): boolean {
+    if (!refreshVersions()) return false
+
+    try {
+      const next = update(versions.value)
+      if (versionDestination) writeVersionHistory(versionDestination, next)
+      versions.value = next
+      versionHistoryError.value = null
+      return true
+    } catch {
+      versionHistoryError.value = operation
+      return false
+    }
+  }
+
   function saveVersion(name: string) {
-    versions.value.push({ id: createId('ver'), name, at: Date.now(), doc: clone(doc.value) })
+    const trimmed = name.trim()
+    if (!trimmed) return false
+
+    return updateVersions('save', (current) => [
+      ...current,
+      { id: createId('ver'), name: trimmed, at: Date.now(), doc: clone(doc.value) },
+    ])
   }
   function loadVersion(id: string) {
     const v = versions.value.find((x) => x.id === id)
     if (v) loadDesign(v.doc)
   }
   function deleteVersion(id: string) {
-    versions.value = versions.value.filter((x) => x.id !== id)
+    return updateVersions('delete', (current) => current.filter((x) => x.id !== id))
   }
 
   const canUndo = computed(() => past.value.length > 0)
@@ -362,7 +412,8 @@ export const useDocumentStore = defineStore('vmd-document', () => {
     updateBlock, updateRowStyle, updateRow, updateColumn, updateSettings,
     select, loadDesign,
     canUndo, canRedo, undo, redo, resetHistory, sealHistory, historyMark, mergeCommitsSince, exportJson, importJson,
-    versions, saveVersion, loadVersion, deleteVersion,
+    versions, versionHistoryPersistent, versionHistoryError, configureVersionHistory, refreshVersions,
+    saveVersion, loadVersion, deleteVersion,
   }
 })
 

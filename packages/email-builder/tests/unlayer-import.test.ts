@@ -76,9 +76,41 @@ describe('unlayerToDocument', () => {
   it('JSON irreconocible lanza error legible', () => {
     expect(() => unlayerToDocument({ foo: 1 })).toThrow(/Unlayer/)
   })
+
+  it('identifica una fila malformada en vez de importar un diseño incompleto', () => {
+    for (const invalidRow of [null, 42, []]) {
+      expect(() => unlayerToDocument({ rows: [{ cells: [1] }, invalidRow] })).toThrow(
+        'La fila 2 del diseño de Unlayer debe ser un objeto.',
+      )
+    }
+  })
+
+  it('advierte sobre estilos y condiciones de visualización del cuerpo que no importa', () => {
+    const { warnings } = unlayerToDocument({ body: { rows: [], values: {
+      _override: { mobile: { contentWidth: '360px' } },
+      displayCondition: { type: 'rule' },
+      fontFamily: { value: 'Roboto', url: 'https://fonts.googleapis.com/example' },
+    } } })
+    expect(warnings).toEqual(expect.arrayContaining([
+      expect.stringMatching(/estilos móviles/i),
+      expect.stringMatching(/condiciones de visualización/i),
+      expect.stringMatching(/fuentes de Google/i),
+    ]))
+  })
 })
 
 describe('conversor robusto', () => {
+  it('conserva el contenido de todas las columnas cuando no hay anchos de celda', () => {
+    const columns = ['Primera', 'Segunda'].map((text) => ({ contents: [{ type: 'text', values: { text } }] }))
+    for (const row of [{ columns }, { cells: [], columns }]) {
+      const { document } = unlayerToDocument({ rows: [row] })
+      expect(document.rows[0].columns).toMatchObject([
+        { widthPct: 50, blocks: [{ type: 'text', html: 'Primera' }] },
+        { widthPct: 50, blocks: [{ type: 'text', html: 'Segunda' }] },
+      ])
+    }
+  })
+
   it('cells [0, 100] no lanza y clampea la columna de peso 0 a widthPct 5', () => {
     const d = { rows: [{ cells: [0, 100], values: {}, columns: [
       { values: {}, contents: [] },

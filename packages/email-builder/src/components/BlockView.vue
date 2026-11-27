@@ -40,7 +40,7 @@
         fontFamily: block.fontFamily || fontFamily,
       }"
     >
-      <div class="vmd-b-text" v-html="textHtml" />
+      <div class="vmd-b-text" v-html="textHtml" @click.prevent @auxclick.prevent />
     </div>
 
     <!-- image -->
@@ -122,7 +122,9 @@
     </div>
 
     <!-- html -->
-    <div v-else-if="block.type === 'html'" class="vmd-b-html" :style="{ padding: padCss(block.style.padding) }" v-html="block.code" />
+    <div v-else-if="block.type === 'html'" class="vmd-b-html" :style="{ padding: padCss(block.style.padding) }">
+      <HtmlCanvasPreview :html="block.code" :title="t('palette.html')" :dark="ui.theme === 'dark'" />
+    </div>
 
     <!-- video -->
     <div v-else-if="block.type === 'video'" :style="{ padding: padCss(block.style.padding), textAlign: 'center' }">
@@ -201,7 +203,7 @@
 
     <!-- custom -->
     <div v-else-if="block.type === 'custom'" :style="{ padding: padCss(block.style.padding) }">
-      <div v-if="customHtml !== null" v-html="customHtml" />
+      <HtmlCanvasPreview v-if="customHtml !== null" :html="customHtml" :title="t('canvas.customBlock')" :dark="ui.theme === 'dark'" />
       <div v-else class="vmd-b-image-placeholder">{{ t('canvas.customBlock') }} «{{ block.customType }}»</div>
     </div>
   </div>
@@ -210,6 +212,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { SOCIAL_BRANDS, socialSvg, styleLinks } from '../render/html'
+import { sanitizeRichText } from '../editor/previewHtml'
 import type { Block, Padding, SocialNetworkKind } from '../schema'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
@@ -220,6 +223,7 @@ import { useCanvasImageDrag, useDraggableItem, useDropTarget, useMediaDropTarget
 import { dropBlock, dropCanvasImage, dropMediaImageOnImageBlock } from '../dnd/applyDrop'
 import { ICONS } from './icons'
 import GalleryItemView from './GalleryItemView.vue'
+import HtmlCanvasPreview from './HtmlCanvasPreview.vue'
 
 const props = withDefaults(defineProps<{ block: Block; columnId?: string }>(), { columnId: '' })
 const pinia = useBuilderPinia()
@@ -229,6 +233,7 @@ const options = useBuilderOptions()
 const { t } = useI18n()
 const el = ref<HTMLElement | null>(null)
 const handle = ref<HTMLElement | null>(null)
+const mounted = ref(false)
 
 useDraggableItem({
   el,
@@ -275,10 +280,10 @@ const fontFamily = computed(() => store.doc.settings.fontFamily)
 // bloque hereda del body si no tiene los suyos propios (mismo criterio que renderHtml).
 const textHtml = computed(() => {
   const b = props.block
-  if (b.type !== 'text') return ''
+  if (b.type !== 'text' || !mounted.value) return ''
   const color = b.linkColor ?? store.doc.settings.linkColor
   const underline = b.linkUnderline ?? store.doc.settings.linkUnderline
-  return styleLinks(b.html, color, underline)
+  return sanitizeRichText(styleLinks(b.html, color, underline))
 })
 
 function socialGlyphHtml(kind: SocialNetworkKind, size: number): string {
@@ -301,6 +306,7 @@ const timerImageUrl = computed(() => {
 })
 
 onMounted(() => {
+  mounted.value = true
   timerClock = setInterval(() => { timerNow.value = Date.now() }, 1000)
 })
 

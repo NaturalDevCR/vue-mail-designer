@@ -6,14 +6,23 @@
         <span class="vmd-header-brand-name">Vue Mail Designer</span>
       </div>
       <nav class="vmd-header-nav" :aria-label="t('header.templates')">
-        <button type="button" class="vmd-header-tab" data-action="templates" @click="ui.galleryOpen = true">
+        <button type="button" class="vmd-header-tab" data-action="templates" :aria-label="t('header.templates')" @click="ui.galleryOpen = true">
           <span class="vmd-ico" aria-hidden="true" v-html="ICONS.gallery" />
           <span class="vmd-header-tab-label">{{ t('header.templates') }}</span>
         </button>
       </nav>
     </div>
     <div class="vmd-header-actions">
-      <span class="vmd-header-status"><span class="vmd-status-dot" aria-hidden="true" /><span class="vmd-header-status-label">{{ t('header.saved') }}</span></span>
+      <span
+        v-if="autosaveStatus !== 'disabled'"
+        class="vmd-header-status"
+        role="status"
+        :data-status="autosaveStatus"
+        :title="autosaveLabel"
+      >
+        <span class="vmd-status-dot" aria-hidden="true" />
+        <span>{{ autosaveLabel }}</span>
+      </span>
       <AiTemplateMenu @error="forwardAiTemplateError" />
       <button
         type="button"
@@ -30,7 +39,9 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import AiTemplateMenu from './AiTemplateMenu.vue'
+import type { AutosaveStatus } from '../autosave/types'
 import type { AiTemplateErrorPayload } from '../options'
 import { useI18n } from '../i18n/useI18n'
 import { ICONS } from './icons'
@@ -39,6 +50,8 @@ import { useUiStore } from '../store/ui'
 
 const ui = useUiStore(useBuilderPinia())
 const { t } = useI18n()
+const props = withDefaults(defineProps<{ autosaveStatus?: AutosaveStatus | 'pending' }>(), { autosaveStatus: 'disabled' })
+const autosaveLabel = computed(() => t(props.autosaveStatus === 'saved' ? 'header.saved' : `header.autosave.${props.autosaveStatus}`))
 
 const emit = defineEmits<{ 'ai-templates-error': [payload: AiTemplateErrorPayload] }>()
 

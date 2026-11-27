@@ -11,7 +11,7 @@
       <span class="vmd-ai-template-toggle-label">{{ t('aiTemplates.menu') }}</span>
     </button>
 
-    <ModalPortal v-if="open">
+    <ModalPortal v-if="open" :label="t('aiTemplates.title')" @cancel="closeMenu">
       <div class="vmd-modal vmd-ai-template-modal" @click.self="closeMenu">
         <AiTemplatePanel @error="forwardError" @close="closeMenu" />
       </div>

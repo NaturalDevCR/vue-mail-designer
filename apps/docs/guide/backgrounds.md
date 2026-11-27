@@ -6,7 +6,7 @@ The **email body's background color and image** are edited in the inspector's **
 
 ## Row and column background
 
-**Rows are transparent by default** so the body background shows through. Each row and each column can have its own background color and image, independent of the body.
+**Rows are transparent by default**, so the body background shows through. The row background color fills the email's width. The content background color fills just the padded area bounded by `contentWidth`. Columns can have their own background color.
 
 For a row background image:
 
@@ -14,7 +14,9 @@ For a row background image:
 - **`repeat`** — `no-repeat` / `repeat` / `repeat-x` / `repeat-y`.
 - **`size`** — `auto` (natural size, not stretched), `cover` (fills the container, may crop), or `contain` (fits entirely, may leave bands).
 - **`position`** — standard CSS position (e.g. `center`, `top center`).
-- **Container width** — "Content" (bounded to the body's `contentWidth`, centered) or "Full width" (bleeds to the email's edges, independent of content width).
+- **Container width** — "Content" follows the body's `contentWidth` and alignment. "Full width" reaches the email's edges.
+
+The desktop and mobile canvas use the same background layers and content padding as the export. The mobile canvas stacks columns and keeps a small editable marker for rows or blocks hidden on the selected device. Open the email preview to see the layout with those elements omitted.
 
 ::: tip Importing from Unlayer
 When importing an Unlayer template, `size` almost never arrives as a CSS keyword — Unlayer puts the file's byte size there instead. The importer detects this and falls back to `auto` (natural size), the same thing Unlayer itself exports when it doesn't send an explicit `background-size`.

@@ -47,7 +47,11 @@ export type AutosaveControllerCallbacks = {
 }
 
 export type AutosaveController = {
-  configure: (options: AutosaveOptions | undefined, initialDesign: EmailDocument | undefined) => Promise<void>
+  configure: (
+    options: AutosaveOptions | undefined,
+    initialDesign: EmailDocument | undefined,
+    onReconfigure?: (destinationChanged: boolean) => void,
+  ) => Promise<void>
   handleDesignChange: (design: EmailDocument) => void
   getStatus: () => AutosaveStatus
   dispose: () => void

@@ -25,7 +25,7 @@
     <ImagesTab v-if="activeTab === 'search'" @select="openPreview" />
     <MediaLibraryTab v-else-if="options.mediaLibrary" @select="openPreview" />
 
-    <ModalPortal v-if="previewImage">
+    <ModalPortal v-if="previewImage" :label="previewImage.title || previewImage.alt || t('images.preview')" @cancel="closePreview">
       <ImagePreviewDialog
         :image="previewImage"
         @close="closePreview"
@@ -37,6 +37,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { dropMediaImageOnEmptyCanvas, dropMediaImageOnImageBlock } from '../../dnd/applyDrop'
 import { useI18n } from '../../i18n/useI18n'
 import { useBuilderOptions } from '../../options'
 import { useDocumentStore } from '../../store/document'
@@ -75,15 +76,9 @@ function addPreviewImage(): void {
   if (!image) return
 
   const selected = store.selectedBlock
-  if (selected && selected.type === 'image') {
-    store.updateBlock(selected.id, { src: image.src, ...(selected.alt ? {} : { alt: image.alt }) })
-    closePreview()
-    return
-  }
-
-  const row = store.addRow([100])
-  const block = store.addBlockToColumn(row.columns[0].id, 'image')
-  store.updateBlock(block.id, { src: image.src, alt: image.alt })
+  const drag = { kind: 'media-image' as const, src: image.src, alt: image.alt }
+  if (selected?.type === 'image') dropMediaImageOnImageBlock(store, selected.id, drag)
+  else dropMediaImageOnEmptyCanvas(store, drag)
   closePreview()
 }
 </script>

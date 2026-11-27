@@ -12,7 +12,10 @@ export function dropRow(store: Store, drag: DragData, targetRowId: string | null
   if (drag.kind === 'palette-row') {
     store.addRow(drag.widths, insertIdx)
   } else if (drag.kind === 'canvas-row') {
-    store.moveRow(drag.rowId, insertIdx)
+    const sourceIdx = rows.findIndex((row) => row.id === drag.rowId)
+    if (sourceIdx === -1) return
+    const finalIdx = sourceIdx < insertIdx ? insertIdx - 1 : insertIdx
+    if (finalIdx !== sourceIdx) store.moveRow(drag.rowId, finalIdx)
   }
 }
 

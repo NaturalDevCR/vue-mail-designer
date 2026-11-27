@@ -1,12 +1,15 @@
-import { mount } from '@vue/test-utils'
+import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { defineComponent, h, provide } from 'vue'
 import BuilderHeader from '../src/components/BuilderHeader.vue'
+import EmailBuilder from '../src/components/EmailBuilder.vue'
 import { es } from '../src/i18n/es'
 import { provideI18n } from '../src/i18n/useI18n'
 import { BUILDER_PINIA_KEY } from '../src/store/keys'
 import { useUiStore } from '../src/store/ui'
+
+enableAutoUnmount(afterEach)
 
 function mountHeader() {
   const pinia = createPinia()
@@ -29,16 +32,40 @@ describe('BuilderHeader', () => {
     expect(wrapper.find('.vmd-header-nav').exists()).toBe(true)
     expect(wrapper.find('.vmd-header-tab').text()).toContain('Plantillas')
     expect(wrapper.find('.vmd-header-actions').exists()).toBe(true)
-    expect(wrapper.find('.vmd-header-status').exists()).toBe(true)
-    expect(wrapper.find('.vmd-header-status-label').text()).toBe('Guardado')
+    expect(wrapper.find('.vmd-header-status').exists()).toBe(false)
   })
 
-  it('renders brand, templates, and status without duplicating Export navigation', () => {
+  it('renders brand and templates without duplicating Export navigation', () => {
     const { wrapper } = mountHeader()
     expect(wrapper.find('.vmd-header').exists()).toBe(true)
     expect(wrapper.text()).toContain('Plantillas')
-    expect(wrapper.text()).toContain('Guardado')
     expect(wrapper.find('[data-action="export"]').exists()).toBe(false)
+  })
+
+  it('shows a save as successful only when the storage adapter succeeds', async () => {
+    let fail = false
+    const wrapper = mount(EmailBuilder, {
+      props: {
+        locale: 'es',
+        autosave: {
+          enabled: true,
+          mode: 'change',
+          storage: { type: 'custom', save: () => { if (fail) throw new Error('Storage unavailable') } },
+        },
+      },
+    })
+    const status = () => wrapper.get('[role="status"]').text()
+    await flushPromises()
+    expect(status()).toBe('Guardado automático activo')
+
+    await wrapper.get('.vmd-canvas-empty button').trigger('click')
+    await flushPromises()
+    expect(status()).toBe('Guardado')
+
+    fail = true
+    await wrapper.get('.vmd-row-add--bottom').trigger('click')
+    await flushPromises()
+    expect(status()).toBe('Error al guardar')
   })
 
   it('keeps export actions in the side rail rather than the header', async () => {

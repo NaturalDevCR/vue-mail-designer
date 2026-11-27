@@ -10,7 +10,7 @@
         :max="max"
         :step="step"
         :aria-label="label"
-        @input="$emit('update:modelValue', Number(($event.target as HTMLInputElement).value))"
+        @input="updateNumber"
       />
       <input
         :id="fieldId"
@@ -20,7 +20,8 @@
         :min="min"
         :max="max"
         :step="step"
-        @input="$emit('update:modelValue', Number(($event.target as HTMLInputElement).value))"
+        @input="updateNumber"
+        @blur="restoreNumber"
       />
     </div>
     <input
@@ -32,7 +33,8 @@
       :min="min"
       :max="max"
       :step="step"
-      @input="$emit('update:modelValue', Number(($event.target as HTMLInputElement).value))"
+      @input="updateNumber"
+      @blur="restoreNumber"
     />
   </div>
 </template>
@@ -40,8 +42,20 @@
 <script setup lang="ts">
 import { useId } from 'vue'
 
-defineProps<{ label: string; modelValue: number; min?: number; max?: number; step?: number }>()
-defineEmits<{ 'update:modelValue': [value: number] }>()
+const props = defineProps<{ label: string; modelValue: number; min?: number; max?: number; step?: number }>()
+const emit = defineEmits<{ 'update:modelValue': [value: number] }>()
 
 const fieldId = useId()
+
+function updateNumber(event: Event) {
+  const input = event.target as HTMLInputElement
+  const value = input.valueAsNumber
+  if (!Number.isFinite(value) || input.validity.rangeUnderflow || input.validity.rangeOverflow) return
+  emit('update:modelValue', value)
+}
+
+function restoreNumber(event: FocusEvent) {
+  const input = event.target as HTMLInputElement
+  input.value = String(props.modelValue)
+}
 </script>

@@ -73,6 +73,7 @@ import { EditorContent, useEditor } from '@tiptap/vue-3'
 import { computed, ref, watch } from 'vue'
 import { MergeTag, insertMergeTag } from '../editor/mergeTag'
 import { InlineStyle } from '../editor/inlineStyle'
+import { sanitizeRichText } from '../editor/previewHtml'
 import { DEFAULT_FONTS } from '../fonts'
 import { useI18n } from '../i18n/useI18n'
 import AiMenu from './AiMenu.vue'
@@ -99,7 +100,8 @@ const editor = useEditor({
     InlineStyle,
     MergeTag,
   ],
-  content: props.modelValue,
+  content: sanitizeRichText(props.modelValue),
+  editorProps: { transformPastedHTML: sanitizeRichText },
   onUpdate({ editor }) {
     emit('update:modelValue', editor.getHTML())
   },
@@ -109,7 +111,8 @@ watch(
   () => props.modelValue,
   (value) => {
     if (editor.value && editor.value.getHTML() !== value) {
-      editor.value.commands.setContent(value, false)
+      const clean = sanitizeRichText(value)
+      if (editor.value.getHTML() !== clean) editor.value.commands.setContent(clean, false)
     }
   },
 )
