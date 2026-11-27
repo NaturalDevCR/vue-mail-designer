@@ -278,6 +278,26 @@ describe('MediaLibraryTab', () => {
     expect(wrapper.find('.vmd-media-loadmore').exists()).toBe(true)
   })
 
+  it('shows the next page after deleting the only loaded item', async () => {
+    const list = vi.fn()
+      .mockResolvedValueOnce({ items: [items[0]], nextCursor: 'next' })
+      .mockResolvedValueOnce({ items: [items[1]] })
+    const mediaLibrary = makeMediaLibrary({ list, delete: vi.fn().mockResolvedValue(undefined) })
+    const wrapper = mount(EmailBuilder, { props: { mediaLibrary } })
+    await openMediaTab(wrapper)
+
+    const item = wrapper.find('.vmd-media-item')
+    await item.find('.vmd-media-item-menu-btn').trigger('click')
+    await findButtonWithText(item, UI.delete).trigger('click')
+    await findButtonWithText(item, UI.confirm).trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.vmd-media-item').exists()).toBe(false)
+
+    await wrapper.find('.vmd-media-loadmore').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.vmd-media-item-name').text()).toBe('Foto B')
+  })
+
   it('borra un ítem tras confirmar', async () => {
     const del = vi.fn().mockResolvedValue(undefined)
     const wrapper = mount(EmailBuilder, { props: { mediaLibrary: makeMediaLibrary({ delete: del }) } })

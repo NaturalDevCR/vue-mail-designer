@@ -36,12 +36,13 @@ describe('SidePanel', () => {
     expect(wrapper.findAll('.vmd-content-item')).toHaveLength(13)
   })
 
-  it('Export tab exposes all native export and import actions', async () => {
+  it('Export tab exposes export, import, and pre-send review actions', async () => {
     const wrapper = mount(EmailBuilder)
     await wrapper.find('[data-tab="export"]').trigger('click')
 
     expect(wrapper.find('.vmd-export-panel').exists()).toBe(true)
-    expect(wrapper.findAll('.vmd-export-action')).toHaveLength(6)
+    expect(wrapper.findAll('.vmd-export-action')).toHaveLength(7)
+    expect(wrapper.find('[data-action="email-review"]').exists()).toBe(true)
     expect(wrapper.find('[data-action="export-html"]').exists()).toBe(true)
     expect(wrapper.find('[data-action="export-json"]').exists()).toBe(true)
     expect(wrapper.find('[data-action="import-json"]').exists()).toBe(true)

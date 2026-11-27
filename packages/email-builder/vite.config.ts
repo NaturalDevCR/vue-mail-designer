@@ -15,7 +15,7 @@ export default defineConfig({
     },
     commonjsOptions: { esmExternals: ['vue', 'pinia'] },
     rollupOptions: {
-      external: ['vue', 'pinia', 'vuedraggable', 'zod', /^@tiptap\//, /^vue-advanced-cropper/],
+      external: ['vue', 'pinia', 'vuedraggable', 'zod', /^@tiptap\//, 'vue-advanced-cropper'],
     },
   },
   test: {

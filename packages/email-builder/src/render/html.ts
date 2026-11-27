@@ -95,10 +95,22 @@ function convertMergeTags(html: string): string {
  * exportar como en el lienzo en vivo (BlockView.vue), para que ambos apliquen el mismo criterio
  * de herencia: linkColor/linkUnderline del bloque si los tiene, si no los del body. */
 export function styleLinks(html: string, color: string, underline: boolean): string {
-  return html.replace(
-    /<a\s/g,
-    `<a style="color:${color};text-decoration:${underline ? 'underline' : 'none'};" `,
-  )
+  const linkStyle = `color:${escapeHtml(color)};text-decoration:${underline ? 'underline' : 'none'};`
+  return html.replace(/<a(?=[\s>])((?:[^"'<>]|"[^"]*"|'[^']*')*)>/gi, (_tag, attributes: string) => {
+    let hasStyle = false
+    const styled = attributes.replace(
+      /(\s+)([^\s=/>]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+)))?/g,
+      (attribute, space: string, name: string, doubleQuoted?: string, singleQuoted?: string, unquoted?: string) => {
+        if (name.toLowerCase() !== 'style') return attribute
+        if (hasStyle) return ''
+        hasStyle = true
+        const original = (doubleQuoted ?? singleQuoted ?? unquoted ?? '').replaceAll('"', '&quot;').trimEnd()
+        const separator = original && !original.endsWith(';') ? ';' : ''
+        return `${space}style="${original}${separator}${linkStyle}"`
+      },
+    )
+    return hasStyle ? `<a${styled}>` : `<a style="${linkStyle}"${attributes}>`
+  })
 }
 
 /** Tabla 100% de una celda — wrapper estándar para el contenido de un bloque. */
@@ -407,9 +419,13 @@ function renderRow(row: Row, contentWidth: number, contentAlignment: 'left' | 'c
   const bgStyle = (img?: typeof bgImg) =>
     img ? `background-image:url(${escapeHtml(img.url)});background-size:${img.size};background-position:${escapeHtml(img.position)};background-repeat:${img.repeat};` : ''
 
+  let usedWidthPct = 0
   const cols = row.columns
     .map((col) => {
-      const pxWidth = Math.round((innerWidth * col.widthPct) / 100)
+      // Redondear los límites acumulados evita que las columnas sumen más que la fila.
+      const leftPx = Math.round((innerWidth * usedWidthPct) / 100)
+      usedWidthPct += col.widthPct
+      const pxWidth = Math.round((innerWidth * usedWidthPct) / 100) - leftPx
       const colBg = col.style.backgroundColor === 'transparent' ? '' : `background-color:${col.style.backgroundColor};`
       const colBorder = col.style.border
         ? `border:${col.style.border.width}px ${col.style.border.style} ${col.style.border.color};`
@@ -418,7 +434,7 @@ function renderRow(row: Row, contentWidth: number, contentAlignment: 'left' | 'c
       const colContentWidthPx = pxWidth - col.style.padding.left - col.style.padding.right
       return (
         `<!--[if mso]><td width="${pxWidth}" valign="top"><![endif]-->` +
-        `<div class="vmd-col" style="display:inline-block;width:100%;max-width:${pxWidth}px;vertical-align:top;font-size:14px;">` +
+        `<div class="vmd-col" style="display:inline-block;width:${col.widthPct}%;max-width:${pxWidth}px;vertical-align:top;font-size:14px;">` +
         `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding:${paddingCss(col.style.padding)};${colBg}${colBorder}${colRadius}">` +
         renderColumnBlocks(col.blocks, { ...ctx, colContentWidthPx }) +
         `</td></tr></table></div>` +
@@ -428,7 +444,7 @@ function renderRow(row: Row, contentWidth: number, contentAlignment: 'left' | 'c
     .join('')
 
   const contentTable = (
-    `<table role="presentation" width="${contentWidth}" cellpadding="0" cellspacing="0" border="0" class="vmd-container" style="width:${contentWidth}px;max-width:100%;">` +
+    `<table role="presentation" width="${contentWidth}" cellpadding="0" cellspacing="0" border="0" class="vmd-container" style="width:100%;max-width:${contentWidth}px;">` +
     `<tr><td${bgAttr(contentImg)} style="${contentBg}${radius}${bgStyle(contentImg)}padding:${paddingCss(rs.padding)};font-size:0;">` +
     `<!--[if mso]><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><![endif]-->` +
     cols +
@@ -439,7 +455,9 @@ function renderRow(row: Row, contentWidth: number, contentAlignment: 'left' | 'c
   const outerTable = (
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"${bgAttr(fullImg)} style="${outerBg}${bgStyle(fullImg)}">` +
     `<tr><td align="${contentAlignment}" style="padding:0;">` +
+    `<!--[if mso]><table role="presentation" width="${contentWidth}" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->` +
     contentTable +
+    `<!--[if mso]></td></tr></table><![endif]-->` +
     `</td></tr></table>`
   )
 

@@ -166,6 +166,7 @@ const loading = ref(false)
 const progressPct = ref<number | null>(null)
 const errorMessage = ref('')
 const resultText = ref('')
+let generationRequestId = 0
 
 const rewriteTone = ref<AiTone>('as-is')
 const rewriteLength = ref<AiLength>('as-is')
@@ -222,6 +223,7 @@ function getEditor(): Editor | undefined {
 }
 
 function resetToolState(): void {
+  generationRequestId += 1
   translateFlowId += 1
   translationAvailabilityRequestId += 1
   activeTool.value = null
@@ -384,35 +386,41 @@ async function prepareTranslate(): Promise<void> {
 }
 
 async function run(): Promise<void> {
-  if (!activeTool.value || !canRun.value) return
+  const tool = activeTool.value
+  if (!tool || !canRun.value) return
 
+  const requestId = ++generationRequestId
   loading.value = true
   progressPct.value = null
   errorMessage.value = ''
 
   const onProgress = (pct: number) => {
-    progressPct.value = pct
+    if (requestId === generationRequestId && loading.value) progressPct.value = pct
   }
 
   try {
-    if (activeTool.value === 'rewrite') {
-      resultText.value = await rewrite(selectedText.value, { tone: rewriteTone.value, length: rewriteLength.value }, onProgress)
-    } else if (activeTool.value === 'write') {
-      resultText.value = await write(
+    let result: string
+    if (tool === 'rewrite') {
+      result = await rewrite(selectedText.value, { tone: rewriteTone.value, length: rewriteLength.value }, onProgress)
+    } else if (tool === 'write') {
+      result = await write(
         writePrompt.value,
         { tone: writeTone.value, length: writeLength.value, format: writeFormat.value },
         onProgress,
       )
-    } else if (activeTool.value === 'summarize') {
-      resultText.value = await summarize(selectedText.value, { type: summaryType.value, length: summaryLength.value }, onProgress)
-    } else if (activeTool.value === 'translate') {
-      resultText.value = await translate(selectedText.value, sourceLanguage.value || locale, targetLanguage.value, onProgress)
+    } else if (tool === 'summarize') {
+      result = await summarize(selectedText.value, { type: summaryType.value, length: summaryLength.value }, onProgress)
+    } else {
+      result = await translate(selectedText.value, sourceLanguage.value || locale, targetLanguage.value, onProgress)
     }
+    if (requestId === generationRequestId) resultText.value = result
   } catch (error) {
-    errorMessage.value = localizeError(error)
+    if (requestId === generationRequestId) errorMessage.value = localizeError(error)
   } finally {
-    loading.value = false
-    progressPct.value = null
+    if (requestId === generationRequestId) {
+      loading.value = false
+      progressPct.value = null
+    }
   }
 }
 
@@ -443,6 +451,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  generationRequestId += 1
   document.removeEventListener('click', onDocumentClick)
   stopPopoverTracking()
 })

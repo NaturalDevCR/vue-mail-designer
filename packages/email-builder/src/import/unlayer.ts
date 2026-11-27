@@ -211,6 +211,7 @@ export function unlayerToDocument(json: unknown): { document: EmailDocument; war
   const warnings = new Set<string>()
   const doc = createDocument()
 
+  checkCommonWarnings(bodyValues, warnings)
   doc.settings.contentWidth = clamp(parsePx(bodyValues.contentWidth as string | number | undefined, doc.settings.contentWidth), 320, 900)
   doc.settings.backgroundColor = readColor(bodyValues.backgroundColor, doc.settings.backgroundColor)
   doc.settings.textColor = readColor(bodyValues.textColor, doc.settings.textColor)
@@ -227,7 +228,12 @@ export function unlayerToDocument(json: unknown): { document: EmailDocument; war
     if (typeof linkStyle.linkUnderline === 'boolean') doc.settings.linkUnderline = linkStyle.linkUnderline
   }
 
-  doc.rows = rawRows.map((raw) => toRow(raw as Record<string, unknown>, warnings))
+  doc.rows = rawRows.map((raw, index) => {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+      throw new Error(`La fila ${index + 1} del diseño de Unlayer debe ser un objeto.`)
+    }
+    return toRow(raw as Record<string, unknown>, warnings)
+  })
 
   const haystack = `${JSON.stringify(rawRows)} ${JSON.stringify(bodyValues)}`
   if (haystack.includes('cdn.templates.unlayer.com')) {
@@ -239,8 +245,10 @@ export function unlayerToDocument(json: unknown): { document: EmailDocument; war
 }
 
 function toRow(raw: Record<string, unknown>, warnings: Set<string>): Row {
-  const rawCells = Array.isArray(raw.cells) && raw.cells.length > 0 ? (raw.cells as unknown[]) : [1]
-  const numericCells = rawCells.map((c) => (typeof c === 'number' && Number.isFinite(c) ? c : 0))
+  const rawColumns: unknown[] = Array.isArray(raw.columns) ? raw.columns : []
+  const numericCells = Array.isArray(raw.cells) && raw.cells.length > 0
+    ? raw.cells.map((c) => (typeof c === 'number' && Number.isFinite(c) ? c : 0))
+    : Array.from({ length: Math.max(rawColumns.length, 1) }, () => 1)
   const sum = numericCells.reduce((acc, c) => acc + c, 0)
   const n = numericCells.length
   const widths = sum > 0
@@ -264,7 +272,6 @@ function toRow(raw: Record<string, unknown>, warnings: Set<string>): Row {
   const rowBg = parseBackgroundImage(values.backgroundImage)
   if (rowBg) row.style.backgroundImage = rowBg
 
-  const rawColumns = Array.isArray(raw.columns) ? (raw.columns as unknown[]) : []
   row.columns = row.columns.map((col, i) => {
     const rc = (rawColumns[i] && typeof rawColumns[i] === 'object' ? rawColumns[i] : {}) as Record<string, unknown>
     return toColumn(col, rc, warnings)

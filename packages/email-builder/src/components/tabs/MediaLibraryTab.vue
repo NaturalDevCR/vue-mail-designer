@@ -152,6 +152,7 @@ async function loadMore() {
     const page = await options.mediaLibrary.list(nextCursor.value)
     items.value = [...items.value, ...page.items]
     nextCursor.value = page.nextCursor
+    status.value = items.value.length ? 'results' : 'empty'
   } catch {
     loadMoreError.value = t('image.galleryLoadMoreError')
   } finally {

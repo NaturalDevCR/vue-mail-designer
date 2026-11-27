@@ -1,6 +1,7 @@
 <template>
   <EmailBuilder
-    v-model:design="design"
+    :autosave="autosave"
+    :version-history="versionHistory"
     :merge-tags="mergeTags"
     :special-links="specialLinks"
     :custom-blocks="customBlocks"
@@ -15,21 +16,21 @@
 </template>
 
 <script setup lang="ts">
-import { EmailBuilder, escapeHtml, type AiLanguage, type CustomBlockDef, type EmailDocument, type MergeTagItem, type SpecialLink } from '@naturaldevcr/vue-mail-designer'
-import { ref, watch } from 'vue'
+import { EmailBuilder, escapeHtml, type AiLanguage, type AutosaveOptions, type CustomBlockDef, type MergeTagItem, type SpecialLink, type VersionHistoryOptions } from '@naturaldevcr/vue-mail-designer'
 import { installDemoAiFallback } from './demoAi'
 import { createDemoMediaLibrary } from './mediaLibrary'
 import { generateDemoTemplateProposals } from './demoTemplateAi'
 
 installDemoAiFallback()
 
-const STORAGE_KEY = 'vmd-demo-design'
-const saved = localStorage.getItem(STORAGE_KEY)
-const design = ref<EmailDocument | undefined>(saved ? (JSON.parse(saved) as EmailDocument) : undefined)
+const autosave: AutosaveOptions = {
+  enabled: true,
+  mode: 'change',
+  restore: true,
+  storage: { type: 'local', key: 'vmd-demo-design' },
+}
 
-watch(design, (d) => {
-  if (d) localStorage.setItem(STORAGE_KEY, JSON.stringify(d))
-})
+const versionHistory: VersionHistoryOptions = { key: 'vmd-demo-versions' }
 
 const mergeTags: MergeTagItem[] = [
   { name: 'Email', value: 'email' },
@@ -78,9 +79,10 @@ const customBlocks: CustomBlockDef[] = [
 
 // demo: convierte el archivo a data URL (un backend real subiría a un CDN)
 async function uploadImage(file: File): Promise<string> {
-  return await new Promise((resolve) => {
+  return await new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = () => resolve(reader.result as string)
+    reader.onerror = () => reject(reader.error)
     reader.readAsDataURL(file)
   })
 }

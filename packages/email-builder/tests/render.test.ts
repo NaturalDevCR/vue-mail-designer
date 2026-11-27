@@ -33,6 +33,24 @@ describe('renderHtml — frame y layout', () => {
     expect((html.match(/class="vmd-col"/g) ?? []).length).toBe(2)
   })
 
+  it('reparte los píxeles de una fila impar sin exceder el ancho disponible', () => {
+    const { doc } = docWith([50, 50], [['heading'], ['text']])
+    doc.settings.contentWidth = 601
+    const html = renderHtml(doc)
+    const outlookWidths = [...html.matchAll(/<!--\[if mso\]><td width="(\d+)"/g)].map((match) => Number(match[1]))
+    expect(outlookWidths.sort()).toEqual([300, 301])
+  })
+
+  it('las columnas se reducen proporcionalmente cuando el espacio disponible es menor', () => {
+    const { doc } = docWith([33, 67], [['heading'], ['text']])
+    const html = new DOMParser().parseFromString(renderHtml(doc), 'text/html')
+    const container = html.querySelector<HTMLElement>('.vmd-container')!
+    expect(container.style.width).toBe('100%')
+    expect(container.style.maxWidth).toBe('600px')
+    const widths = [...html.querySelectorAll<HTMLElement>('.vmd-col')].map((column) => column.style.width)
+    expect(widths).toEqual(['33%', '67%'])
+  })
+
   it('heading escapa el texto y respeta align/color', () => {
     const { doc, row } = docWith([100], [['heading']])
     const h = row.columns[0].blocks[0] as HeadingBlock

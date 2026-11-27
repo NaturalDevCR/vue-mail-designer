@@ -2,6 +2,8 @@
 
 The palette includes: **Heading**, **Text** (rich editor), **Image**, **Button**, **Divider**, **Spacer**, **Social**, **Menu**, **HTML**, **Video**, **Table**, **Gallery**, and **Timer** (countdown).
 
+Drag an item to place it directly, or activate it with a click, tap, Enter, or Space. Activating a content item inserts it after the selected block or into the first column of the selected or last row. On an empty canvas it creates the first row. Activating a row layout in **Blocks** adds it at the end of the design.
+
 ## Common properties
 
 Most blocks share, in their inspector:
@@ -9,6 +11,12 @@ Most blocks share, in their inspector:
 - **Padding** — available on every editable block, including Spacer and registered custom blocks. It is linked by default (a single value for all 4 sides); a link-icon button unlinks it to edit **Top**, **Right**, **Bottom**, and **Left** separately.
 - **Alignment** — left/center/right, where applicable.
 - **Hide per device** — `hideDesktop`/`hideMobile`, per block and per row. The exported HTML uses classes + a media query, no JS.
+
+## HTML display
+
+The canvas displays HTML blocks and registered custom block output in sandboxed frames. The canvas and rich-text editor filter imported text markup to supported formatting, links, and merge tags.
+
+Email previews, AI proposal previews, and PNG snapshots use the same frame policy. The frames allow inline CSS, HTTPS and embedded images, and Google Fonts. Links in the frames are for display. HTML and JSON exports use the original markup, including its link destinations.
 
 ## Timer
 

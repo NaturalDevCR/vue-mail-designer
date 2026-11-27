@@ -62,6 +62,7 @@
             <span class="vmd-upload-filename">{{ uploadFileName ?? t('props.noFileSelected') }}</span>
           </div>
           <input ref="fileInput" type="file" accept="image/*" class="vmd-visually-hidden" @change="onUpload" />
+          <p v-if="failedUploadBlockId === block.id" class="vmd-image-error" role="alert">{{ t('props.uploadImageError') }}</p>
         </div>
         <button
           v-if="options.uploadImage && block.src"
@@ -368,6 +369,7 @@ const ui = useUiStore(useBuilderPinia())
 const { t } = useI18n()
 const fileInput = ref<HTMLInputElement | null>(null)
 const uploadFileName = ref<string | null>(null)
+const failedUploadBlockId = ref<string | null>(null)
 const block = computed(() => store.selectedBlock)
 const row = computed(() => store.selectedRow)
 const uploading = ref(false)
@@ -535,13 +537,16 @@ function updData(key: string, value: unknown) {
 async function onUpload(e: Event) {
   const input = e.target as HTMLInputElement
   const file = input.files?.[0]
-  if (!file || !options.uploadImage || !block.value) return
+  if (!file || !options.uploadImage || block.value?.type !== 'image' || uploading.value) return
   uploadFileName.value = file.name
   const id = block.value.id
   uploading.value = true
+  failedUploadBlockId.value = null
   try {
     const url = await options.uploadImage(file)
     store.updateBlock(id, { src: url })
+  } catch {
+    failedUploadBlockId.value = id
   } finally {
     uploading.value = false
     input.value = ''

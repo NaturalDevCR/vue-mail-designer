@@ -372,6 +372,39 @@ describe('AiMenu', () => {
     expect(ai('[data-action="ai-item-rewrite"]').exists()).toBe(true)
   })
 
+  it('ignores a closed request while another AI request is running', async () => {
+    const previous = deferred<string>()
+    const current = deferred<string>()
+    let previousProgress: ((pct: number) => void) | undefined
+    vi.spyOn(chromeAi, 'rewrite').mockImplementation((_text, _options, onProgress) => {
+      previousProgress = onProgress
+      return previous.promise
+    })
+    vi.spyOn(chromeAi, 'summarize').mockReturnValue(current.promise)
+    const wrapper = mountMenu(makeEditor())
+    const toggle = wrapper.find('[data-action="ai-menu-toggle"]')
+
+    await toggle.trigger('click')
+    await ai('[data-action="ai-item-rewrite"]').trigger('click')
+    await ai('[data-action="ai-run"]').trigger('click')
+    await toggle.trigger('click')
+    await toggle.trigger('click')
+    await ai('[data-action="ai-item-summarize"]').trigger('click')
+    await ai('[data-action="ai-run"]').trigger('click')
+
+    previousProgress?.(80)
+    await wrapper.vm.$nextTick()
+    expect(hasInBody('.vmd-ai-progress')).toBe(false)
+    previous.resolve('Old rewrite')
+    await flushPromises()
+    expect(hasInBody('[data-field="ai-result"]')).toBe(false)
+    expect(ai('[data-action="ai-run"]').attributes('disabled')).toBeDefined()
+
+    current.resolve('Current summary')
+    await flushPromises()
+    expect((ai('[data-field="ai-result"]').element as HTMLTextAreaElement).value).toBe('Current summary')
+  })
+
   it('maps wrapper failures to English and Spanish localized error labels', async () => {
     vi.spyOn(chromeAi, 'rewrite').mockRejectedValue({ code: 'request-failed', message: 'AI request failed.' })
 

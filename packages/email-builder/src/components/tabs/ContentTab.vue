@@ -8,6 +8,7 @@
       :disabled="isDisabled(item.type)"
       :preview-label="itemLabel(item)"
       :create="() => cloneBlock(item)"
+      @insert="insertBlock(item)"
     />
   </div>
 </template>
@@ -20,6 +21,8 @@ import { useDocumentStore } from '../../store/document'
 import { useBuilderPinia } from '../../store/keys'
 import { useBuilderOptions } from '../../options'
 import { useI18n } from '../../i18n/useI18n'
+import { dropBlock, dropBlockOnEmptyCanvas } from '../../dnd/applyDrop'
+import type { DragData } from '../../dnd/dragData'
 import { ICONS } from '../icons'
 import { PALETTE_BLOCKS } from '../palette-items'
 import PaletteItem from './PaletteItem.vue'
@@ -77,6 +80,17 @@ function cloneBlock(item: PaletteEntry): Block {
 
 function itemLabel(item: PaletteEntry): string {
   return item.labelKey ? t(item.labelKey) : (item.label ?? '')
+}
+
+function insertBlock(item: PaletteEntry): void {
+  if (isDisabled(item.type)) return
+  const drag: DragData = { kind: 'palette-block', create: () => cloneBlock(item) }
+  const selected = store.selectedBlock ? store.findBlock(store.selectedBlock.id) : undefined
+  const row = store.selectedRow ?? store.doc.rows.at(-1)
+  const column = selected?.column ?? row?.columns[0]
+
+  if (column) dropBlock(store, drag, column.id, selected?.block.id ?? null, selected ? 'after' : null)
+  else dropBlockOnEmptyCanvas(store, drag)
 }
 
 // ícono + label; los custom traen su propio label/icon, los nativos usan i18n

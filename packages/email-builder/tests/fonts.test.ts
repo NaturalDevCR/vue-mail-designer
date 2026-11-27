@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { DEFAULT_FONTS, usedFontUrls } from '../src/fonts'
 import { renderHtml } from '../src/render/html'
 import { createBlock, createDocument, createRow } from '../src/schema'
-import type { HeadingBlock, TextBlock } from '../src/schema'
+import type { HeadingBlock, TextBlock, TimerBlock } from '../src/schema'
 
 describe('fuentes', () => {
   it('DEFAULT_FONTS incluye email-safe y Google Fonts con url', () => {
@@ -33,6 +33,17 @@ describe('fuentes', () => {
   it('sin Google Fonts usadas no emite links', () => {
     const html = renderHtml(createDocument())
     expect(html).not.toContain('<link href="https://fonts.googleapis.com')
+  })
+
+  it('includes the stylesheet when a timer is the only block using a web font', () => {
+    const doc = createDocument()
+    const row = createRow([100])
+    const timer = createBlock('timer') as TimerBlock
+    timer.style.fontFamily = "'Lato', sans-serif"
+    row.columns[0].blocks.push(timer)
+    doc.rows.push(row)
+
+    expect(usedFontUrls(doc, DEFAULT_FONTS)).toEqual(['https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap'])
   })
 
   it('detecta una fuente aplicada por selección dentro del html de un bloque de texto', () => {

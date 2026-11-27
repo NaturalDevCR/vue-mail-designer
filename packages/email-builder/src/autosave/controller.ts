@@ -44,6 +44,7 @@ export function createAutosaveController(callbacks: AutosaveControllerCallbacks)
   let status: AutosaveStatus = 'disabled'
   let runtime: RuntimeConfig | undefined
   let configured: NormalizedConfig | undefined
+  let lastDestination: AutosaveStorage | undefined
   let timer: ReturnType<typeof setTimeout> | undefined
   let intervalTimer: ReturnType<typeof setInterval> | undefined
   let pendingSnapshot: EmailDocument | undefined
@@ -176,11 +177,15 @@ export function createAutosaveController(callbacks: AutosaveControllerCallbacks)
   }
 
   function normalizeRuntime(options: AutosaveOptions): RuntimeConfig {
+    const { storage } = options
     const mode = options.mode ?? 'debounce'
     const delay = options.delay ?? (mode === 'interval' ? DEFAULT_INTERVAL_DELAY : mode === 'debounce' ? DEFAULT_DEBOUNCE_DELAY : 0)
 
     return {
-      storage: options.storage,
+      // Capture the destination for this generation, including in-place edits to reactive options.
+      storage: storage.type === 'local'
+        ? { type: 'local', key: storage.key, storage: storage.storage }
+        : { type: 'custom', load: storage.load, save: storage.save },
       mode,
       delay,
       restore: options.restore ?? false,
@@ -220,23 +225,36 @@ export function createAutosaveController(callbacks: AutosaveControllerCallbacks)
   }
 
   return {
-    async configure(options, initialDesign) {
+    async configure(options, initialDesign, onReconfigure) {
       const nextConfig = normalizeConfig(options)
       if (isEquivalentConfig(configured, nextConfig)) return
 
+      const destinationChanged = Boolean(nextConfig && lastDestination && !isEquivalentStorage(lastDestination, nextConfig.storage))
+      if (nextConfig) lastDestination = nextConfig.storage
       configured = nextConfig
       generation += 1
       const expectedGeneration = generation
       disposed = false
       clearSchedulingState()
       runtime = undefined
+      onReconfigure?.(destinationChanged)
 
-      if (!nextConfig) {
+      if (!nextConfig || !options) {
         emitStatus('disabled')
         return
       }
 
-      runtime = nextConfig
+      const { storage } = nextConfig
+      runtime = storage.type === 'custom'
+        ? {
+            ...nextConfig,
+            storage: {
+              type: 'custom',
+              load: storage.load?.bind(options.storage),
+              save: storage.save.bind(options.storage),
+            },
+          }
+        : nextConfig
 
       const startActiveScheduling = () => {
         if (!isActive(expectedGeneration) || !runtime) return
@@ -333,6 +351,7 @@ export function createAutosaveController(callbacks: AutosaveControllerCallbacks)
       generation += 1
       disposed = true
       configured = undefined
+      lastDestination = undefined
       runtime = undefined
       clearSchedulingState()
       emitStatus('disabled')

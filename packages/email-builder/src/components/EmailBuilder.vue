@@ -1,7 +1,7 @@
 <template>
   <div class="vmd-root" :class="{ 'vmd-dark': ui.theme === 'dark', 'vmd-is-dragging': ui.isDragging }" :style="appearanceStyle">
-    <BuilderHeader v-if="props.showHeader !== false" @ai-templates-error="forwardAiTemplateError" />
-    <ModalPortal v-if="ui.previewOpen">
+    <BuilderHeader v-if="props.showHeader !== false" :autosave-status="headerAutosaveStatus" @ai-templates-error="forwardAiTemplateError" />
+    <ModalPortal v-if="ui.previewOpen" :label="t('canvasbar.preview')" @cancel="ui.previewOpen = false">
       <PreviewDialog />
     </ModalPortal>
     <div class="vmd-main">
@@ -9,20 +9,18 @@
         <CanvasBar />
         <BuilderCanvas />
       </section>
-      <SidePanel />
+      <SidePanel @ai-templates-error="forwardAiTemplateError" />
     </div>
-    <ModalPortal v-if="ui.galleryOpen">
+    <ModalPortal v-if="ui.galleryOpen" :label="t('dialog.templateTitle')" @cancel="ui.galleryOpen = false">
       <TemplateGallery />
     </ModalPortal>
-    <ModalPortal v-if="ui.imageEditorBlockId">
-      <ImageEditorModal />
-    </ModalPortal>
+    <ImageEditorModal v-if="ui.imageEditorBlockId" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { createPinia } from 'pinia'
-import { computed, nextTick, onMounted, onUnmounted, provide, reactive, watch } from 'vue'
+import { computed, onMounted, onUnmounted, provide, reactive, ref, watch } from 'vue'
 import { createAutosaveController } from '../autosave/controller'
 import type {
   AutosaveErrorPayload,
@@ -32,7 +30,7 @@ import type {
   AutosaveStatus,
   AutosaveStatusPayload,
 } from '../autosave/types'
-import { DEFAULT_FONTS, type FontDef } from '../fonts'
+import { DEFAULT_FONTS, usedFontUrls, type FontDef } from '../fonts'
 import type { ImageResult } from '../imageSearch'
 import { en } from '../i18n/en'
 import { es } from '../i18n/es'
@@ -50,6 +48,7 @@ import { BUILDER_PINIA_KEY } from '../store/keys'
 import { useUiStore } from '../store/ui'
 import { MODAL_CONTEXT_KEY } from '../modalContext'
 import type { EmailTemplate } from '../templates'
+import type { VersionHistoryOptions } from '../versionHistory'
 import BuilderCanvas from './BuilderCanvas.vue'
 import BuilderHeader from './BuilderHeader.vue'
 import CanvasBar from './CanvasBar.vue'
@@ -81,6 +80,7 @@ const props = withDefaults(defineProps<{
   ai?: AiOptions
   aiTemplates?: AiTemplateOptions
   autosave?: AutosaveOptions
+  versionHistory?: VersionHistoryOptions
 }>(), {
   showHeader: true,
 })
@@ -123,6 +123,11 @@ const pinia = createPinia()
 provide(BUILDER_PINIA_KEY, pinia)
 const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
+const autosaveStatus = ref<AutosaveStatus>('disabled')
+const currentDesignSaved = ref(false)
+const headerAutosaveStatus = computed(() =>
+  autosaveStatus.value === 'saved' && !currentDesignSaved.value ? 'pending' : autosaveStatus.value,
+)
 provide(MODAL_CONTEXT_KEY, {
   theme: computed(() => ui.theme),
   appearanceStyle,
@@ -132,26 +137,29 @@ function cloneDocument(document: EmailDocument): EmailDocument {
   return JSON.parse(JSON.stringify(document)) as EmailDocument
 }
 
-function getExplicitInitialDesign() {
-  return props.design ? cloneDocument(props.design) : undefined
+let autosaveBaseline: string | undefined
+let resetHistoryOnRestore = false
+function loadWithoutAutosave(design: EmailDocument) {
+  store.loadDesign(design)
+  autosaveBaseline = JSON.stringify(store.doc)
 }
 
-let autosaveSuppressionDepth = 0
 const autosaveController = createAutosaveController({
   applyRestoredDesign(design) {
-    autosaveSuppressionDepth += 1
-    store.loadDesign(design)
-    void nextTick(() => {
-      autosaveSuppressionDepth = Math.max(0, autosaveSuppressionDepth - 1)
-    })
+    loadWithoutAutosave(design)
+    if (resetHistoryOnRestore) store.resetHistory()
   },
   onStatus(payload) {
+    if (payload.status !== 'restoring') resetHistoryOnRestore = false
+    autosaveStatus.value = payload.status
     emit('autosave-status', payload)
   },
   onSaved(payload) {
+    currentDesignSaved.value = JSON.stringify(store.doc) === JSON.stringify(payload.design)
     emit('autosave-saved', payload)
   },
   onRestored(payload) {
+    currentDesignSaved.value = true
     emit('autosave-restored', payload)
   },
   onError(payload) {
@@ -167,6 +175,7 @@ const localeDict = computed<LocaleDict>(() => {
 })
 const resolvedLocale = computed<ResolvedLocale>(() => (props.locale === 'es' ? 'es' : 'en'))
 provideI18n(() => localeDict.value, () => resolvedLocale.value)
+const t = (key: string) => localeDict.value[key] ?? key
 
 // Provide reactive child options while preserving prop reactivity through getters.
 provide(
@@ -217,21 +226,34 @@ provide(
   }),
 )
 
-// Inject Google Fonts links into the host document for canvas WYSIWYG rendering.
 onMounted(() => {
-  const fonts = props.fonts ?? DEFAULT_FONTS
-  for (const font of fonts) {
-    if (!font.url) continue
-    const id = 'vmd-font-' + btoa(font.url).replace(/[^a-z0-9]/gi, '').slice(0, 24)
-    if (document.getElementById(id)) continue
-    const link = document.createElement('link')
-    link.id = id
-    link.rel = 'stylesheet'
-    link.href = font.url
-    document.head.appendChild(link)
-  }
+  watch(
+    [() => props.versionHistory?.key, () => props.versionHistory?.storage],
+    ([key, storage]) => {
+      if (store.configureVersionHistory(key === undefined ? undefined : { key, storage })) {
+        ui.versionsOpen = false
+      }
+    },
+    { immediate: true },
+  )
 
-  void autosaveController.configure(props.autosave, getExplicitInitialDesign())
+  watch(
+    () => usedFontUrls(store.doc, props.fonts ?? DEFAULT_FONTS),
+    (urls) => {
+      const stylesheets = new Set(Array.from(document.head.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]'), (link) => link.href))
+      for (const url of urls) {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (stylesheets.has(link.href)) continue
+        document.head.appendChild(link)
+        stylesheets.add(link.href)
+      }
+    },
+    { immediate: true },
+  )
+
+  void autosaveController.configure(props.autosave, props.design)
 })
 
 onUnmounted(() => {
@@ -252,34 +274,44 @@ if (props.design) {
   store.resetHistory()
 }
 
-// Prop -> store.
+// A design supplied with a different autosave destination becomes its initial baseline.
 watch(
-  () => props.design,
-  (next) => {
-    if (next && JSON.stringify(next) !== JSON.stringify(store.doc)) {
-      store.loadDesign(next)
-    }
+  [() => props.design, () => props.autosave],
+  ([design, autosave], [previousDesign]) => {
+    const newDesign = design !== previousDesign ? design : undefined
+    const shouldLoadDesign = newDesign && JSON.stringify(newDesign) !== JSON.stringify(store.doc)
+    let loadedBaseline = false
+
+    void autosaveController.configure(autosave, design, (destinationChanged) => {
+      currentDesignSaved.value = false
+      if (!destinationChanged) return
+      resetHistoryOnRestore = true
+      if (shouldLoadDesign) {
+        loadWithoutAutosave(newDesign)
+        loadedBaseline = true
+      }
+      store.resetHistory()
+    })
+
+    if (shouldLoadDesign && !loadedBaseline) store.loadDesign(newDesign)
   },
+  { deep: true },
 )
 
 // Store -> emits.
 watch(
   () => store.doc,
   (doc) => {
-    const snapshot = cloneDocument(doc)
+    const serialized = JSON.stringify(doc)
+    const snapshot = JSON.parse(serialized) as EmailDocument
+    const shouldSave = serialized !== autosaveBaseline
+    autosaveBaseline = undefined
     emit('update:design', snapshot)
     emit('change', snapshot)
-    if (autosaveSuppressionDepth === 0) {
+    if (shouldSave) {
+      currentDesignSaved.value = false
       autosaveController.handleDesignChange(snapshot)
     }
-  },
-  { deep: true },
-)
-
-watch(
-  () => props.autosave,
-  (nextAutosave) => {
-    void autosaveController.configure(nextAutosave, getExplicitInitialDesign())
   },
   { deep: true },
 )

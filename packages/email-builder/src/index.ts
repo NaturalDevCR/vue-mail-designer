@@ -49,6 +49,7 @@ export { unlayerToDocument, parseShorthandPadding } from './import/unlayer'
 export { unlayerSlugFromUrl, defaultUnlayerFetch, type UnlayerFetch } from './import/unlayerUrl'
 export { DEFAULT_FONTS, type FontDef } from './fonts'
 export type { MediaItem, MediaListPage, MediaLibraryOptions } from './mediaLibrary'
+export type { VersionHistoryOptions } from './versionHistory'
 export type {
   AutosaveErrorPayload,
   AutosaveMode,

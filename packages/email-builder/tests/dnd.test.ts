@@ -80,6 +80,31 @@ describe('applyDrop — filas', () => {
     dropRow(store, { kind: 'canvas-row', rowId: b.id }, a.id, 'before')
     expect(store.doc.rows.map((r) => r.id)).toEqual([b.id, a.id])
   })
+
+  it.each(['before', 'after'] as const)('respeta el borde %s al arrastrar una fila hacia abajo', (edge) => {
+    const store = useDocumentStore()
+    const a = store.addRow([100])
+    const b = store.addRow([100])
+    const c = store.addRow([100])
+    const d = store.addRow([100])
+
+    dropRow(store, { kind: 'canvas-row', rowId: a.id }, c.id, edge)
+
+    const expected = edge === 'before' ? [b.id, a.id, c.id, d.id] : [b.id, c.id, a.id, d.id]
+    expect(store.doc.rows.map((r) => r.id)).toEqual(expected)
+  })
+
+  it('no agrega historial al soltar una fila donde ya estaba', () => {
+    const store = useDocumentStore()
+    const a = store.addRow([100])
+    const b = store.addRow([100])
+    store.resetHistory()
+
+    dropRow(store, { kind: 'canvas-row', rowId: a.id }, b.id, 'before')
+
+    expect(store.doc.rows.map((r) => r.id)).toEqual([a.id, b.id])
+    expect(store.canUndo).toBe(false)
+  })
 })
 
 describe('applyDrop — bloques', () => {

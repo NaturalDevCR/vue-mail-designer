@@ -70,7 +70,14 @@
             <h3>{{ proposal.title }}</h3>
             <p v-if="proposal.description">{{ proposal.description }}</p>
           </div>
-          <iframe class="vmd-ai-template-preview" :srcdoc="proposalHtml(proposal)" :title="proposal.title" />
+          <iframe
+            class="vmd-ai-template-preview"
+            :srcdoc="proposalHtml(proposal)"
+            :title="proposal.title"
+            sandbox=""
+            referrerpolicy="no-referrer"
+            tabindex="-1"
+          />
           <button type="button" class="vmd-btn vmd-btn--primary" data-action="ai-template-proposal-apply" @click="apply(proposal)">
             {{ t('aiTemplates.apply') }}
           </button>
@@ -87,6 +94,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { renderHtml } from '../render/html'
+import { isolatePreviewHtml } from '../editor/previewHtml'
 import {
   buildAiTemplateRequest,
   resolveAiTemplateContext,
@@ -187,7 +195,7 @@ async function run(): Promise<void> {
 }
 
 function proposalHtml(proposal: AiTemplateProposal): string {
-  return renderHtml(proposal.design, options.fonts, options.customBlocks, options.timerImageUrlBuilder, options.socialIconUrlBuilder)
+  return isolatePreviewHtml(renderHtml(proposal.design, options.fonts, options.customBlocks, options.timerImageUrlBuilder, options.socialIconUrlBuilder))
 }
 
 function apply(proposal: AiTemplateProposal): void {

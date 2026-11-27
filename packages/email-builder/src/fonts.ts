@@ -68,7 +68,7 @@ export const DEFAULT_FONTS: FontDef[] = [
   { label: 'JetBrains Mono', value: "'JetBrains Mono', monospace", url: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap' },
 ]
 
-/** Recolecta los font-family usados en el documento (settings + bloques heading/text/menu). */
+/** Recolecta los font-family usados en la configuración y los bloques. */
 export function usedFontValues(doc: EmailDocument): Set<string> {
   const used = new Set<string>()
   used.add(doc.settings.fontFamily)
@@ -78,6 +78,7 @@ export function usedFontValues(doc: EmailDocument): Set<string> {
         if ((block.type === 'heading' || block.type === 'text' || block.type === 'menu') && block.fontFamily) {
           used.add(block.fontFamily)
         }
+        if (block.type === 'timer' && block.style.fontFamily) used.add(block.style.fontFamily)
       }
     }
   }

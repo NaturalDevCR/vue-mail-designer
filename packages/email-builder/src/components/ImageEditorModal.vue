@@ -1,36 +1,38 @@
 <!-- packages/email-builder/src/components/ImageEditorModal.vue -->
 <template>
-  <div class="vmd-modal" @click.self="!saving && cancel()">
-    <div class="vmd-modal-box vmd-image-editor">
-      <div class="vmd-preview-bar">
-        <h3 class="vmd-inspector-title" style="margin: 0">{{ t('dialog.imageEditorTitle') }}</h3>
-        <div class="vmd-toolbar-group">
-          <button type="button" class="vmd-btn" :disabled="saving" @click="cancel">{{ t('common.cancel') }}</button>
-          <button type="button" class="vmd-btn vmd-btn--primary" :disabled="saving" @click="triggerSave">
-            {{ saving ? t('common.saving') : t('common.save') }}
-          </button>
+  <ModalPortal :label="t('dialog.imageEditorTitle')" @cancel="cancel">
+    <div class="vmd-modal" @click.self="cancel">
+      <div class="vmd-modal-box vmd-image-editor">
+        <div class="vmd-preview-bar">
+          <h3 class="vmd-inspector-title" style="margin: 0">{{ t('dialog.imageEditorTitle') }}</h3>
+          <div class="vmd-toolbar-group">
+            <button type="button" class="vmd-btn" :disabled="saving" @click="cancel">{{ t('common.cancel') }}</button>
+            <button type="button" class="vmd-btn vmd-btn--primary" :disabled="saving" @click="triggerSave">
+              {{ saving ? t('common.saving') : t('common.save') }}
+            </button>
+          </div>
         </div>
-      </div>
-      <div class="vmd-image-editor-body">
-        <div class="vmd-image-editor-content">
-          <CropPanel v-if="activeTab === 'crop' && block" ref="cropPanelRef" :block="block" />
+        <div class="vmd-image-editor-body">
+          <div class="vmd-image-editor-content">
+            <CropPanel v-if="activeTab === 'crop' && block" ref="cropPanelRef" :block="block" />
+          </div>
+          <nav class="vmd-image-editor-rail">
+            <button
+              v-for="tool in TOOLS"
+              :key="tool.key"
+              type="button"
+              :disabled="tool.key !== 'crop'"
+              :class="{ 'vmd-active': activeTab === tool.key }"
+              @click="activeTab = tool.key"
+            >
+              <span class="vmd-ico" v-html="ICONS[tool.icon]"></span>
+              <span>{{ tool.label }}</span>
+            </button>
+          </nav>
         </div>
-        <nav class="vmd-image-editor-rail">
-          <button
-            v-for="tool in TOOLS"
-            :key="tool.key"
-            type="button"
-            :disabled="tool.key !== 'crop'"
-            :class="{ 'vmd-active': activeTab === tool.key }"
-            @click="activeTab = tool.key"
-          >
-            <span class="vmd-ico" v-html="ICONS[tool.icon]"></span>
-            <span>{{ tool.label }}</span>
-          </button>
-        </nav>
       </div>
     </div>
-  </div>
+  </ModalPortal>
 </template>
 
 <script setup lang="ts">
@@ -40,6 +42,7 @@ import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
 import { useUiStore } from '../store/ui'
 import { ICONS } from './icons'
+import ModalPortal from './ModalPortal.vue'
 import CropPanel from './image-editor/CropPanel.vue'
 
 const store = useDocumentStore(useBuilderPinia())
@@ -75,6 +78,6 @@ async function triggerSave() {
 }
 
 function cancel() {
-  ui.imageEditorBlockId = null
+  if (!saving.value) ui.imageEditorBlockId = null
 }
 </script>

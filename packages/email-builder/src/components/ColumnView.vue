@@ -1,6 +1,12 @@
 <template>
   <div ref="el" class="vmd-column" :style="columnStyle">
-    <BlockView v-for="block in column.blocks" :key="block.id" :block="block" :column-id="column.id" />
+    <BlockView
+      v-for="block in column.blocks"
+      :key="block.id"
+      :class="{ 'vmd-block--hidden': isMobile ? block.hideMobile : block.hideDesktop }"
+      :block="block"
+      :column-id="column.id"
+    />
     <div
       v-if="column.blocks.length === 0"
       class="vmd-column-empty"
@@ -16,19 +22,23 @@ import type { Column } from '../schema'
 import { useI18n } from '../i18n/useI18n'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
+import { useUiStore } from '../store/ui'
 import { useDropTarget } from '../dnd/usePragmatic'
 import { dropBlock } from '../dnd/applyDrop'
 import BlockView from './BlockView.vue'
 
 const props = defineProps<{ column: Column }>()
 const el = ref<HTMLElement | null>(null)
-const store = useDocumentStore(useBuilderPinia())
+const pinia = useBuilderPinia()
+const store = useDocumentStore(pinia)
+const ui = useUiStore(pinia)
 const { t } = useI18n()
+const isMobile = computed(() => ui.canvasDevice === 'mobile')
 
 const columnStyle = computed<CSSProperties>(() => {
   const s = props.column.style
   const style: CSSProperties = {
-    width: props.column.widthPct + '%',
+    width: isMobile.value ? '100%' : props.column.widthPct + '%',
     padding: `${s.padding.top}px ${s.padding.right}px ${s.padding.bottom}px ${s.padding.left}px`,
     boxSizing: 'border-box',
   }

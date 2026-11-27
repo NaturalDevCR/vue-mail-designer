@@ -94,6 +94,9 @@ describe('ImagesTab', () => {
     const blocks = design.rows.flatMap((r) => r.columns.flatMap((c) => c.blocks))
     expect(blocks.some((b) => b.type === 'image' && b.src === 'https://img.example/full1.jpg')).toBe(true)
     expect(hasInBody('.vmd-image-preview-dialog')).toBe(false)
+
+    await wrapper.get('[data-action="undo"]').trigger('click')
+    expect(wrapper.find('.vmd-canvas-empty').exists()).toBe(true)
   })
 
   it('muestra error si la búsqueda falla', async () => {

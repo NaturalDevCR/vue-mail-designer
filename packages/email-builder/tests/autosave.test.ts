@@ -681,6 +681,50 @@ describe('autosave controller', () => {
     expect(callbacks.onSaved).not.toHaveBeenCalled()
   })
 
+  it('cancels pending saves when a local draft key changes in place', async () => {
+    vi.useFakeTimers()
+    const storage = new MemoryStorage()
+    const destination = { type: 'local' as const, key: 'campaign-a', storage }
+    const controller = createTrackedController(createCallbacks())
+    const options = { enabled: true, storage: destination, delay: 10 }
+
+    await controller.configure(options, undefined)
+    controller.handleDesignChange(designWithMarker('campaign A change'))
+    destination.key = 'campaign-b'
+    await controller.configure(options, undefined)
+    await vi.advanceTimersByTimeAsync(10)
+
+    expect(storage.getItem('campaign-a')).toBeNull()
+    expect(storage.getItem('campaign-b')).toBeNull()
+
+    controller.handleDesignChange(designWithMarker('campaign B change'))
+    await vi.advanceTimersByTimeAsync(10)
+    const draft = await readAutosave(destination)
+    expect(draft?.settings.preheader).toBe('campaign B change')
+  })
+
+  it('cancels pending saves when a custom save method changes in place', async () => {
+    vi.useFakeTimers()
+    const storage = {
+      type: 'custom' as const,
+      saved: [] as string[],
+      save(design: EmailDocument) { this.saved.push(`first: ${design.settings.preheader}`) },
+    }
+    const controller = createTrackedController(createCallbacks())
+    const options = { enabled: true, storage, delay: 10 }
+
+    await controller.configure(options, undefined)
+    controller.handleDesignChange(designWithMarker('old edit'))
+    storage.save = function (design) { this.saved.push(`second: ${design.settings.preheader}`) }
+    await controller.configure(options, undefined)
+    await vi.advanceTimersByTimeAsync(10)
+    expect(storage.saved).toEqual([])
+
+    controller.handleDesignChange(designWithMarker('new edit'))
+    await vi.advanceTimersByTimeAsync(10)
+    expect(storage.saved).toEqual(['second: new edit'])
+  })
+
   it('serializes saves across reconfiguration and ignores stale completions', async () => {
     vi.useFakeTimers()
     const staleSave = deferred<void>()
@@ -761,6 +805,129 @@ describe('EmailBuilder autosave integration', () => {
 
     expect(save).toHaveBeenCalledTimes(1)
     expect(parent.statuses).toContain('saved')
+  })
+
+  it('restores the destination draft when the host switches both campaign and design', async () => {
+    vi.useFakeTimers()
+    const storage = new MemoryStorage()
+    const firstDestination = { type: 'local' as const, key: 'campaign-a', storage }
+    const secondDestination = { type: 'local' as const, key: 'campaign-b', storage }
+    await writeAutosave(secondDestination, designWithMarker('campaign B draft'))
+    const autosave = { enabled: true, delay: 10, restore: true, restorePrecedence: 'saved-design' as const }
+    const wrapper = mount(EmailBuilder, {
+      props: { design: designWithMarker('campaign A baseline'), autosave: { ...autosave, storage: firstDestination } },
+    })
+    try {
+      await flushPromises()
+      await wrapper.setProps({
+        design: designWithMarker('campaign B baseline'),
+        autosave: { ...autosave, storage: secondDestination },
+      })
+      await vi.advanceTimersByTimeAsync(10)
+
+      const vm = wrapper.vm as unknown as { getDesign: () => EmailDocument }
+      expect(vm.getDesign().settings.preheader).toBe('campaign B draft')
+      expect((await readAutosave(secondDestination))?.settings.preheader).toBe('campaign B draft')
+      expect(wrapper.emitted('autosave-saved')).toBeUndefined()
+    } finally {
+      wrapper.unmount()
+    }
+  })
+
+  it('saves a host design edit while the autosave configuration stays equivalent', async () => {
+    vi.useFakeTimers()
+    const storage = { type: 'local' as const, key: 'campaign', storage: new MemoryStorage() }
+    const wrapper = mount(EmailBuilder, {
+      props: {
+        design: designWithMarker('original'),
+        autosave: { enabled: true, delay: 10, storage },
+      },
+    })
+    try {
+      await wrapper.setProps({
+        design: designWithMarker('host edit'),
+        autosave: { enabled: true, delay: 10, storage: { ...storage } },
+      })
+      await vi.advanceTimersByTimeAsync(10)
+
+      expect((await readAutosave(storage))?.settings.preheader).toBe('host edit')
+    } finally {
+      wrapper.unmount()
+    }
+  })
+
+  it('saves a host edit when only the timing changes for the same destination', async () => {
+    vi.useFakeTimers()
+    const storage = { type: 'local' as const, key: 'campaign', storage: new MemoryStorage() }
+    const original = designWithMarker('original')
+    await writeAutosave(storage, original)
+    const autosave = { enabled: true, restore: true, restorePrecedence: 'saved-design' as const, storage }
+    const wrapper = mount(EmailBuilder, {
+      props: { design: original, autosave: { ...autosave, delay: 10 } },
+    })
+    try {
+      await flushPromises()
+      await wrapper.setProps({
+        design: designWithMarker('host edit'),
+        autosave: { ...autosave, delay: 20 },
+      })
+      await vi.advanceTimersByTimeAsync(20)
+
+      const vm = wrapper.vm as unknown as { getDesign: () => EmailDocument }
+      expect(vm.getDesign().settings.preheader).toBe('host edit')
+      expect((await readAutosave(storage))?.settings.preheader).toBe('host edit')
+      expect(wrapper.get('[data-action="undo"]').attributes('disabled')).toBeUndefined()
+    } finally {
+      wrapper.unmount()
+    }
+  })
+
+  it.each([true, false])('isolates undo after a key-only switch (stored draft: %s)', async (hasDraft) => {
+    vi.useFakeTimers()
+    const storage = new MemoryStorage()
+    const firstDestination = { type: 'local' as const, key: 'campaign-a', storage }
+    const secondDestination = { type: 'local' as const, key: 'campaign-b', storage }
+    if (hasDraft) await writeAutosave(secondDestination, designWithMarker('campaign B draft'))
+    const autosave = { enabled: true, restore: true, delay: 100 }
+    const wrapper = mount(EmailBuilder, {
+      props: { autosave: { ...autosave, storage: firstDestination } },
+    })
+    try {
+      await flushPromises()
+      await addFirstRow(wrapper)
+      const vm = wrapper.vm as unknown as { getDesign: () => EmailDocument }
+      const currentDesign = vm.getDesign()
+      expect(wrapper.get('[data-action="undo"]').attributes('disabled')).toBeUndefined()
+
+      await wrapper.setProps({ autosave: { ...autosave, storage: secondDestination } })
+      await flushPromises()
+
+      expect(vm.getDesign()).toEqual(hasDraft ? designWithMarker('campaign B draft') : currentDesign)
+      expect(wrapper.get('[data-action="undo"]').attributes('disabled')).toBeDefined()
+    } finally {
+      wrapper.unmount()
+    }
+  })
+
+  it('clears the previous campaign undo history even if the next baseline has the same content', async () => {
+    const storage = new MemoryStorage()
+    const wrapper = mount(EmailBuilder, {
+      props: { autosave: { enabled: true, storage: { type: 'local', key: 'campaign-a', storage } } },
+    })
+    try {
+      await addFirstRow(wrapper)
+      const vm = wrapper.vm as unknown as { getDesign: () => EmailDocument }
+      expect(wrapper.get('[data-action="undo"]').attributes('disabled')).toBeUndefined()
+
+      await wrapper.setProps({
+        design: vm.getDesign(),
+        autosave: { enabled: true, storage: { type: 'local', key: 'campaign-b', storage } },
+      })
+
+      expect(wrapper.get('[data-action="undo"]').attributes('disabled')).toBeDefined()
+    } finally {
+      wrapper.unmount()
+    }
   })
 
   it('restores a saved draft once with inline autosave config under saved-design precedence', async () => {

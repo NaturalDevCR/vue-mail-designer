@@ -10,7 +10,7 @@
             <BodyTab v-else-if="ui.sidebarTab === 'body'" />
             <ImagesPanel v-else-if="ui.sidebarTab === 'images'" />
             <ExportPanel v-else-if="ui.sidebarTab === 'export'" />
-            <AiTemplatePanel v-else-if="ui.sidebarTab === 'ai-templates'" embedded data-panel="ai-templates" />
+            <AiTemplatePanel v-else-if="ui.sidebarTab === 'ai-templates'" embedded data-panel="ai-templates" @error="emit('ai-templates-error', $event)" />
           </template>
         </div>
       </Transition>
@@ -34,7 +34,7 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
 import { useI18n } from '../i18n/useI18n'
-import { useBuilderOptions } from '../options'
+import { useBuilderOptions, type AiTemplateErrorPayload } from '../options'
 import { useDocumentStore } from '../store/document'
 import { useBuilderPinia } from '../store/keys'
 import { useUiStore } from '../store/ui'
@@ -52,6 +52,7 @@ const store = useDocumentStore(pinia)
 const ui = useUiStore(pinia)
 const { t } = useI18n()
 const options = useBuilderOptions()
+const emit = defineEmits<{ 'ai-templates-error': [payload: AiTemplateErrorPayload] }>()
 
 // clave de vista: cambia al alternar tab o al entrar/salir del modo propiedades.
 // No cambia al seleccionar distintos elementos (evita animar cada edición).

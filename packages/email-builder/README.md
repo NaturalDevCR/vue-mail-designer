@@ -181,6 +181,7 @@ See the full [Autosave guide](https://naturaldevcr.github.io/vue-mail-designer/g
 | `appearance` | `Appearance \| ThemeAppearance` | Builder colors. A flat object (`{ accent, panel, border, background, foreground, muted }`) applies to both modes. The union Appearance or ThemeAppearance also accepts `{ light?: Appearance, dark?: Appearance }` for mode-specific values; omitted fields keep that mode's defaults. |
 | `ai` | `AiOptions` | Optional Chrome built-in AI tools for the rich text editor: `{ enabled: boolean, languages?: AiLanguage[] }`. The menu is rendered only when enabled; `languages` configures Translate targets. Browser API availability is checked at runtime. |
 | `autosave` | `AutosaveOptions` | Optional draft persistence with local or custom storage, configurable save timing, optional restore, and precedence control. |
+| `versionHistory` | `VersionHistoryOptions` | Optional named snapshot persistence using `{ key, storage? }`. Defaults to `localStorage` when a key is provided. |
 | `tools` | `Partial<Record<BlockType, ToolConfig>>` | Per-block palette config: `{ enabled?, position?, usageLimit? }` to hide, reorder, or limit instances. |
 | `fonts` | `FontDef[]` | List of fonts (`{ label, value, url? }`); Google Fonts (`url`) are loaded both in the canvas and in the exported HTML. Defaults to a curated list. |
 | `specialLinks` | `SpecialLink[]` | Special links insertable from the editor (`{ name, href }`, e.g. an unsubscribe link). |
@@ -220,8 +221,13 @@ The callback receives the complete `TimerBlock`, so the host can use `endDate` a
 - `exportJson(): string` — the current editable design serialized as JSON.
 - `getDesign(): EmailDocument` — the current editable design object.
 - `loadDesign(doc): void` — replace the current design programmatically.
-- `exportImage(): Promise<string>` — PNG (data URL) of the design. Limitation: cross-origin images (CORS) can prevent the capture.
-- The **Export** tab in the right rail provides HTML, JSON, JSON import, Unlayer import, PNG, and version actions. Versions are saved/loaded/deleted in memory for the session.
+- `exportImage(): Promise<string>` — PNG (data URL) of the design. The browser may omit externally loaded images and fonts. Embedded images can be rendered without fetching external assets.
+- The **Export** tab in the right rail provides HTML, JSON, JSON import, Unlayer import, PNG, and version actions.
+- **Export → Pre-send review** checks the rendered email for missing alt text and unresolved `{{variable}}` placeholders before download.
+
+## Named versions
+
+Open **Export → Versions…** to save, restore, or delete named snapshots. Restoring a version can be undone in the editor. Versions are kept in memory by default. Pass `:version-history="{ key: 'campaign:spring-launch:versions' }"` to keep them across editor sessions in browser `localStorage`. Choose a distinct key for each campaign and for its autosave draft. Supply `storage` to use another `Storage` implementation.
 
 ## Email-safe social icons
 

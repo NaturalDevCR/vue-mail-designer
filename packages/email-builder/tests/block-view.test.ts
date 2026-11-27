@@ -1,7 +1,8 @@
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { describe, expect, it } from 'vitest'
-import { defineComponent, h, provide } from 'vue'
+import { createSSRApp, defineComponent, h, nextTick, provide } from 'vue'
+import { renderToString } from 'vue/server-renderer'
 import BlockView from '../src/components/BlockView.vue'
 import { createBlock } from '../src/schema'
 import type { Block } from '../src/schema'
@@ -37,7 +38,7 @@ describe('BlockView', () => {
     store.updateSettings({ linkColor: '#f0dc00' })
     return wrapper.vm.$nextTick().then(() => {
       const a = wrapper.find('.vmd-b-text a')
-      expect(a.attributes('style')).toContain('color:#f0dc00')
+      expect((a.element as HTMLElement).style.color).toBe('rgb(240, 220, 0)')
     })
   })
 
@@ -50,7 +51,7 @@ describe('BlockView', () => {
     store.updateSettings({ linkColor: '#f0dc00' })
     return wrapper.vm.$nextTick().then(() => {
       const a = wrapper.find('.vmd-b-text a')
-      expect(a.attributes('style')).toContain('color:#ff0000')
+      expect((a.element as HTMLElement).style.color).toBe('rgb(255, 0, 0)')
     })
   })
 
@@ -60,6 +61,62 @@ describe('BlockView', () => {
     block.style.align = 'center'
     const { wrapper } = mountBlock(block)
     expect(wrapper.find('.vmd-b-text').element.parentElement?.getAttribute('style')).toContain('text-align: center')
+  })
+
+  it('renders imported rich text with email formatting but without host identifiers and styles', async () => {
+    const block = createBlock('text')
+    if (block.type !== 'text') throw new Error('Expected a text block')
+    block.html = '<p id="sample" class="sample" style="text-align:right;outline:1px solid gray"><strong>Sample</strong> <a href="{{unsubscribe_url}}">Unsubscribe</a> <span class="vmd-mt sample" data-mt="{{first_name}}">First name</span></p>'
+    const { wrapper } = mountBlock(block)
+    await wrapper.vm.$nextTick()
+    const paragraph = wrapper.get('.vmd-b-text p')
+    expect(paragraph.attributes('id')).toBeUndefined()
+    expect(paragraph.attributes('class')).toBeUndefined()
+    expect((paragraph.element as HTMLElement).style.textAlign).toBe('right')
+    expect((paragraph.element as HTMLElement).style.outline).toBe('')
+    expect(paragraph.get('strong').text()).toBe('Sample')
+    expect(paragraph.get('a').attributes('href')).toBe('{{unsubscribe_url}}')
+    expect(paragraph.get('.vmd-mt').attributes('data-mt')).toBe('{{first_name}}')
+    expect(paragraph.get('.vmd-mt').classes()).toEqual(['vmd-mt'])
+    wrapper.unmount()
+  })
+
+  it('keeps raw email markup in a sandboxed canvas frame while the block remains selectable', async () => {
+    const block = createBlock('html')
+    if (block.type !== 'html') throw new Error('Expected an HTML block')
+    block.code = '<table><tr><td id="sample-cell">Example body</td></tr></table>'
+    const { wrapper, store } = mountBlock(block)
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('#sample-cell').exists()).toBe(false)
+    const frame = wrapper.get('iframe')
+    expect(frame.attributes('sandbox')).toBe('allow-same-origin')
+    expect(frame.attributes('srcdoc')).toContain('Example body')
+    expect(frame.attributes('srcdoc')).toContain("default-src 'none'")
+    expect((frame.element as HTMLElement).style.pointerEvents).toBe('none')
+    await wrapper.get('.vmd-block').trigger('click')
+    expect(store.selection).toEqual({ kind: 'block', id: block.id })
+    wrapper.unmount()
+  })
+
+  it('hydrates rich text after the client mounts', async () => {
+    const block = createBlock('text')
+    if (block.type !== 'text') throw new Error('Expected a text block')
+    block.html = '<p><strong>Hydrated sample</strong></p>'
+    const Host = defineComponent({
+      setup() {
+        provide(BUILDER_PINIA_KEY, createPinia())
+        return () => h(BlockView, { block })
+      },
+    })
+    const container = document.createElement('div')
+    container.innerHTML = await renderToString(createSSRApp(Host))
+    expect(container.querySelector('.vmd-b-text')?.textContent).toBe('')
+
+    const app = createSSRApp(Host)
+    app.mount(container)
+    await nextTick()
+    expect(container.querySelector('.vmd-b-text strong')?.textContent).toBe('Hydrated sample')
+    app.unmount()
   })
 
   it('divider no deja un hueco en blanco arriba del borde (gap de inline-block sin font-size:0)', () => {

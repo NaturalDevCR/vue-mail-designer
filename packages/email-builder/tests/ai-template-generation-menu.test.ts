@@ -68,6 +68,9 @@ describe('AiTemplateMenu', () => {
 
     expect(generate).toHaveBeenCalledWith(expect.objectContaining({ mode: 'create', prompt: 'Create a welcome email', count: 3 }))
     expect(findInBody('[data-action="ai-template-proposal-apply"]').exists()).toBe(true)
+    const frame = findInBody('iframe.vmd-ai-template-preview')
+    expect(frame.attributes('sandbox')).toBe('')
+    expect(frame.attributes('srcdoc')).toContain("default-src 'none'")
     wrapper.unmount()
   })
 

@@ -57,6 +57,40 @@ function designWithMarker(marker: string) {
 }
 
 describe('API pública de EmailBuilder', () => {
+  it('loads distinct stylesheets as their configured fonts are used', async () => {
+    const first = { label: 'First', value: 'First', url: 'https://fonts.example.com/styles/first.css' }
+    const second = { label: 'Second', value: 'Second', url: 'https://fonts.example.com/styles/second.css' }
+    const design = createDocument()
+    design.settings.fontFamily = first.value
+    const wrapper = mount(EmailBuilder, { props: { design, fonts: [first] } })
+    const stylesheets = () => Array.from(document.head.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]'))
+      .map((link) => link.href).filter((href) => href.startsWith('https://fonts.example.com/'))
+
+    try {
+      expect(stylesheets()).toEqual([first.url])
+      await wrapper.setProps({ design: { ...design, settings: { ...design.settings, fontFamily: second.value } }, fonts: [first, second] })
+      expect(stylesheets()).toEqual([first.url, second.url])
+    } finally {
+      wrapper.unmount()
+      document.head.querySelectorAll('link[href^="https://fonts.example.com/"]').forEach((link) => link.remove())
+    }
+  })
+
+  it('reports sidebar AI template provider errors even with the header hidden', async () => {
+    const error = new Error('Provider unavailable')
+    const wrapper = mount(EmailBuilder, {
+      props: { showHeader: false, aiTemplates: { enabled: true, generate: async () => { throw error } } },
+    })
+    await wrapper.get('[data-tab="ai-templates"]').trigger('click')
+    await wrapper.get('[data-action="ai-template-mode-create"]').trigger('click')
+    await wrapper.get('[data-field="ai-template-prompt"]').setValue('Welcome email')
+    await wrapper.get('[data-action="ai-template-run"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.emitted('ai-templates-error')).toEqual([[{ operation: 'generate', error }]])
+    wrapper.unmount()
+  })
+
   it('carga la prop design al montar', () => {
     const design = createDocument()
     design.rows.push(createRow([100]))

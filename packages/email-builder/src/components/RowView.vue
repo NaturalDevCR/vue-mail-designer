@@ -3,6 +3,7 @@
     ref="el"
     class="vmd-row"
     :class="{ 'vmd-selected': isSelected, 'vmd-drop-before': rowEdge === 'before', 'vmd-drop-after': rowEdge === 'after' }"
+    :style="rowStyles.outer"
     @click.stop="selectRow"
   >
     <!-- insertar fila arriba / abajo -->
@@ -13,20 +14,21 @@
       <span class="vmd-ico" v-html="ICONS.plus" />
     </button>
 
-    <!-- handle de arrastre y etiqueta — en el margen ancho del canvas, nunca sobre el
-         contenido (que vive centrado y más angosto en .vmd-row-inner) -->
+    <!-- El handle de arrastre y la etiqueta se anclan al borde exterior de la fila. -->
     <button ref="handle" type="button" class="vmd-row-handle vmd-mini-btn vmd-drag-handle" :title="t('props.move')"><span class="vmd-ico" v-html="ICONS.move" /></button>
     <span class="vmd-row-tag">{{ t('props.row') }}</span>
 
-    <!-- "body" de la fila: ancho de contenido, centrado — aquí vive el contenido real -->
-    <div class="vmd-row-inner" :style="rowInnerStyle">
+    <div class="vmd-row-inner" :style="rowStyles.content">
       <!-- mini-toolbar pegada al borde superior del contenido, igual que la de cada bloque -->
       <div class="vmd-row-actions">
         <button type="button" class="vmd-mini-btn" :title="t('props.rowSettings')" @click.stop="selectRow"><span class="vmd-ico" v-html="ICONS.settings" /></button>
         <button type="button" class="vmd-mini-btn" :title="t('props.duplicate')" @click.stop="store.duplicateRow(row.id)"><span class="vmd-ico" v-html="ICONS.duplicate" /></button>
         <button type="button" class="vmd-mini-btn vmd-mini-btn--danger" :title="t('props.delete')" @click.stop="store.removeRow(row.id)"><span class="vmd-ico" v-html="ICONS.trash" /></button>
       </div>
-      <div class="vmd-row-columns">
+      <button v-if="isHidden" type="button" class="vmd-row-hidden" @click.stop="selectRow">
+        {{ t('props.row') }} · {{ t('canvas.hiddenHere') }}
+      </button>
+      <div v-show="!isHidden" class="vmd-row-columns">
         <ColumnView v-for="column in row.columns" :key="column.id" :column="column" />
       </div>
     </div>
@@ -43,6 +45,7 @@ import { useUiStore } from '../store/ui'
 import { useI18n } from '../i18n/useI18n'
 import { useDraggableItem, useDropTarget } from '../dnd/usePragmatic'
 import { dropRow } from '../dnd/applyDrop'
+import { paddingCss } from '../render/html'
 import ColumnView from './ColumnView.vue'
 import { ICONS } from './icons'
 
@@ -53,21 +56,29 @@ const { t } = useI18n()
 const el = ref<HTMLElement | null>(null)
 const handle = ref<HTMLElement | null>(null)
 const isSelected = computed(() => store.selection?.kind === 'row' && store.selection.id === props.row.id)
+const isHidden = computed(() => (ui.canvasDevice === 'mobile' ? props.row.hideMobile : props.row.hideDesktop))
 
-const rowInnerStyle = computed<CSSProperties>(() => {
-  const s = props.row.style
-  const style: CSSProperties = {
+const rowStyles = computed(() => {
+  const outer: CSSProperties = {}
+  const content: CSSProperties = {
     maxWidth: props.contentWidth + 'px',
-    background: s.backgroundColor,
-    borderRadius: s.borderRadius + 'px',
+    marginLeft: store.doc.settings.contentAlignment === 'left' ? '0px' : undefined,
   }
-  if (s.backgroundImage && s.backgroundImage.url) {
-    style.backgroundImage = `url(${s.backgroundImage.url})`
-    style.backgroundSize = s.backgroundImage.size
-    style.backgroundPosition = s.backgroundImage.position
-    style.backgroundRepeat = s.backgroundImage.repeat
+  if (isHidden.value) return { outer, content }
+
+  const { backgroundColor, contentBackgroundColor, backgroundImage, padding, borderRadius } = props.row.style
+  if (backgroundColor && backgroundColor !== 'transparent') outer.backgroundColor = backgroundColor
+  content.backgroundColor = contentBackgroundColor
+  content.padding = paddingCss(padding)
+  content.borderRadius = borderRadius + 'px'
+  if (backgroundImage?.url) {
+    const layer = backgroundImage.fullWidth ? outer : content
+    layer.backgroundImage = `url(${JSON.stringify(backgroundImage.url)})`
+    layer.backgroundSize = backgroundImage.size
+    layer.backgroundPosition = backgroundImage.position
+    layer.backgroundRepeat = backgroundImage.repeat
   }
-  return style
+  return { outer, content }
 })
 
 function selectRow() {

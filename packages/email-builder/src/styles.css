@@ -1,4 +1,5 @@
 .vmd-root {
+  container-type: inline-size;
   --vmd-bg: #f4f4f5;
   --vmd-panel: #ffffff;
   --vmd-border: #e4e4e7;
@@ -44,25 +45,22 @@
 .vmd-btn--icon .vmd-ico svg { width: 18px; height: 18px; }
 .vmd-btn--icon.vmd-active { border-color: var(--vmd-accent); color: var(--vmd-accent); }
 
-/* superficie ancha del canvas: aquí viven las filas (position:relative, sin fondo propio) */
+/* La superficie del correo limita el fondo exterior y las filas. */
 .vmd-canvas-surface { position: relative; width: 100%; max-width: 1400px; margin: 0 auto; }
-/* franja del "body": ancho de contenido, centrada, absoluta detrás de las filas — su color
-   es el de doc.settings.backgroundColor y NO afecta el resto de la superficie del canvas */
+.vmd-canvas-surface[data-device='mobile'] { max-width: 375px; }
 .vmd-canvas-body-bg {
-  position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%);
-  margin: 0 auto; box-shadow: 0 1px 4px rgba(0,0,0,.12); pointer-events: none; z-index: 0;
-  transition: width 0.25s ease;
+  position: absolute; inset: 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,.12); pointer-events: none; z-index: 0;
 }
 .vmd-canvas-empty { position: relative; padding: 48px 16px; text-align: center; color: var(--vmd-muted); }
 .vmd-canvas-rows { position: relative; z-index: 1; min-height: 40px; }
 
-/* la fila ocupa toda la superficie del canvas: el hover/selección puede extenderse a los
-   márgenes sin pisar nunca el contenido (que vive centrado en .vmd-row-inner, más angosto).
+/* La fila ocupa toda la superficie del correo y el contenido vive en .vmd-row-inner.
    El hover de fila se suprime mientras el mouse está sobre un bloque anidado (:has() detecta
    ese caso), así el foco siempre "aterriza" en el elemento más específico bajo el cursor —
    salvo que la fila o alguno de sus bloques esté seleccionado, en cuyo caso ambos quedan
    visibles para poder alternar entre ellos con un clic. */
-.vmd-row { position: relative; border-radius: 4px; transition: background-color 0.12s ease, box-shadow 0.12s ease; }
+.vmd-row { position: relative; transition: background-color 0.12s ease, box-shadow 0.12s ease; }
 .vmd-row:hover:not(:has(.vmd-block:hover)),
 .vmd-row:has(.vmd-block.vmd-selected) {
   background-color: color-mix(in srgb, var(--vmd-accent) 6%, transparent);
@@ -70,6 +68,11 @@
 }
 .vmd-row.vmd-selected { background-color: color-mix(in srgb, var(--vmd-accent) 10%, transparent); box-shadow: inset 0 0 0 2px var(--vmd-accent); }
 .vmd-row-inner { position: relative; margin: 0 auto; box-sizing: border-box; }
+.vmd-row-hidden {
+  width: 100%; padding: 4px 8px; border: 1px dashed var(--vmd-border); border-radius: 4px;
+  background: var(--vmd-panel); color: var(--vmd-muted); font: inherit; font-size: 12px; text-align: left;
+  cursor: pointer;
+}
 
 /* handle de arrastre — flota en el margen ancho del canvas (fuera del "body") */
 .vmd-row-handle { position: absolute; top: 8px; right: 8px; z-index: 8; cursor: grab; }
@@ -107,8 +110,9 @@
 .vmd-ico { display: inline-flex; align-items: center; justify-content: center; line-height: 0; }
 .vmd-ico svg { width: 16px; height: 16px; display: block; }
 .vmd-mini-btn .vmd-ico svg { width: 15px; height: 15px; }
-.vmd-row-columns { display: flex; }
-.vmd-column { min-height: 0; }
+.vmd-row-columns { display: flex; flex-wrap: wrap; align-items: flex-start; }
+.vmd-canvas-surface[data-device='mobile'] .vmd-row-columns { flex-direction: column; }
+.vmd-column { flex: 0 0 auto; min-width: 0; min-height: 0; }
 /* la altura mínima solo aplica a columnas vacías (drop target); columnas con contenido
    se ajustan a su contenido para no dejar bandas en blanco (p.ej. divisores finos). */
 .vmd-column-blocks:empty { min-height: 24px; }
@@ -191,6 +195,7 @@ img.vmd-media-drop-active { outline: 2px solid var(--vmd-accent); outline-offset
 .vmd-b-table { width: 100%; }
 .vmd-b-table th, .vmd-b-table td { vertical-align: top; }
 .vmd-b-gallery { width: 100%; }
+.vmd-canvas-surface[data-device='mobile'] .vmd-b-gallery { grid-template-columns: 1fr !important; }
 .vmd-b-gallery-placeholder { padding: 12px; }
 .vmd-b-gallery-placeholder .vmd-ico svg { width: 20px; height: 20px; }
 .vmd-hidden-badge {
@@ -198,6 +203,9 @@ img.vmd-media-drop-active { outline: 2px solid var(--vmd-accent); outline-offset
   background: var(--vmd-accent); color: #fff; font-size: 10px; line-height: 1;
   padding: 3px 6px; border-radius: 4px; white-space: nowrap;
 }
+.vmd-block--hidden { display: flex; align-items: center; padding: 4px 8px; }
+.vmd-block--hidden > :not(.vmd-hidden-badge, .vmd-block-actions) { display: none; }
+.vmd-block--hidden > .vmd-hidden-badge { position: static; }
 .vmd-mt { background: color-mix(in srgb, var(--vmd-accent) 15%, transparent); border-radius: 3px; padding: 0 3px; }
 .vmd-rte { position: relative; }
 .vmd-rte .ProseMirror {
@@ -368,7 +376,7 @@ img.vmd-media-drop-active { outline: 2px solid var(--vmd-accent); outline-offset
 }
 .vmd-content-item:hover { border-color: var(--vmd-accent); box-shadow: 0 1px 4px rgba(0,0,0,.08); }
 .vmd-content-item svg { width: 24px; height: 24px; color: var(--vmd-muted); }
-.vmd-layout-thumb { display: flex; gap: 3px; padding: 6px; margin-bottom: 10px; border: 1px solid var(--vmd-border); border-radius: 8px; cursor: grab; height: 56px; box-sizing: border-box; }
+.vmd-layout-thumb { display: flex; gap: 3px; padding: 6px; margin-bottom: 10px; border: 1px solid var(--vmd-border); border-radius: 8px; background: var(--vmd-panel); cursor: grab; height: 56px; box-sizing: border-box; }
 .vmd-layout-thumb:hover { border-color: var(--vmd-accent); }
 .vmd-layout-cell { background: var(--vmd-bg); border: 1px solid var(--vmd-border); border-radius: 4px; }
 
@@ -414,13 +422,28 @@ img.vmd-media-drop-active { outline: 2px solid var(--vmd-accent); outline-offset
   --vmd-shadow-md: 0 12px 30px rgba(0, 0, 0, 0.3);
 }
 .vmd-overlay-root .vmd-modal { z-index: var(--vmd-z-modal); }
+.vmd-dialog {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: var(--vmd-fg);
+}
+.vmd-dialog::backdrop { background: transparent; }
 .vmd-modal { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.5); }
 .vmd-modal-box { background: var(--vmd-panel); border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.3); overflow: hidden; }
 .vmd-preview-box { width: 90vw; max-width: 900px; height: 88vh; display: flex; flex-direction: column; }
-.vmd-preview-bar { display: flex; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid var(--vmd-border); }
+.vmd-preview-bar { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--vmd-border); }
+.vmd-preview-bar .vmd-toolbar-group { flex-wrap: wrap; }
 .vmd-preview-width { width: 72px; }
-.vmd-preview-stage { flex: 1; overflow: auto; display: flex; justify-content: center; padding: 20px; background: #e4e4e7; }
-.vmd-preview-frame { height: 100%; border: 0; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,.15); transition: width .2s; }
+.vmd-preview-stage { flex: 1; overflow: auto; display: flex; justify-content: safe center; padding: 20px; background: #e4e4e7; }
+.vmd-preview-frame { flex: none; height: 100%; border: 0; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,.15); transition: width .2s; }
 
 .vmd-gallery-box { width: 90vw; max-width: 800px; max-height: 88vh; display: flex; flex-direction: column; }
 .vmd-gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; padding: 16px; overflow: auto; }
@@ -466,7 +489,9 @@ img.vmd-media-drop-active { outline: 2px solid var(--vmd-accent); outline-offset
 .vmd-header-btn:hover { background: var(--vmd-accent-soft); color: var(--vmd-accent); }
 .vmd-header-btn--icon { display: inline-flex; align-items: center; justify-content: center; }
 .vmd-header-btn--icon .vmd-ico svg { width: 17px; height: 17px; }
-.vmd-header-status { display: inline-flex; align-items: center; gap: 6px; padding: 6px 9px; border-radius: 999px; background: color-mix(in srgb, #22c55e 9%, var(--vmd-panel)); color: color-mix(in srgb, #16a34a 78%, var(--vmd-fg)); font-size: 11px; font-weight: 650; white-space: nowrap; }
+.vmd-header-status { display: inline-flex; align-items: center; gap: 6px; padding: 6px 9px; border-radius: 999px; background: var(--vmd-control); color: var(--vmd-muted); font-size: 11px; font-weight: 650; white-space: nowrap; }
+.vmd-header-status[data-status='saved'] { background: color-mix(in srgb, #22c55e 9%, var(--vmd-panel)); color: color-mix(in srgb, #16a34a 78%, var(--vmd-fg)); }
+.vmd-header-status[data-status='error'] { background: color-mix(in srgb, var(--vmd-danger) 12%, var(--vmd-panel)); color: color-mix(in srgb, var(--vmd-danger) 74%, var(--vmd-fg)); }
 .vmd-status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .vmd-export { position: relative; }
 .vmd-btn-export {
@@ -651,6 +676,8 @@ img.vmd-media-drop-active { outline: 2px solid var(--vmd-accent); outline-offset
   transform: translateY(-1px);
 }
 .vmd-btn:focus-visible,
+.vmd-content-item:focus-visible,
+.vmd-layout-thumb:focus-visible,
 .vmd-mini-btn:focus-visible,
 .vmd-header-btn:focus-visible,
 .vmd-btn-export:focus-visible,
@@ -818,16 +845,26 @@ img.vmd-media-drop-active { outline: 2px solid var(--vmd-accent); outline-offset
 .vmd-header-btn { padding: 7px; }
 .vmd-btn-export { box-shadow: 0 5px 14px color-mix(in srgb, var(--vmd-accent) 20%, transparent); }
 
-@media (max-width: 760px) {
+@container (max-width: 820px) {
+  .vmd-main { flex-direction: column; }
+  .vmd-canvas-area { min-height: 0; }
+  .vmd-sidepanel { flex: 0 0 42%; flex-direction: column; min-height: 0; border-left: 0; border-top: 1px solid var(--vmd-border); }
+  .vmd-sidepanel-content { flex: 1; width: auto; padding: 16px 12px; }
+  .vmd-rail { flex: none; flex-direction: row; width: auto; overflow-x: auto; padding: 2px 4px; border-left: 0; border-top: 1px solid var(--vmd-border); }
+  .vmd-rail button { flex: 1 0 52px; width: auto; min-height: 48px; margin: 2px; padding: 5px 2px; }
+  .vmd-rail button svg { width: 18px; height: 18px; }
+  .vmd-canvasbar { flex: none; }
+  .vmd-canvas { min-height: 0; padding: 16px; }
+}
+
+@container (max-width: 540px) {
   .vmd-header { padding: 0 12px; gap: 8px; }
   .vmd-header-leading { gap: 8px; }
-  .vmd-header-brand-name, .vmd-header-tab-label, .vmd-header-status-label { display: none; }
+  .vmd-header-brand-name, .vmd-header-tab-label { display: none; }
   .vmd-header-status { padding: 6px; }
   .vmd-header-tab { padding: 7px; }
   .vmd-btn-export-label { display: none; }
   .vmd-btn-export { padding: 0 9px; }
-  .vmd-canvas { padding: 16px; }
-  .vmd-sidepanel-content { width: min(320px, calc(100vw - 78px)); padding: 16px 12px; }
   .vmd-rte-toolbar { padding: 9px; }
   .vmd-rte-row { gap: 4px; }
 }
